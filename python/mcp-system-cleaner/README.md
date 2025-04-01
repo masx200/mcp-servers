@@ -59,6 +59,22 @@ uv pip install psutil
  mcp dev server.py
 ```
 
+### json配置
+
+```bash
+  "system_cleaner": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "path/mcp-servers/mcp/python/mcp-system-cleaner",
+        "run",
+        "server.py"
+      ],
+      "disabled": false,
+      "autoApprove": []
+    }
+```
+
 ### API 说明
 - 服务基于 MCP 协议提供以下核心工具：
 
