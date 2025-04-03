@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
+maintainers = [{ name = "FJC", email = "2581166083@qq.com" }]
 dependencies = [
     "httpx>=0.28.1",
     "mcp[cli]>=1.6.0",
@@ -11,3 +12,12 @@ dependencies = [
     "scikit-image>=0.25.2",
     "scipy>=1.15.2",
 ]
+
+[project.scripts]
+mcp-server-image-processing = "mcp-server-image-processing.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["mcp-server-image-processing"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
