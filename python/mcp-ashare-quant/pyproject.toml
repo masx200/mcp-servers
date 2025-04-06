@@ -1,0 +1,17 @@
+[project]
+name = "mcp-system-cleaner"
+version = "0.1.0"
+description = "为 AI Agent 提供跨平台系统垃圾清理服务，支持 Windows、macOS 和 Linux 系统文件清理和优化"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.28.1",
+    "matplotlib>=3.10.1",
+    "mcp[cli]>=1.5.0",
+    "mplfinance>=0.12.10b0",
+    "pandas>=2.2.3",
+    "requests>=2.32.3",
+]
+
+[tool.uv.workspace]
+members = ["mcp-system-cleaner"]
