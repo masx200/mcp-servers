@@ -1,0 +1,32 @@
+{
+  "name": "mcp-file-compression",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.8.0",
+    "7z-wasm": "^1.1.0",
+    "7zip-min": "^2.0.0",
+    "archiver": "^7.0.1",
+    "extract-zip": "^2.0.1",
+    "fs-extra": "^11.3.0",
+    "node-unrar-js": "^2.0.2",
+    "tar": "^7.4.3",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/archiver": "^6.0.3",
+    "@types/node": "^22.14.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.8.3"
+  }
+}
