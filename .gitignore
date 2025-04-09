@@ -40,6 +40,11 @@ wheels/
 # Ts & Js
 node_modules/
 dist/
+# Package dependency locks
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+.pnpm-store/
 
 #VSCode
 .history/
