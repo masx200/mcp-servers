@@ -37,5 +37,12 @@ wheels/
 .installed.cfg
 *.egg
 
+# Ts & Js
+node_modules/
+dist/
+
+#VSCode
+.history/
+
 # Logs
 *.log
