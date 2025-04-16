@@ -1,0 +1,24 @@
+{
+  "name": "mcp-server-qrcode",
+  "version": "1.0.0",
+  "description": "QR Code generation and decoding MCP server",
+  "main": "index.ts",
+  "scripts": {
+    "start": "node dist/index.js",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.9.0",
+    "axios": "^1.8.4",
+    "jimp": "^0.22.12",
+    "qrcode": "^1.5.3",
+    "qrcode-reader": "^1.0.4",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/qrcode": "^1.5.5",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.3.2"
+  }
+}
