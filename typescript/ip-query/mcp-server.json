@@ -1,0 +1,84 @@
+{
+  "name": "mcp-server/ip-query",
+  "version": "1.0.0",
+  "description": "IP地址查询MCP服务器",
+  "author": "MCP开发者",
+  "tools": [
+    {
+      "name": "get_my_ip",
+      "description": "查询当前IP地址及其地理位置信息",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "get_ip_location",
+      "description": "查询指定IP地址的地理位置信息",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "ip": {
+            "type": "string",
+            "description": "要查询的IP地址"
+          }
+        },
+        "required": ["ip"]
+      }
+    }
+  ],
+  "implementations": [
+    {
+      "language": "node",
+      "path": "node/index.ts",
+      "requirements": {
+        "node": ">=14.0.0",
+        "npm": ">=6.0.0"
+      },
+      "environmentVariables": [
+        {
+          "name": "ALIYUN_IP_API_KEY",
+          "description": "阿里云IP地址查询API的密钥",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "examples": [
+    {
+      "name": "查询当前IP地址",
+      "request": {
+        "name": "get_my_ip",
+        "arguments": {}
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"ip\":\"8.8.8.8\",\"country\":\"美国\",\"region\":\"加利福尼亚州\",\"city\":\"山景城\",\"isp\":\"Google LLC\"}"
+          }
+        ],
+        "isError": false
+      }
+    },
+    {
+      "name": "查询指定IP地址",
+      "request": {
+        "name": "get_ip_location",
+        "arguments": {
+          "ip": "8.8.8.8"
+        }
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"ip\":\"8.8.8.8\",\"country\":\"美国\",\"region\":\"加利福尼亚州\",\"city\":\"山景城\",\"isp\":\"Google LLC\"}"
+          }
+        ],
+        "isError": false
+      }
+    }
+  ]
+} 
