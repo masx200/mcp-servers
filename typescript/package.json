@@ -1,0 +1,21 @@
+{
+  "name": "mcp-servers",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monorepo for MCP servers",
+  "scripts": {
+    "build": "pnpm -r run build",
+    "dev": "pnpm -r run dev",
+    "start": "pnpm -r run start"
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/qrcode": "^1.5.5",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.3.2"
+  }
+}

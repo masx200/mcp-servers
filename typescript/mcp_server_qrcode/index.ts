@@ -8,6 +8,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import QRCode from 'qrcode';
 import Jimp from 'jimp';
+// @ts-ignore
 import QrCodeReader from 'qrcode-reader';
 import axios from 'axios';
 import { promises as fs } from 'fs';

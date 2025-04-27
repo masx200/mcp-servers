@@ -17,7 +17,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^0.1.0",
+   "@modelcontextprotocol/sdk": "^1.9.0",
     "@types/sharp": "^0.31.1",
     "sharp": "^0.33.2"
   },
