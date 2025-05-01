@@ -19,11 +19,21 @@ npm install
 # 编译TypeScript
 npm run build
 
-# 启动服务
-npm start
+# json配置如下
+{
+  "mcpServers": {
+    "mcp-server/qrcode": {
+      "command": "node",
+      "args": [
+        "mcp_server_qrcode/dist/index.js"
+      ],
+      "autoApprove": []
+    }
+  }
+}
 ```
 
-## 使用方法
+## 调用方法
 
 ### 生成二维码
 
@@ -37,7 +47,6 @@ npm start
     "outputPath": "/path/to/output/qrcode.png"
   }
 }
-```
 
 参数说明：
 - `text`: 要编码到二维码中的文本内容

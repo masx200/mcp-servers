@@ -15,5 +15,9 @@
     "qrcode": "^1.5.3",
     "qrcode-reader": "^1.0.4",
     "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/qrcode": "^1.5.5",
+    "typescript": "^5.8.3"
   }
 }
