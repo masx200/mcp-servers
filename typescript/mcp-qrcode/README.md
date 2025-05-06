@@ -1,6 +1,6 @@
 # MCP QRCode Server
 
-一个基于MCP协议的二维码生成和解码服务器，提供简单易用的二维码处理功能。
+一个基于MCP协议的二维码生成和解码服务器，为 AI Agent 提供简单易用的二维码处理功能。
 
 ## 功能特点
 
@@ -10,67 +10,39 @@
 - 支持自定义输出路径
 - 支持HTTP URL和本地文件路径
 
-## 安装
+## 安装与配置
 
 ```bash
 # 安装依赖
 npm install
 
-# 编译TypeScript
+# 构建项目
 npm run build
 
-# json配置如下
+# 构建完成后，在 ~/.cursor/mcp.json 中添加以下配置：
 {
   "mcpServers": {
     "mcp-server/qrcode": {
       "command": "node",
       "args": [
-        "mcp_server_qrcode/dist/index.js"
+        "你的项目路径/typescript/mcp-qrcode/dist/index.js"
       ],
-      "autoApprove": []
+      "autoApprove": [
+        "generate_qrcode",
+        "decode_qrcode"
+      ]
     }
   }
 }
 ```
 
-## 调用方法
+注意：
+1. 请将配置中的"你的项目路径"替换为实际的项目路径
+2. `autoApprove` 字段表示允许自动执行的命令，这里配置了 `generate_qrcode` 和 `decode_qrcode`
 
-### 生成二维码
+## 使用示例
 
-使用 `generate_qrcode` 工具生成二维码图片：
-
-```json
-{
-  "name": "generate_qrcode",
-  "arguments": {
-    "text": "要编码的文本内容",
-    "outputPath": "/path/to/output/qrcode.png"
-  }
-}
-
-参数说明：
-- `text`: 要编码到二维码中的文本内容
-- `outputPath`: 二维码图片的输出路径（包含文件名）
-
-### 解码二维码
-
-使用 `decode_qrcode` 工具解码二维码图片：
-
-```json
-{
-  "name": "decode_qrcode",
-  "arguments": {
-    "imagePath": "qrcode.png"
-  }
-}
-```
-
-参数说明：
-- `imagePath`: 二维码图片的路径，支持本地文件路径或HTTP URL
-
-## 示例
-
-### 生成二维码示例
+### 1. 生成二维码
 
 ```json
 {
@@ -92,7 +64,7 @@ npm run build
 }
 ```
 
-### 解码二维码示例
+### 2. 解码二维码
 
 ```json
 {
@@ -111,6 +83,23 @@ npm run build
   "decodedText": "https://example.com"
 }
 ```
+
+## 配置说明
+
+### 二维码生成
+- 支持自定义输出路径
+- 使用高纠错级别(H)，具有较强的容错能力
+- 支持多种图片格式（PNG、JPEG等）
+
+### 二维码解码
+- 支持本地文件路径
+- 支持HTTP URL（超时设置为10秒）
+- 支持多种图片格式
+
+### 安全特性
+- 自动验证输入参数
+- 安全的文件路径处理
+- 错误处理和日志记录
 
 ## 注意事项
 
