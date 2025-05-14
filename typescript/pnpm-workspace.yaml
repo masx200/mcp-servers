@@ -8,6 +8,9 @@ packages:
   - mcp-file-compression
   - mcp-news-headlines
   - mcp-traffic-info
+  - mcp-ip-query
+  - mcp-doc-info
+  - mcp-system-cleaner
 
 ignoredBuiltDependencies:
   - sharp
