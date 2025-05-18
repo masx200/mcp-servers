@@ -1,0 +1,66 @@
+{
+  "name": "mcp-trends-hub",
+  "version": "1.6.2",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": "./dist/index.cjs",
+  "description": "🔥 基于 Model Context Protocol (MCP) 协议的全网热点趋势一站式聚合服务",
+  "keywords": [
+    "mcp",
+    "trends"
+  ],
+  "author": "baranwang",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/baranwang/mcp-trends-hub.git"
+  },
+  "bugs": {
+    "url": "https://github.com/baranwang/mcp-trends-hub/issues"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.7.0",
+    "axios": "^1.8.4",
+    "dayjs": "^1.11.13",
+    "fast-xml-parser": "^5.0.9",
+    "zod": "^3.24.2",
+    "zod-to-json-schema": "^3.24.4",
+    "zod-validation-error": "^3.4.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@changesets/cli": "^2.28.1",
+    "@modelcontextprotocol/inspector": "^0.6.0",
+    "@rsbuild/core": "^1.2.19",
+    "@rslib/core": "^0.5.4",
+    "@types/node": "^22.8.1",
+    "lefthook": "^1.11.3",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.9"
+  },
+  "scripts": {
+    "build": "rslib build",
+    "check": "biome check --write",
+    "dev": "NODE_ENV=development rslib build --watch",
+    "format": "biome format --write",
+    "pretest": "npm run build",
+    "test": "vitest run",
+    "inspector": "mcp-inspector",
+    "version": "changeset version",
+    "postversion": "npm run build",
+    "prerelease": "npm run build",
+    "release": "changeset publish"
+  }
+}
