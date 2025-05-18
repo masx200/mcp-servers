@@ -679,7 +679,7 @@ const currencyData: CurrencyInfo[] = [
   ]
 
 function getApiKey(): string {
-  const apiKey = process.env.EXCHANGE_RATE_API_KEY;
+  const apiKey = process.env.key;
   if (!apiKey) {
     console.error("EXCHANGE_RATE_API_KEY environment variable is not set");
     process.exit(1);

@@ -1,6 +1,6 @@
 {
-  "name": "mcp-system-cleaner",
-  "version": "1.0.0",
+  "name": "@mcpcn/mcp-system-cleaner",
+  "version": "1.0.1",
   "description": "MCP System Cleaner - 系统清理工具",
   "main": "dist/index.js",
   "type": "module",
