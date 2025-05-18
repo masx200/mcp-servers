@@ -22,7 +22,7 @@
         "mcp-exchange-rate/dist/index.js"
       ],
       "env": {
-        "EXCHANGE_RATE_API_KEY": "API的APPCODE作为API密钥"
+        "key": "API的APPCODE作为API密钥"
       },
       "autoApprove": [
         "exchange_rate_convert",
