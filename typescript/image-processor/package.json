@@ -1,5 +1,5 @@
 {
-  "name": "image-processor",
+  "name": "@mcpcn/image-processor",
   "version": "1.0.0",
   "description": "MCP server for image processing",
   "main": "dist/index.js",
@@ -9,6 +9,13 @@
     "dev": "ts-node index.ts",
     "serve": "node dist/index.js"
   },
+  "bin": {
+    "mcp-ip-query": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "keywords": [
     "image",
     "processing",

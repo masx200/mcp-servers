@@ -1,5 +1,5 @@
 {
-  "name": "mcp-system-cleaner",
+  "name": "@mcpcn/mcp-system-cleaner",
   "version": "1.0.0",
   "description": "MCP System Cleaner - 系统清理工具",
   "main": "dist/index.js",
@@ -10,6 +10,13 @@
     "dev": "ts-node-esm src/index.ts",
     "test": "jest"
   },
+  "bin": {
+    "mcp-ip-query": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
     "node-fetch": "^3.3.0",

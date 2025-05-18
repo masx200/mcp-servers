@@ -1,6 +1,6 @@
 {
-  "name": "mcp-doc-info",
-  "version": "1.0.0",
+  "name": "@mcpcn/mcp-doc-info",
+  "version": "1.0.1",
   "description": "Document information and creation utility",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,8 +16,12 @@
     "help": "node dist/index.js --help"
   },
   "bin": {
-    "mcp-doc": "./dist/index.js"
+    "mcp-ip-query": "dist/index.js"
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "keywords": [
     "document",
     "office",

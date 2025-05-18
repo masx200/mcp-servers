@@ -1,5 +1,5 @@
 {
-  "name": "mcp-movie-info",
+  "name": "@mcpcn/mcp-movie-info",
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
@@ -12,12 +12,20 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "bin": {
+    "mcp-ip-query": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.0",
     "node-fetch": "^2.7.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.1",
+    "@types/node-fetch": "^2.6.12",
     "typescript": "^5.8.3"
   }
 }
