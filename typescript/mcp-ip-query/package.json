@@ -1,6 +1,6 @@
 {
   "name": "@mcpcn/mcp-ip-query",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "IP Query MCP Server",
   "main": "dist/index.js",
   "files": [
