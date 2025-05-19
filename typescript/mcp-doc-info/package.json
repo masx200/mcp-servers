@@ -4,8 +4,10 @@
   "description": "Document information and creation utility",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "type": "module",
   "scripts": {
     "build": "tsc",
+    "postbuild": "node -e \"if(process.platform !== 'win32') require('child_process').execSync('chmod +x dist/index.js')\"",
     "test": "jest",
     "start": "node dist/index.js",
     "prepare": "npm run build",
@@ -27,6 +29,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.11.2",
     "date-fns": "^2.30.0",
     "fs-extra": "^11.1.1"
   },

@@ -1,5 +1,13 @@
 #!/usr/bin/env node
 
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+  Tool,
+  ServerResult
+} from "@modelcontextprotocol/sdk/types.js";
 import { join, dirname, parse, sep } from 'path';
 import { existsSync } from 'fs';
 import { mkdir, writeFile as fsWriteFile } from 'fs/promises';
@@ -96,7 +104,6 @@ export async function openFile(path: string, software: SoftwareType): Promise<vo
       for (const possiblePath of possibleWpsPaths) {
         if (existsSync(possiblePath)) {
           wpsBinary = possiblePath;
-          console.log(`找到WPS可执行文件: ${wpsBinary}`);
           break;
         }
       }
@@ -122,7 +129,6 @@ export async function openFile(path: string, software: SoftwareType): Promise<vo
       for (const possiblePath of possibleOfficePaths) {
         if (existsSync(possiblePath)) {
           officeBinary = possiblePath;
-          console.log(`找到Office可执行文件: ${officeBinary}`);
           break;
         }
       }
@@ -163,14 +169,11 @@ export async function openFile(path: string, software: SoftwareType): Promise<vo
       command = `xdg-open "${path}"`;
     }
   }
-  
-  console.log(`执行打开文件命令: ${command}`);
 
   try {
     await execAsync(command);
   } catch (error) {
-    console.warn(`警告: 打开文件失败，尝试使用系统默认程序打开`);
-    
+    console.warn(`警告: 指定软件打开文件失败，尝试使用系统默认程序打开`);
     // 如果指定的程序打开失败，尝试使用默认程序
     try {
       const defaultCommand = platform() === 'win32' 
@@ -281,30 +284,26 @@ export async function generateUniquePath(path: string, overwrite: boolean): Prom
 }
 
 export async function checkSoftwareInstalled(software: SoftwareType): Promise<SoftwareType | null> {
-  console.log(`\n检测 ${software} 软件安装状态...`);
-  
   if (software === 'auto') {
-    console.log('自动检测模式：优先检测 Microsoft Office');
+    // 自动检测模式：优先检测 Microsoft Office
     const hasOffice = await checkSoftwareInstalled('office');
     if (hasOffice) {
-      console.log('检测到 Microsoft Office 已安装');
+      process.stderr.write('检测到 Microsoft Office 已安装\n');
       return 'office';
     }
     
-    console.log('Microsoft Office 未安装，尝试检测 WPS Office');
+    // Microsoft Office 未安装，尝试检测 WPS Office
     const hasWPS = await checkSoftwareInstalled('wps');
     if (hasWPS) {
-      console.log('检测到 WPS Office 已安装');
+      process.stderr.write('检测到 WPS Office 已安装\n');
       return 'wps';
     }
     
-    console.log('未检测到任何办公软件安装');
     return null;
   }
 
   const info = SOFTWARE_INFO[software];
   if (!info) {
-    console.log(`未知的软件类型: ${software}`);
     return null;
   }
 
@@ -321,32 +320,23 @@ export async function checkSoftwareInstalled(software: SoftwareType): Promise<So
     ];
     
     for (const path of wpsPaths) {
-      console.log(`检查WPS可执行文件: ${path}`);
       if (existsSync(path)) {
-        console.log(`找到WPS可执行文件: ${path}`);
         return 'wps';
       }
     }
   }
 
   // 首先检查预定义路径
-  console.log(`检查 ${info.name} 安装路径...`);
   for (const path of info.checkPaths) {
-    console.log(`检查路径: ${path}`);
     if (existsSync(path)) {
-      console.log(`在 ${path} 找到 ${info.name}`);
-      
       // Windows 平台上进一步验证 WPS 实际可执行文件
       if (platform() === 'win32' && software === 'wps') {
         // 检查 WPS 可执行文件
         const exePath = join(path, 'office6', 'wps.exe');
         if (existsSync(exePath)) {
-          console.log(`找到 WPS 可执行文件: ${exePath}`);
           return software;
         }
-        
         // 如果找不到wps.exe，继续检查其他路径
-        console.log(`在 ${path} 下未找到 wps.exe 可执行文件，继续检查其他路径`);
         continue;
       }
       
@@ -354,88 +344,27 @@ export async function checkSoftwareInstalled(software: SoftwareType): Promise<So
     }
   }
 
-  // 尝试使用系统命令查找安装路径
-  if (platform() !== 'win32') {
-    try {
-      console.log('尝试使用系统命令查找安装路径...');
-      
-      // 导入子进程模块
-      const { execSync } = require('child_process');
-      
-      // 根据软件类型和平台设置搜索命令
-      let command = '';
-      let searchPattern = '';
-      
-      if (software === 'wps') {
-        // WPS 搜索模式
-        searchPattern = 'wps';
-        
-        if (platform() === 'darwin') {
-          // macOS: 查找.app包
-          command = 'mdfind -name "WPS Office.app" 2>/dev/null || find /Applications -name "WPS*.app" 2>/dev/null || ls -d /Applications/WPS* 2>/dev/null';
-        } else {
-          // Linux: 查找可执行文件
-          command = 'which wps 2>/dev/null || which et 2>/dev/null || which wpp 2>/dev/null || find /usr -name "wps" -type f -executable 2>/dev/null || find /opt -name "wps" -type f -executable 2>/dev/null';
-        }
-      } else if (software === 'office') {
-        // Microsoft Office 搜索模式
-        searchPattern = platform() === 'darwin' ? 'Microsoft Word.app' : 'WINWORD';
-        
-        if (platform() === 'darwin') {
-          // macOS: 查找.app包
-          command = 'mdfind -name "Microsoft Word.app" 2>/dev/null || find /Applications -name "Microsoft*.app" 2>/dev/null || ls -d /Applications/Microsoft* 2>/dev/null';
-        } else {
-          // Linux: 查找可执行文件(wine可能安装了Office)
-          command = 'which winword 2>/dev/null || find /usr -name "winword" -type f -executable 2>/dev/null || find ~/.wine -name "WINWORD.EXE" 2>/dev/null';
-        }
-      }
-      
-      if (command) {
-        console.log(`执行命令: ${command}`);
-        const output = execSync(command, { encoding: 'utf8', shell: platform() === 'darwin' ? '/bin/zsh' : '/bin/bash' });
-        
-        if (output && output.trim()) {
-          const paths = output.trim().split('\n');
-          console.log(`找到可能的安装路径: ${paths.join(', ')}`);
-          
-          for (const path of paths) {
-            if (path && path.toLowerCase().includes(searchPattern.toLowerCase())) {
-              console.log(`通过系统命令找到 ${info.name} 安装路径: ${path}`);
-              return software;
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.warn('执行系统命令查找路径失败:', error);
-    }
-  }
-
   // 在Windows上使用注册表检查
   if (platform() === 'win32') {
     try {
-      console.log('尝试通过注册表检测...');
       // 使用require以便在浏览器环境中不会导致错误
       const { execSync } = require('child_process');
       const output = execSync('reg query "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths" /s').toString();
       
       if (software === 'office') {
         if (output.includes('WINWORD.EXE') || output.includes('EXCEL.EXE') || output.includes('POWERPNT.EXE')) {
-          console.log('通过注册表检测到 Microsoft Office 已安装');
           return 'office';
         }
       } else if (software === 'wps') {
         if (output.includes('wps.exe') || output.includes('et.exe') || output.includes('wpp.exe')) {
-          console.log('通过注册表检测到 WPS Office 已安装');
           return 'wps';
         }
       }
     } catch (error) {
-      console.warn('注册表查询失败:', error);
+      // 注册表查询失败，忽略错误继续执行
     }
   }
 
-  console.log(`未检测到 ${info.name} 安装`);
   return null;
 }
 
@@ -531,289 +460,284 @@ export async function createOfficeDocUtil(options: CreateOfficeDocOptions): Prom
   }
 }
 
-// ================== index.ts ==================
-export class OfficeDocCreator {
-  private async createEmptyFile(fullPath: string): Promise<void> {
-    try {
-      const dir = fullPath.substring(0, fullPath.lastIndexOf(sep));
-      ensureDirSync(dir);
-      
-      if (platform() === 'win32') {
-        await execAsync(`type nul > "${fullPath}"`);
-      } else {
-        await execAsync(`touch "${fullPath}"`);
+// 工具定义
+const CREATE_OFFICE_DOC_TOOL: Tool = {
+  name: "create_office_doc",
+  description: "创建新的办公文档，支持 Word、Excel 和 PowerPoint 格式",
+  inputSchema: {
+    type: "object",
+    properties: {
+      type: {
+        type: "string",
+        description: "文档类型 (word, excel, ppt)"
+      },
+      software: {
+        type: "string",
+        description: "使用的软件 (auto, office, wps)"
+      },
+      path: {
+        type: "string",
+        description: "保存路径"
+      },
+      filename: {
+        type: "string",
+        description: "文件名"
+      },
+      overwrite: {
+        type: "boolean",
+        description: "是否覆盖已存在文件"
+      },
+      openImmediately: {
+        type: "boolean",
+        description: "是否立即打开"
       }
-    } catch (error) {
-      throw new Error(`Failed to create empty file: ${error}`);
-    }
+    },
+    required: ["type"]
   }
-
-  private async openFile(fullPath: string): Promise<void> {
-    try {
-      if (platform() === 'win32') {
-        await execAsync(`start "" "${fullPath}"`);
-      } else if (platform() === 'darwin') {
-        await execAsync(`open "${fullPath}"`);
-      } else {
-        await execAsync(`xdg-open "${fullPath}"`);
-      }
-    } catch (error) {
-      console.warn(`Warning: Failed to open file: ${error}`);
-    }
-  }
-
-  public async createDoc(options: CreateOfficeDocOptions): Promise<string> {
-    const {
-      type,
-      software = 'auto',
-      path = getDesktopPath(),
-      filename,
-      overwrite = false,
-      openImmediately = true
-    } = options;
-
-    // 检查软件安装
-    if (software !== 'auto') {
-      if (!checkSoftwareInstalled(software)) {
-        throw new Error(`${software.toUpperCase()} is not installed`);
-      }
-    } else {
-      const hasOffice = checkSoftwareInstalled('office');
-      const hasWPS = checkSoftwareInstalled('wps');
-      
-      if (!hasOffice && !hasWPS) {
-        throw new Error('Neither Microsoft Office nor WPS Office is installed');
-      }
-    }
-
-    // 处理文件名
-    let finalFilename = filename || generateFileName(type);
-    finalFilename = sanitizeFileName(finalFilename);
-
-    // 确保文件扩展名正确
-    const extensions = FILE_EXTENSIONS[type];
-    if (!finalFilename.endsWith(extensions.new) && 
-        !finalFilename.endsWith(extensions.old)) {
-      finalFilename += extensions.new;
-    }
-
-    // 构建完整路径
-    let fullPath = join(path, finalFilename);
-
-    // 处理文件名冲突
-    if (!overwrite) {
-      let counter = 1;
-      let basePath = fullPath;
-      const { dir, name, ext } = parse(fullPath);
-      
-      while (existsSync(fullPath)) {
-        fullPath = join(dir, `${name}(${counter})${ext}`);
-        counter++;
-      }
-    }
-
-    // 创建空文件
-    await this.createEmptyFile(fullPath);
-
-    // 打开文件
-    if (openImmediately) {
-      await this.openFile(fullPath);
-    }
-
-    return fullPath;
-  }
-}
-
-// 导出默认实例
-export default new OfficeDocCreator();
-
-// 导出便捷方法
-export const createOfficeDoc = (options: CreateOfficeDocOptions) => {
-  return new OfficeDocCreator().createDoc(options);
 };
 
-export async function createOfficeDocument(options: CreateOfficeDocOptions): Promise<CreateDocResult> {
-  return createOfficeDocUtil(options);
-}
+const GET_SUPPORTED_SOFTWARE_TOOL: Tool = {
+  name: "get_supported_software",
+  description: "获取系统上已安装的办公软件信息",
+  inputSchema: {
+    type: "object",
+    properties: {}
+  }
+};
 
-// ================== example.ts ==================
-async function example() {
+const TOOLS = [
+  CREATE_OFFICE_DOC_TOOL,
+  GET_SUPPORTED_SOFTWARE_TOOL
+] as const;
+
+// 服务器设置
+const server = new Server(
+  {
+    name: "doc-info",
+    version: "1.0.0",
+  },
+  {
+    capabilities: {
+      tools: Object.fromEntries(
+        TOOLS.map(tool => [tool.name, tool])
+      ),
+    },
+  },
+);
+
+// 重定向控制台输出到 stderr，避免干扰 MCP 协议
+console.log = (...args) => {
+  const message = args.map(arg => 
+    typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+  ).join(' ');
+  process.stderr.write(`[INFO] ${message}\n`);
+};
+
+console.error = (...args) => {
+  const message = args.map(arg => 
+    typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+  ).join(' ');
+  process.stderr.write(`[ERROR] ${message}\n`);
+};
+
+console.warn = (...args) => {
+  const message = args.map(arg => 
+    typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+  ).join(' ');
+  process.stderr.write(`[WARN] ${message}\n`);
+};
+
+// 日志函数
+const logger = {
+  info: (...args: any[]) => {
+    const message = args.map(arg => 
+      typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+    ).join(' ');
+    process.stderr.write(`[INFO] ${message}\n`);
+  },
+  error: (...args: any[]) => {
+    const message = args.map(arg => 
+      typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+    ).join(' ');
+    process.stderr.write(`[ERROR] ${message}\n`);
+  },
+  warn: (...args: any[]) => {
+    const message = args.map(arg => 
+      typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+    ).join(' ');
+    process.stderr.write(`[WARN] ${message}\n`);
+  }
+};
+
+// 设置请求处理程序
+server.setRequestHandler(ListToolsRequestSchema, async () => ({
+  tools: TOOLS,
+}));
+
+server.setRequestHandler(CallToolRequestSchema, async (request): Promise<ServerResult> => {
   try {
-    console.log('===================== 运行示例 =====================');
-    console.log('\n创建年度报告Word文档...');
-    
-    // 创建工作汇报目录
-    const workReportDir = join(homedir(), '工作汇报');
-    await ensureDir(workReportDir);
-    
-    // 在工作汇报目录中创建年度报告.doc文件并通过WPS打开
-    const wordPath = await createOfficeDoc({
-      type: 'word',
-      filename: '年度报告.doc',  // 使用.doc扩展名
-      path: workReportDir,       // 放在~/工作汇报目录下
-      software: 'wps',           // 使用WPS打开
-      openImmediately: true,     // 自动打开
-      overwrite: false           // 非覆盖模式，如果文件存在则自动重命名为年度报告(1).doc
+    switch (request.params.name) {
+      case "create_office_doc": {
+        const args = request.params.arguments || {};
+        
+        // 处理类型验证
+        if (!args.type || typeof args.type !== 'string' || 
+            !['word', 'excel', 'ppt'].includes(args.type)) {
+          return {
+            content: [{ 
+              type: "text", 
+              text: JSON.stringify({
+                success: false, 
+                error: "无效的文档类型，必须是word、excel或ppt"
+              })
+            }],
+            isError: true
+          };
+        }
+        
+        // 验证软件类型
+        if (args.software !== undefined && 
+            typeof args.software === 'string' && 
+            !['auto', 'office', 'wps'].includes(args.software)) {
+          return {
+            content: [{ 
+              type: "text", 
+              text: JSON.stringify({
+                success: false, 
+                error: "无效的软件类型，必须是auto、office或wps"
+              })
+            }],
+            isError: true
+          };
+        }
+        
+        // 构建参数对象
+        const options: CreateOfficeDocOptions = {
+          type: args.type as DocType,
+        };
+        
+        // 处理可选参数
+        if (args.software !== undefined) options.software = args.software as SoftwareType;
+        if (args.path !== undefined) options.path = args.path as string;
+        if (args.filename !== undefined) options.filename = args.filename as string;
+        if (args.overwrite !== undefined) options.overwrite = !!args.overwrite;
+        if (args.openImmediately !== undefined) options.openImmediately = !!args.openImmediately;
+        
+        const result = await createOfficeDocUtil(options);
+        
+        return {
+          content: [{ type: "text", text: JSON.stringify(result) }],
+          isError: !result.success
+        };
+      }
+
+      case "get_supported_software": {
+        const hasOffice = await checkSoftwareInstalled('office');
+        const hasWPS = await checkSoftwareInstalled('wps');
+        const result = {
+          office: hasOffice !== null,
+          wps: hasWPS !== null
+        };
+        
+        return {
+          content: [{ type: "text", text: JSON.stringify(result) }],
+          isError: false
+        };
+      }
+
+      default:
+        return {
+          content: [{
+            type: "text",
+            text: JSON.stringify({
+              success: false,
+              error: `未知工具: ${request.params.name}`
+            })
+          }],
+          isError: true
+        };
+    }
+  } catch (error) {
+    return {
+      content: [{
+        type: "text",
+        text: JSON.stringify({
+          success: false,
+          error: `错误: ${error instanceof Error ? error.message : String(error)}`
+        })
+      }],
+      isError: true
+    };
+  }
+});
+
+// 启动服务器
+async function runServer() {
+  try {
+    // 设置进程错误处理
+    process.on('uncaughtException', (error) => {
+      logger.error(`未捕获的异常: ${error instanceof Error ? error.message : String(error)}`);
     });
     
-    console.log('文档已创建:', wordPath);
+    process.on('unhandledRejection', (reason) => {
+      logger.error(`未处理的 Promise 拒绝: ${reason instanceof Error ? reason.message : String(reason)}`);
+    });
+
+    // 设置退出处理
+    process.on('SIGINT', () => {
+      logger.info('正在关闭 MCP 服务器...');
+      process.exit(0);
+    });
+
+    // 启动服务器
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
+    logger.info("文档创建 MCP 服务器已通过 stdio 运行");
   } catch (error) {
-    console.error('创建文档失败:', error);
-  }
-}
-
-// ================== cli.ts ==================
-async function cli(args: string[]) {
-  try {
-    console.log('开始创建文档...');
-    console.log('当前操作系统:', platform());
-    
-    // 解析命令行参数
-    const options: CreateOfficeDocOptions = parseCommandLineArgs(args);
-    console.log('使用以下配置创建文档:');
-    console.log('- 文档类型:', options.type);
-    console.log('- 使用软件:', options.software || 'auto');
-    console.log('- 保存路径:', options.path || getDesktopPath());
-    console.log('- 文件名:', options.filename || '(自动生成)');
-    console.log('- 覆盖已存在文件:', options.overwrite === true ? '是' : '否');
-    console.log('- 立即打开文件:', options.openImmediately === false ? '否' : '是');
-    
-    // 确保目录存在
-    if (options.path) {
-      await ensureDir(options.path);
-    }
-    
-    // 创建文档
-    console.log('\n开始创建文档...');
-    
-    const result = await createOfficeDocUtil(options);
-    
-    if (result.success) {
-      console.log('\n文档已成功创建:', result.path);
-      if (result.warnings?.length) {
-        console.warn('警告:', result.warnings.join('\n'));
-      }
-    } else {
-      console.error('\n创建文档失败:', result.error);
-      process.exit(1);
-    }
-
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error('程序执行失败:', error.message);
-      console.error('错误详情:', error.stack);
-    } else {
-      console.error('程序执行失败:', error);
-    }
+    logger.error(`服务器启动失败: ${error instanceof Error ? error.message : String(error)}`);
     process.exit(1);
   }
 }
 
-// 解析命令行参数
-function parseCommandLineArgs(args: string[]): CreateOfficeDocOptions {
-  const options: CreateOfficeDocOptions = {
-    type: 'word' // 默认值
-  };
-  
-  // 移除第一个和第二个参数（node和脚本路径）
-  args = args.slice(2);
-  
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-    
-    switch (arg) {
-      case '--type':
-      case '-t':
-        const type = args[++i]?.toLowerCase();
-        if (type === 'word' || type === 'excel' || type === 'ppt') {
-          options.type = type as DocType;
-        } else {
-          throw new Error(`无效的文档类型: ${type}，必须是 word、excel 或 ppt`);
-        }
-        break;
-        
-      case '--software':
-      case '-s':
-        const software = args[++i]?.toLowerCase();
-        if (software === 'auto' || software === 'office' || software === 'wps') {
-          options.software = software as SoftwareType;
-        } else {
-          throw new Error(`无效的软件类型: ${software}，必须是 auto、office 或 wps`);
-        }
-        break;
-        
-      case '--path':
-      case '-p':
-        options.path = args[++i];
-        break;
-        
-      case '--filename':
-      case '-f':
-        options.filename = args[++i];
-        break;
-        
-      case '--overwrite':
-      case '-o':
-        const overwrite = args[++i]?.toLowerCase();
-        if (overwrite === 'true' || overwrite === '1' || overwrite === 'yes') {
-          options.overwrite = true;
-        } else if (overwrite === 'false' || overwrite === '0' || overwrite === 'no') {
-          options.overwrite = false;
-        } else {
-          throw new Error(`无效的覆盖选项: ${overwrite}，必须是 true/1/yes 或 false/0/no`);
-        }
-        break;
-        
-      case '--open':
-        const open = args[++i]?.toLowerCase();
-        if (open === 'true' || open === '1' || open === 'yes') {
-          options.openImmediately = true;
-        } else if (open === 'false' || open === '0' || open === 'no') {
-          options.openImmediately = false;
-        } else {
-          throw new Error(`无效的打开选项: ${open}，必须是 true/1/yes 或 false/0/no`);
-        }
-        break;
-        
-      case '--help':
-      case '-h':
-        showHelp();
-        process.exit(0);
-        break;
-        
-      default:
-        throw new Error(`未知的参数: ${arg}`);
-    }
-  }
-  
-  return options;
-}
+// 处理命令行模式
+if (process.argv.includes('--help') || process.argv.includes('-h')) {
+  logger.info(`
+文档创建 MCP 服务器 - 帮助信息
 
-// 显示帮助信息
-function showHelp() {
-  console.log(`
-使用方法: npm start -- [选项]
+说明:
+  此服务用于在 Cursor 中通过 MCP 框架创建和管理 Office 文档，支持 Word、Excel 和 PowerPoint。
+
+使用方法: 
+  npm start -- [选项]
 
 选项:
-  --type, -t      文档类型 (word/excel/ppt，默认: word)
-  --software, -s  使用软件 (auto/office/wps，默认: auto)
-  --path, -p      保存路径 (不指定则保存到系统桌面)
-  --filename, -f  文件名 (不指定则按规则自动生成)
-  --overwrite, -o 是否覆盖已存在文件 (true/false，默认: false)
-  --open          是否立即打开 (true/false，默认: true)
   --help, -h      显示此帮助信息
 
-示例:
-  npm start -- --type word --software wps --path ~/Documents --filename 报告.doc
-  npm start -- -t excel -s office -f 财务数据.xlsx --overwrite true
-  `);
-}
+工具:
+  create_office_doc       - 创建新的办公文档
+  get_supported_software  - 获取系统上已安装的办公软件信息
 
-// 当直接运行此文件时，执行CLI
-if (require.main === module) {
-  console.log('正在处理命令行参数...');
-  cli(process.argv).catch(error => {
-    console.error('执行CLI时出错:', error);
+配置示例 (~/.cursor/mcp.json):
+{
+  "mcpServers": {
+    "doc-info": {
+      "command": "node",
+      "args": [
+        "项目路径/typescript/mcp-doc-info/dist/index.js"
+      ],
+      "autoApprove": [
+        "create_office_doc",
+        "get_supported_software"
+      ]
+    }
+  }
+}
+  `);
+  process.exit(0);
+} else {
+  logger.info("正在启动文档创建 MCP 服务器...");
+  runServer().catch((error) => {
+    logger.error(`运行服务器时发生致命错误: ${error instanceof Error ? error.message : String(error)}`);
     process.exit(1);
   });
 }
