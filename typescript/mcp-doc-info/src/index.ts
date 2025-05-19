@@ -85,7 +85,7 @@ export async function exists(path: string): Promise<boolean> {
 export async function openFile(path: string, software: SoftwareType): Promise<void> {
   // 根据平台和软件类型构建命令
   let command = '';
-  
+
   if (platform() === 'win32') {
     // Windows平台
     if (software === 'wps') {
@@ -99,7 +99,7 @@ export async function openFile(path: string, software: SoftwareType): Promise<vo
         join(homedir(), 'AppData', 'Local', 'Kingsoft', 'WPS Office', 'ksolaunch.exe'),
         join(homedir(), 'AppData', 'Local', 'Kingsoft', 'WPS Office', 'office6', 'wps.exe')
       ];
-      
+
       let wpsBinary = '';
       for (const possiblePath of possibleWpsPaths) {
         if (existsSync(possiblePath)) {
@@ -107,7 +107,7 @@ export async function openFile(path: string, software: SoftwareType): Promise<vo
           break;
         }
       }
-      
+
       if (wpsBinary) {
         // 使用确切的WPS可执行文件路径和start命令（避免命令行窗口）
         command = `start "" "${wpsBinary}" "${path}"`;
@@ -124,7 +124,7 @@ export async function openFile(path: string, software: SoftwareType): Promise<vo
         'C:\\Program Files\\Microsoft Office\\Office16\\WINWORD.EXE',
         'C:\\Program Files (x86)\\Microsoft Office\\Office16\\WINWORD.EXE'
       ];
-      
+
       let officeBinary = '';
       for (const possiblePath of possibleOfficePaths) {
         if (existsSync(possiblePath)) {
@@ -132,7 +132,7 @@ export async function openFile(path: string, software: SoftwareType): Promise<vo
           break;
         }
       }
-      
+
       if (officeBinary) {
         // 使用确切的Office可执行文件路径和start命令
         command = `start "" "${officeBinary}" "${path}"`;
@@ -147,8 +147,28 @@ export async function openFile(path: string, software: SoftwareType): Promise<vo
   } else if (platform() === 'darwin') {
     // macOS平台
     if (software === 'wps') {
-      // 尝试使用WPS打开
-      command = `open -a "WPS Office" "${path}" || open "${path}"`;
+      // 检查WPS Office是否存在特定路径
+      const wpsPaths = [
+        '/Applications/wpsoffice.app',
+        '/Applications/WPS Office.app'
+      ];
+
+      let wpsPath = '';
+      for (const possiblePath of wpsPaths) {
+        if (existsSync(possiblePath)) {
+          wpsPath = possiblePath;
+          break;
+        }
+      }
+
+      // 优先使用找到的WPS路径，其次尝试通用名称，最后用默认程序打开
+      if (wpsPath) {
+        command = `open -a "${wpsPath}" "${path}" || open "${path}"`;
+        process.stderr.write(`使用WPS路径: ${wpsPath} 打开文件\n`);
+      } else {
+        // 尝试使用WPS Office常见名称
+        command = `open -a "WPS Office" "${path}" || open -a "wpsoffice" "${path}" || open "${path}"`;
+      }
     } else if (software === 'office') {
       // 尝试使用MS Office打开
       command = `open -a "Microsoft Word" "${path}" || open "${path}"`;
@@ -171,17 +191,18 @@ export async function openFile(path: string, software: SoftwareType): Promise<vo
   }
 
   try {
+    process.stderr.write(`执行命令: ${command}\n`);
     await execAsync(command);
   } catch (error) {
     console.warn(`警告: 指定软件打开文件失败，尝试使用系统默认程序打开`);
     // 如果指定的程序打开失败，尝试使用默认程序
     try {
-      const defaultCommand = platform() === 'win32' 
+      const defaultCommand = platform() === 'win32'
         ? `start "" "${path}"`
         : platform() === 'darwin'
           ? `open "${path}"`
           : `xdg-open "${path}"`;
-          
+
       await execAsync(defaultCommand);
     } catch (fallbackError) {
       throw new Error(`无法打开文件: ${error instanceof Error ? error.message : String(error)}\n备用命令也失败: ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)}`);
@@ -226,6 +247,9 @@ export const SOFTWARE_INFO: Partial<Record<SoftwareType, SoftwareInfo>> = {
   wps: {
     name: 'WPS Office',
     checkPaths: [
+      // macOS 路径 - 将 wpsoffice.app 放在最前面
+      '/Applications/wpsoffice.app',
+      '/Applications/WPS Office.app',
       // Windows 路径
       'C:\\Program Files\\Kingsoft\\WPS Office',
       'C:\\Program Files (x86)\\Kingsoft\\WPS Office',
@@ -238,9 +262,6 @@ export const SOFTWARE_INFO: Partial<Record<SoftwareType, SoftwareInfo>> = {
       'C:\\Program Files\\WPS Office 2016',
       'C:\\Program Files (x86)\\WPS Office 2016',
       join(homedir(), 'AppData', 'Local', 'Kingsoft', 'WPS Office'),
-      // macOS 路径
-      '/Applications/WPS Office.app',
-      '/Applications/wpsoffice.app',
       // Linux 路径
       '/usr/bin/wps',
       '/usr/bin/wpp',
@@ -291,20 +312,38 @@ export async function checkSoftwareInstalled(software: SoftwareType): Promise<So
       process.stderr.write('检测到 Microsoft Office 已安装\n');
       return 'office';
     }
-    
+
     // Microsoft Office 未安装，尝试检测 WPS Office
     const hasWPS = await checkSoftwareInstalled('wps');
     if (hasWPS) {
       process.stderr.write('检测到 WPS Office 已安装\n');
       return 'wps';
     }
-    
+
     return null;
   }
 
   const info = SOFTWARE_INFO[software];
   if (!info) {
     return null;
+  }
+
+  // macOS 平台上的特殊处理
+  if (platform() === 'darwin' && software === 'wps') {
+    // 在macOS上特别检查WPS常见的可执行文件路径
+    const wpsPaths = [
+      '/Applications/wpsoffice.app',
+      '/Applications/WPS Office.app',
+      '/Applications/wpsoffice.app/Contents/MacOS/wpsoffice',
+      '/Applications/WPS Office.app/Contents/MacOS/wpsoffice'
+    ];
+
+    for (const path of wpsPaths) {
+      if (existsSync(path)) {
+        process.stderr.write(`检测到 WPS Office 安装在: ${path}\n`);
+        return 'wps';
+      }
+    }
   }
 
   // Windows 平台上的特殊处理
@@ -318,7 +357,7 @@ export async function checkSoftwareInstalled(software: SoftwareType): Promise<So
       join(homedir(), 'AppData', 'Local', 'Kingsoft', 'WPS Office', 'ksolaunch.exe'),
       join(homedir(), 'AppData', 'Local', 'Kingsoft', 'WPS Office', 'office6', 'wps.exe')
     ];
-    
+
     for (const path of wpsPaths) {
       if (existsSync(path)) {
         return 'wps';
@@ -339,7 +378,7 @@ export async function checkSoftwareInstalled(software: SoftwareType): Promise<So
         // 如果找不到wps.exe，继续检查其他路径
         continue;
       }
-      
+
       return software;
     }
   }
@@ -350,7 +389,7 @@ export async function checkSoftwareInstalled(software: SoftwareType): Promise<So
       // 使用require以便在浏览器环境中不会导致错误
       const { execSync } = require('child_process');
       const output = execSync('reg query "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths" /s').toString();
-      
+
       if (software === 'office') {
         if (output.includes('WINWORD.EXE') || output.includes('EXCEL.EXE') || output.includes('POWERPNT.EXE')) {
           return 'office';
@@ -527,21 +566,21 @@ const server = new Server(
 
 // 重定向控制台输出到 stderr，避免干扰 MCP 协议
 console.log = (...args) => {
-  const message = args.map(arg => 
+  const message = args.map(arg =>
     typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
   ).join(' ');
   process.stderr.write(`[INFO] ${message}\n`);
 };
 
 console.error = (...args) => {
-  const message = args.map(arg => 
+  const message = args.map(arg =>
     typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
   ).join(' ');
   process.stderr.write(`[ERROR] ${message}\n`);
 };
 
 console.warn = (...args) => {
-  const message = args.map(arg => 
+  const message = args.map(arg =>
     typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
   ).join(' ');
   process.stderr.write(`[WARN] ${message}\n`);
@@ -550,19 +589,19 @@ console.warn = (...args) => {
 // 日志函数
 const logger = {
   info: (...args: any[]) => {
-    const message = args.map(arg => 
+    const message = args.map(arg =>
       typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
     ).join(' ');
     process.stderr.write(`[INFO] ${message}\n`);
   },
   error: (...args: any[]) => {
-    const message = args.map(arg => 
+    const message = args.map(arg =>
       typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
     ).join(' ');
     process.stderr.write(`[ERROR] ${message}\n`);
   },
   warn: (...args: any[]) => {
-    const message = args.map(arg => 
+    const message = args.map(arg =>
       typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
     ).join(' ');
     process.stderr.write(`[WARN] ${message}\n`);
@@ -579,52 +618,52 @@ server.setRequestHandler(CallToolRequestSchema, async (request): Promise<ServerR
     switch (request.params.name) {
       case "create_office_doc": {
         const args = request.params.arguments || {};
-        
+
         // 处理类型验证
-        if (!args.type || typeof args.type !== 'string' || 
-            !['word', 'excel', 'ppt'].includes(args.type)) {
+        if (!args.type || typeof args.type !== 'string' ||
+          !['word', 'excel', 'ppt'].includes(args.type)) {
           return {
-            content: [{ 
-              type: "text", 
+            content: [{
+              type: "text",
               text: JSON.stringify({
-                success: false, 
+                success: false,
                 error: "无效的文档类型，必须是word、excel或ppt"
               })
             }],
             isError: true
           };
         }
-        
+
         // 验证软件类型
-        if (args.software !== undefined && 
-            typeof args.software === 'string' && 
-            !['auto', 'office', 'wps'].includes(args.software)) {
+        if (args.software !== undefined &&
+          typeof args.software === 'string' &&
+          !['auto', 'office', 'wps'].includes(args.software)) {
           return {
-            content: [{ 
-              type: "text", 
+            content: [{
+              type: "text",
               text: JSON.stringify({
-                success: false, 
+                success: false,
                 error: "无效的软件类型，必须是auto、office或wps"
               })
             }],
             isError: true
           };
         }
-        
+
         // 构建参数对象
         const options: CreateOfficeDocOptions = {
           type: args.type as DocType,
         };
-        
+
         // 处理可选参数
         if (args.software !== undefined) options.software = args.software as SoftwareType;
         if (args.path !== undefined) options.path = args.path as string;
         if (args.filename !== undefined) options.filename = args.filename as string;
         if (args.overwrite !== undefined) options.overwrite = !!args.overwrite;
         if (args.openImmediately !== undefined) options.openImmediately = !!args.openImmediately;
-        
+
         const result = await createOfficeDocUtil(options);
-        
+
         return {
           content: [{ type: "text", text: JSON.stringify(result) }],
           isError: !result.success
@@ -638,7 +677,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request): Promise<ServerR
           office: hasOffice !== null,
           wps: hasWPS !== null
         };
-        
+
         return {
           content: [{ type: "text", text: JSON.stringify(result) }],
           isError: false
@@ -678,7 +717,7 @@ async function runServer() {
     process.on('uncaughtException', (error) => {
       logger.error(`未捕获的异常: ${error instanceof Error ? error.message : String(error)}`);
     });
-    
+
     process.on('unhandledRejection', (reason) => {
       logger.error(`未处理的 Promise 拒绝: ${reason instanceof Error ? reason.message : String(reason)}`);
     });
