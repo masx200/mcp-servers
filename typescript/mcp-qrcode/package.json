@@ -1,5 +1,5 @@
 {
-  "name": "mcp-server-qrcode",
+  "name": "@mcpcn/mcp-server-qrcode",
   "version": "1.0.0",
   "description": "QR Code generation and decoding MCP server",
   "main": "dist/index.js",
@@ -8,6 +8,13 @@
     "build": "tsc",
     "dev": "ts-node src/index.ts"
   },
+  "bin": {
+    "mcp-ip-query": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.9.0",
     "axios": "^1.8.4",

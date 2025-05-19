@@ -1,5 +1,5 @@
 {
-  "name": "mcp-exchange-rate",
+  "name": "@mcpcn/mcp-exchange-rate",
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
@@ -9,6 +9,13 @@
     "dev": "ts-node src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "bin": {
+    "mcp-ip-query": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -18,6 +25,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.14.1",
+    "@types/node-fetch": "^2.6.12",
     "typescript": "^5.8.3"
   }
 }

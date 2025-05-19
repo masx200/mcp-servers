@@ -1,5 +1,5 @@
 {
-  "name": "mcp-file-compression",
+  "name": "@mcpcn/file-compression",
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
@@ -12,6 +12,13 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "bin": {
+    "mcp-ip-query": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.0",
     "7z-wasm": "^1.1.0",

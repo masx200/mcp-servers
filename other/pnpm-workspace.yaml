@@ -1,0 +1,13 @@
+packages:
+  - mcp-server-baidu-map
+  - amap-maps-mcp-server
+  - edgeone-pages-mcp
+  - mcp-server-hotnews
+  - mcp-trends-hub
+  - server-sequential-thinking
+  - playwright
+
+
+
+ignoredBuiltDependencies:
+  - sharp

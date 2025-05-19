@@ -6,7 +6,8 @@
   "scripts": {
     "build": "pnpm -r run build",
     "dev": "pnpm -r run dev",
-    "start": "pnpm -r run start"
+    "start": "pnpm -r run start",
+    "publish": "node scripts/publish-package.js"
   },
   "engines": {
     "node": ">=18",
