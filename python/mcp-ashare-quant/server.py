@@ -9,6 +9,7 @@ from ashare import get_price
 from mytt import *
 import requests
 import re
+import sys
 
 
 def get_stock_code_by_name(name: str) -> Optional[str]:
@@ -74,7 +75,8 @@ mcp = FastMCP(name="quant-analysis", log_level="ERROR")
 # 配置日志
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    stream=sys.stderr  # 日志输出到 stderr
 )
 logger = logging.getLogger(__name__)
 

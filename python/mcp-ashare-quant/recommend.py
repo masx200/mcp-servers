@@ -1,3 +1,4 @@
+import sys
 import requests
 import pandas as pd
 from datetime import datetime
@@ -7,7 +8,7 @@ import random
 
 def get_stock_data():
     """从东方财富网API获取A股股票数据"""
-    print("正在获取股票数据...")
+    print("正在获取股票数据...", file=sys.stderr)
 
     url = "http://72.push2.eastmoney.com/api/qt/clist/get"
 
@@ -31,24 +32,24 @@ def get_stock_data():
     try:
         response = requests.get(url, params=params, headers=headers, timeout=10)
 
-        print(f"API响应状态码: {response.status_code}")
+        print(f"API响应状态码: {response.status_code}", file=sys.stderr)
 
         if response.status_code != 200:
-            print(f"API请求失败，状态码: {response.status_code}")
+            print(f"API请求失败，状态码: {response.status_code}", file=sys.stderr)
             return []
 
         json_data = response.json()
 
-        print(f"API返回的数据类型: {type(json_data)}")
-        print(f"API返回的数据键: {json_data.keys()}")
+        print(f"API返回的数据类型: {type(json_data)}", file=sys.stderr)
+        print(f"API返回的数据键: {json_data.keys()}", file=sys.stderr)
 
         if 'data' not in json_data or 'diff' not in json_data['data']:
-            print("API返回的数据格式不正确")
-            print(f"API返回的数据: {json_data}")
+            print("API返回的数据格式不正确", file=sys.stderr)
+            print(f"API返回的数据: {json_data}", file=sys.stderr)
             return []
 
         stocks = json_data['data']['diff']
-        print(f"API返回的股票数量: {len(stocks)}")
+        print(f"API返回的股票数量: {len(stocks)}", file=sys.stderr)
 
         formatted_stocks = []
 
@@ -72,22 +73,22 @@ def get_stock_data():
                 formatted_stocks.append(stock_info)
 
                 # 添加调试信息
-                print(f"处理股票: {stock_info['symbol']}, 原始价格: {original_price}, 调整后价格: {adjusted_price}")
+                print(f"处理股票: {stock_info['symbol']}, 原始价格: {original_price}, 调整后价格: {adjusted_price}", file=sys.stderr)
 
             except KeyError as e:
-                print(f"处理股票数据时出错，缺少键: {e}")
+                print(f"处理股票数据时出错，缺少键: {e}", file=sys.stderr)
             except Exception as e:
-                print(f"处理股票数据时出现未知错误: {e}")
+                print(f"处理股票数据时出现未知错误: {e}", file=sys.stderr)
 
-        print(f"成功格式化 {len(formatted_stocks)} 只股票的数据")
+        print(f"成功格式化 {len(formatted_stocks)} 只股票的数据", file=sys.stderr)
         return formatted_stocks
 
     except requests.exceptions.RequestException as e:
-        print(f"请求异常: {e}")
+        print(f"请求异常: {e}", file=sys.stderr)
     except json.JSONDecodeError as e:
-        print(f"JSON解析错误: {e}")
+        print(f"JSON解析错误: {e}", file=sys.stderr)
     except Exception as e:
-        print(f"获取股票数据时出现未知错误: {e}")
+        print(f"获取股票数据时出现未知错误: {e}", file=sys.stderr)
 
     return []
 
@@ -96,7 +97,7 @@ def filter_and_rank_stocks(stocks, criteria):
     """根据多个标准筛选和排序股票"""
     filtered_stocks = []
 
-    print(f"开始筛选，总股票数: {len(stocks)}")
+    print(f"开始筛选，总股票数: {len(stocks)}", file=sys.stderr)
 
     for stock in stocks:
         try:
@@ -107,13 +108,13 @@ def filter_and_rank_stocks(stocks, criteria):
 
             if not price_check:
                 print(
-                    f"股票 {stock['symbol']} 价格 {stock['price']} 不在范围 {criteria['min_price']} - {criteria['max_price']} 内")
+                    f"股票 {stock['symbol']} 价格 {stock['price']} 不在范围 {criteria['min_price']} - {criteria['max_price']} 内", file=sys.stderr)
             if not volume_check:
-                print(f"股票 {stock['symbol']} 成交量 {stock['volume']} 小于最小要求 {criteria['min_volume']}")
+                print(f"股票 {stock['symbol']} 成交量 {stock['volume']} 小于最小要求 {criteria['min_volume']}", file=sys.stderr)
             if not pe_check:
-                print(f"股票 {stock['symbol']} 市盈率 {stock['pe_ratio']} 不为正")
+                print(f"股票 {stock['symbol']} 市盈率 {stock['pe_ratio']} 不为正", file=sys.stderr)
             if not pb_check:
-                print(f"股票 {stock['symbol']} 市净率 {stock['pb_ratio']} 不为正")
+                print(f"股票 {stock['symbol']} 市净率 {stock['pb_ratio']} 不为正", file=sys.stderr)
 
             if price_check and volume_check and pe_check and pb_check:
                 # 计算综合得分
@@ -127,11 +128,11 @@ def filter_and_rank_stocks(stocks, criteria):
                 stock['score'] = (price_score + volume_score + pe_score + pb_score + turnover_score) / 5
                 filtered_stocks.append(stock)
             else:
-                print(f"股票 {stock['symbol']} 被过滤掉")
+                print(f"股票 {stock['symbol']} 被过滤掉", file=sys.stderr)
         except Exception as e:
-            print(f"筛选股票时出错: {e}, 股票: {stock}")
+            print(f"筛选股票时出错: {e}, 股票: {stock}", file=sys.stderr)
 
-    print(f"筛选后的股票数: {len(filtered_stocks)}")
+    print(f"筛选后的股票数: {len(filtered_stocks)}", file=sys.stderr)
 
     # 按综合得分排序
     ranked_stocks = sorted(filtered_stocks, key=lambda x: x['score'], reverse=True)
@@ -144,7 +145,7 @@ def recommend_stocks(limit=10):
     stock_data = get_stock_data()
 
     if not stock_data:
-        print("无法获取股票数据，请检查网络连接或尝试稍后再试")
+        print("无法获取股票数据，请检查网络连接或尝试稍后再试", file=sys.stderr)
         return []
 
     # 调整筛选标准
@@ -166,46 +167,46 @@ def recommend_stocks(limit=10):
 def display_recommendations(recommendations):
     """展示推荐的股票信息"""
     if not recommendations:
-        print("没有找到符合条件的股票。")
+        print("没有找到符合条件的股票。", file=sys.stderr)
         return
 
-    print(f"\n为您推荐以下 {len(recommendations)} 只股票：")
+    print(f"\n为您推荐以下 {len(recommendations)} 只股票：", file=sys.stderr)
     print("\n{:<8} {:<8} {:<8} {:<8} {:<10} {:<10} {:<8} {:<8} {:<8} {:<8}".format(
         "股票代码", "股票名称", "现价", "涨跌幅(%)", "成交量(万手)", "总市值(亿)", "市盈率", "市净率", "换手率(%)",
-        "得分"))
-    print("-" * 100)
+        "得分"), file=sys.stderr)
+    print("-" * 100, file=sys.stderr)
 
     for stock in recommendations:
         print("{:<8} {:<8} {:<8.2f} {:<8.2f} {:<10.2f} {:<10.2f} {:<8.2f} {:<8.2f} {:<8.2f} {:<8.2f}".format(
             stock['symbol'], stock['name'], stock['price'], stock['change_percent'],
             stock['volume'] / 10000, stock['market_cap'], stock['pe_ratio'],
-            stock['pb_ratio'], stock['turnover_rate'], stock['score']))
+            stock['pb_ratio'], stock['turnover_rate'], stock['score']), file=sys.stderr)
 
-    print("\n⚠️ 投资风险提示：")
-    print("1. 股市有风险，投资需谨慎。")
-    print("2. 本推荐基于简单的量化指标，不构成任何投资建议。")
-    print("3. 投资决策应基于个人风险承受能力和充分研究。")
-    print("4. 过往表现不代表未来收益，请理性分析，审慎决策。")
+    print("\n⚠️ 投资风险提示：", file=sys.stderr)
+    print("1. 股市有风险，投资需谨慎。", file=sys.stderr)
+    print("2. 本推荐基于简单的量化指标，不构成任何投资建议。", file=sys.stderr)
+    print("3. 投资决策应基于个人风险承受能力和充分研究。", file=sys.stderr)
+    print("4. 过往表现不代表未来收益，请理性分析，审慎决策。", file=sys.stderr)
 
 
 def main():
-    print("A股精选股票推荐工具")
-    print("=" * 50)
+    print("A股精选股票推荐工具", file=sys.stderr)
+    print("=" * 50, file=sys.stderr)
 
     try:
         limit = int(input("请输入希望推荐的股票数量(默认10只)：") or "10")
 
-        print("\n正在分析数据，请稍候...")
+        print("\n正在分析数据，请稍候...", file=sys.stderr)
         recommendations = recommend_stocks(limit)
         display_recommendations(recommendations)
 
     except ValueError as e:
-        print(f"输入错误: {e}")
-        print("请输入有效的数字!")
+        print(f"输入错误: {e}", file=sys.stderr)
+        print("请输入有效的数字!", file=sys.stderr)
     except KeyboardInterrupt:
-        print("\n程序被用户中断")
+        print("\n程序被用户中断", file=sys.stderr)
     except Exception as e:
-        print(f"程序出错: {e}")
+        print(f"程序出错: {e}", file=sys.stderr)
         import traceback
         traceback.print_exc()
 if __name__ == "__main__":
