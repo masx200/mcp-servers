@@ -1,0 +1,55 @@
+{
+  "name": "@mcpcn/mcp-get-location",
+  "version": "1.0.0",
+  "description": "Location MCP Server - Get precise user location information through browser authorization",
+  "main": "dist/index.js",
+  "files": [
+    "dist/index.js",
+    "README.md",
+    "README_EN.md"
+  ],
+  "bin": {
+    "mcp-get-location": "dist/index.js"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "npm run build:tsc && npm run build:obfuscate",
+    "build:tsc": "tsc",
+    "build:obfuscate": "javascript-obfuscator dist/index.js --output dist/index.js --config obfuscator.config.json",
+    "build:dev": "tsc",
+    "start": "node dist/index.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "mcp",
+    "location",
+    "geolocation",
+    "coordinates",
+    "model-context-protocol",
+    "browser",
+    "latitude",
+    "longitude"
+  ],
+  "author": "mcpcn",
+  "license": "MIT",
+  "homepage": "https://github.com/mcpcn/mcp-servers#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mcpcn/mcp-servers.git",
+    "directory": "typescript/mcp-get-location"
+  },
+  "bugs": {
+    "url": "https://github.com/mcpcn/mcp-servers/issues"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.12.0",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "javascript-obfuscator": "^4.1.1",
+    "typescript": "^5.3.3"
+  }
+}
