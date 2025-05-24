@@ -1,16 +1,5 @@
 packages:
-  - mcp-movie-info
-  - mcp_server_qrcode
-  - image-processor
-  - mcp-book-info
-  - mcp-enterprise-info
-  - mcp-exchange-rate
-  - mcp-file-compression
-  - mcp-news-headlines
-  - mcp-traffic-info
-  - mcp-ip-query
-  - mcp-doc-info
-  - mcp-system-cleaner
+  - '*'
 
 ignoredBuiltDependencies:
   - sharp
