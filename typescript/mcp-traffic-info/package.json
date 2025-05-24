@@ -1,5 +1,5 @@
 {
-  "name": "@mcpcn/traffic-info",
+  "name": "@mcpcn/mcp-traffic-info",
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",

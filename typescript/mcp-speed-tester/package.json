@@ -1,5 +1,5 @@
 {
-  "name": "@mcpcn/speed",
+  "name": "@mcpcn/mcp-speed-tester",
   "version": "1.0.0",
   "description": "MCP service for network speed testing",
   "main": "dist/index.js",

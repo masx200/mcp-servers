@@ -1,5 +1,5 @@
 {
-  "name": "@mcpcn/image-processor",
+  "name": "@mcpcn/mcp-image-processor",
   "version": "1.0.0",
   "description": "MCP server for image processing",
   "main": "dist/index.js",
