@@ -51,3 +51,8 @@ pnpm-lock.yaml
 
 # Logs
 *.log
+typescript/mcp-get-location/obfuscator.config.json
+
+# Ignore .gitignore files in subdirectories only
+*/.gitignore
+**/*/.gitignore
