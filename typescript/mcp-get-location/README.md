@@ -1,17 +1,25 @@
 # MCP Location Server
 
-一个基于 MCP (Model Context Protocol) 的位置获取服务器，通过浏览器授权获取用户精确位置信息。
+A location acquisition server based on MCP (Model Context Protocol) that obtains precise user location information through browser authorization.
 
-## 功能特性
+## Features
 
-- 🌍 通过浏览器获取用户精确位置（网络定位）
-- 🔄 自动轮询位置信息，最多等待60秒
-- 🌐 跨平台支持（Windows、macOS、Linux）
-- 📱 自动打开浏览器进行位置授权
-- 📍 返回经纬度坐标信息
+- 🌍 Get precise user location through browser (network positioning)
+- 🔄 Automatic polling for location information, up to 60 seconds
+- 🌐 Cross-platform support (Windows, macOS, Linux)
+- 📱 Automatically opens browser for location authorization
+- 📍 Returns latitude and longitude coordinates
 
-## MCP客户端中直接使用
-stido方式安装，配置如下：
+## Use Case Examples
+
+- **Where am I?**
+- **How's the weather? (combined with weather mcp)**
+- **How to get to xxx by car/subway/bus? (combined with map mcp)**
+
+## Direct Use in MCP Client
+
+For stdio installation, configure as follows:
+
 ```json
 {
   "mcpServers": {
@@ -24,36 +32,16 @@ stido方式安装，配置如下：
 }
 ```
 
-
-## 下载代码安装使用
-
-### 安装依赖
-
-```bash
-npm install
-```
-
-### 构建项目
-
-```bash
-npm run build
-```
-
-### 启动服务器
-
-```bash
-npm start
-```
-
-## 可用工具
+## Available Tools
 
 ### get_location
 
-获取用户位置信息，通过浏览器授权定位。
+Get user location information through browser authorization.
 
-**参数**: 无
+**Parameters**: None
 
-**返回值**:
+**Return Value**:
+
 ```json
 {
   "latitude": 39.78463536888209,
@@ -61,35 +49,36 @@ npm start
 }
 ```
 
-**使用示例**:
-调用该工具后，系统会：
-1. 自动打开浏览器
-2. 引导用户授权位置权限
-3. 轮询获取位置信息
-4. 返回经纬度坐标
+**Usage Example**:
+After calling this tool, the system will:
 
-## 技术实现
+1. Automatically open the browser
+2. Guide user to authorize location permissions
+3. Poll for location information
+4. Return latitude and longitude coordinates
 
-- 基于 MCP SDK 1.12.0
-- 使用 TypeScript 开发
-- 通过 stdio 方式进行通信
-- 支持跨平台浏览器调用
+## Technical Implementation
 
-## 注意事项
+- Based on MCP SDK 1.12.0
+- Developed using TypeScript
+- Communication via stdio
+- Cross-platform browser call support
 
-- 需要用户在浏览器中手动授权位置权限
-- 如果60秒内未获取到位置，会返回超时错误
-- 确保网络连接正常，能够访问外部API
+## Notes
 
-## 开发和调试
+- Requires user to manually authorize location permissions in browser
+- Returns timeout error if location is not obtained within 60 seconds
+- Ensure network connection is normal and can access external APIs
+
+## Development and Debugging
 
 ```bash
-# 安装依赖
+# Install dependencies
 npm install
 
-# 构建
+# Build
 npm run build
 
-# 启动开发模式
+# Start development mode
 npm start
-``` 
+```

@@ -1,12 +1,12 @@
 {
   "name": "@mcpcn/mcp-get-location",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Location MCP Server - Get precise user location information through browser authorization",
   "main": "dist/index.js",
   "files": [
     "dist/index.js",
     "README.md",
-    "README_EN.md"
+    "README_CN.md"
   ],
   "bin": {
     "mcp-get-location": "dist/index.js"
@@ -37,7 +37,7 @@
   "homepage": "https://github.com/mcpcn/mcp-servers#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mcpcn/mcp-servers.git",
+    "url": "git+https://github.com/mcpcn/mcp-servers.git",
     "directory": "typescript/mcp-get-location"
   },
   "bugs": {
