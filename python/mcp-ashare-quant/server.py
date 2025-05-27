@@ -3,13 +3,31 @@ import platform
 import json
 import logging
 import matplotlib.pyplot as plt
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Annotated, Literal
 from mcp.server.fastmcp import FastMCP
 from ashare import get_price
 from mytt import *
 import requests
 import re
 import sys
+from pydantic import BaseModel, Field
+from mcp.server import Server
+from mcp.server.stdio import stdio_server
+from mcp.types import (
+    ErrorData,
+    GetPromptResult,
+    Prompt,
+    PromptArgument,
+    PromptMessage,
+    TextContent,
+    Tool,
+    INVALID_PARAMS,
+    INTERNAL_ERROR,
+)
+import asyncio
+import uuid
+import httpx
+import shutil
 
 
 def get_stock_code_by_name(name: str) -> Optional[str]:
@@ -174,7 +192,7 @@ async def get_stock_data(
     """获取股票数据
 
     Args:
-        code (object): 股票代码或中文名称（如"贵州茅台"或"sh600519"）
+        code (object, optional): 股票代码或中文名称（如"贵州茅台"或"sh600519"）
         frequency (str, optional): 数据频率，支持'1d'（日线）、'1w'（周线）等. Defaults to '1d'.
         count (int, optional): 获取的数据条数. Defaults to 5.
         end_date (Optional[str], optional): 数据结束日期，格式为'YYYY-MM-DD'. Defaults to None.
@@ -293,34 +311,8 @@ async def plot_kline(
         title: str = 'Stock Chart',
         save_path: Optional[str] = None
 ) -> Dict:
-    """绘制K线图
-
-    Args:
-        data (List[Dict]): 包含以下字段的字典列表：
-            - date: 日期，格式为YYYY-MM-DD（必需）
-            - open: 开盘价（必需）
-            - high: 最高价（必需）
-            - low: 最低价（必需）
-            - close: 收盘价（必需）
-            - volume: 成交量（可选）
-        indicators (Optional[List[str]]): 要绘制的技术指标列表，可选值：['MA5', 'MA10', 'BOLL', 'MACD']
-        title (str, optional): 图表标题，支持中文. Defaults to 'Stock Chart'.
-        save_path (Optional[str], optional): 图表保存路径，如果为None则显示图表. Defaults to None.
-
-    Returns:
-        Dict: 包含操作结果的字典，包含以下字段：
-            - status: 操作状态（"success"或"error"）
-            - message: 操作结果信息
-            - path: 如果保存图表，返回保存路径
-
-    Raises:
-        ValueError: 如果输入数据格式不正确
-        RuntimeError: 如果绘图过程中发生错误
-
-    最后直接打开图表文件
-    """
+    """绘制K线图，支持本地或网络url返回，模式由环境变量 API_RESOURCE_MODE 控制"""
     try:
-        # 数据验证
         if not data:
             raise ValueError("数据不能为空")
         required_fields = ['date', 'open', 'high', 'low', 'close']
@@ -331,11 +323,9 @@ async def plot_kline(
             if not isinstance(item['date'], str) or not re.match(r'\d{4}-\d{2}-\d{2}', item['date']):
                 raise ValueError(f"第{i + 1}条数据的日期格式不正确，应为YYYY-MM-DD")
 
-        # 设置中文字体
-        plt.rcParams['font.sans-serif'] = ['Arial Unicode MS']  # 设置中文字体
-        plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
+        plt.rcParams['font.sans-serif'] = ['Arial Unicode MS']
+        plt.rcParams['axes.unicode_minus'] = False
 
-        # 准备数据
         dates = [d['date'] for d in data]
         opens = [d['open'] for d in data]
         highs = [d['high'] for d in data]
@@ -343,18 +333,13 @@ async def plot_kline(
         closes = [d['close'] for d in data]
         volumes = [d['volume'] for d in data] if 'volume' in data[0] else None
 
-        # 创建图表
-        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(15, 10),
-                                       gridspec_kw={'height_ratios': [3, 1]})
-
-        # 绘制K线
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(15, 10), gridspec_kw={'height_ratios': [3, 1]})
         for i in range(len(dates)):
             color = 'green' if closes[i] >= opens[i] else 'red'
             ax1.plot([i, i], [lows[i], highs[i]], color=color, linewidth=1)
             ax1.plot([i - 0.2, i + 0.2], [opens[i], opens[i]], color=color, linewidth=3)
             ax1.plot([i - 0.2, i + 0.2], [closes[i], closes[i]], color=color, linewidth=3)
 
-        # 添加技术指标
         if indicators:
             close_values = [d['close'] for d in data]
             for indicator in indicators:
@@ -370,43 +355,57 @@ async def plot_kline(
                     ax1.plot(range(len(mid)), mid, label='BOLL Mid', color='purple', linewidth=1)
                     ax1.plot(range(len(lower)), lower, label='BOLL Lower', color='purple', linewidth=1)
 
-        # 绘制成交量
         if volumes:
             for i in range(len(dates)):
                 color = 'green' if closes[i] >= opens[i] else 'red'
                 ax2.bar(i, volumes[i], color=color, alpha=0.5)
 
-        # 设置图表属性
         ax1.set_title(title)
         ax1.set_ylabel('Price')
         ax1.legend()
         ax1.grid(True)
-
         if volumes:
             ax2.set_ylabel('Volume')
             ax2.grid(True)
-
-        # 设置X轴刻度
         plt.xticks(range(len(dates)), dates, rotation=45)
 
-        # 保存或显示图表
-        if save_path:
-            plt.savefig(save_path)
-            logger.info(f"图表已保存到: {save_path}")
-            return {"status": "success", "message": "图表保存成功", "path": save_path}
+        resource_mode = os.getenv('API_RESOURCE_MODE', 'url')
+        if resource_mode == "file":
+            if save_path:
+                plt.savefig(save_path)
+                plt.close()
+                return {"status": "success", "path": save_path, "message": "图表已保存到本地"}
+            else:
+                plt.close()
+                return {"status": "error", "message": "resource_mode=file 时必须提供 save_path"}
         else:
-            plt.show()
-            logger.info("图表已显示")
-            return {"status": "success", "message": "图表显示成功"}
-
+            # url模式，始终上传
+            tmp_filename = f"/tmp/kline_{uuid.uuid4().hex}.png"
+            plt.savefig(tmp_filename)
+            plt.close()
+            upload_url = "https://www.mcpcn.cc/api/fileUploadAndDownload/uploadMcpFile"
+            async with httpx.AsyncClient(timeout=30) as client:
+                with open(tmp_filename, "rb") as f:
+                    files = {'file': (os.path.basename(tmp_filename), f, 'image/png')}
+                    response = await client.post(upload_url, files=files)
+            try:
+                os.remove(tmp_filename)
+            except Exception:
+                pass
+            if response.status_code == 200:
+                resp_json = response.json()
+                if resp_json.get('code') == 0 and 'data' in resp_json and 'url' in resp_json['data']:
+                    return {"status": "success", "url": resp_json['data']['url'], "message": "图表已上传并返回URL"}
+                else:
+                    return {"status": "error", "message": f"上传失败: {resp_json}"}
+            else:
+                return {"status": "error", "message": f"HTTP错误: {response.status_code}"}
     except ValueError as e:
         logger.error(f"数据验证失败: {e}")
         return {"status": "error", "message": str(e), "type": "invalid_data"}
     except Exception as e:
-        logger.error(f"绘制K线图失败: {e}", exc_info=True)
+        logger.error(f"绘制K线图或上传失败: {e}", exc_info=True)
         return {"status": "error", "message": str(e), "type": "runtime_error"}
-    finally:
-        plt.close()
 
 
 @mcp.tool()
@@ -426,6 +425,116 @@ async def analyze_cross(
         return {"error": str(e)}
 
 
-if __name__ == "__main__":
-    # 启动服务器
-    mcp.run(transport='stdio')
+# ========== 工具参数模型 ==========
+class RecommendASharesParams(BaseModel):
+    limit: Annotated[int, Field(default=10, description="推荐股票数量")]
+    min_price: Annotated[float, Field(default=1, description="最低股价")]
+    max_price: Annotated[float, Field(default=200, description="最高股价")]
+    min_volume: Annotated[float, Field(default=100, description="最小成交量（手）")]
+    target_pe: Annotated[float, Field(default=30, description="目标市盈率")]
+    target_pb: Annotated[float, Field(default=3, description="目标市净率")]
+    target_turnover: Annotated[float, Field(default=2, description="目标换手率")]
+
+class GetStockDataParams(BaseModel):
+    code: Annotated[str, Field(description="股票代码或中文名称（如'贵州茅台'或'sh600519'）")]
+    frequency: Annotated[str, Field(default='1d', description="数据频率，支持'1d'、'1w'、'1m'")]
+    count: Annotated[int, Field(default=5, description="获取的数据条数")]
+    end_date: Annotated[Optional[str], Field(default=None, description="数据结束日期，格式为'YYYY-MM-DD'")]
+
+class CalculateTechnicalIndicatorsParams(BaseModel):
+    data: Annotated[List[Dict], Field(description="历史K线数据列表，每项包含open/high/low/close等字段")]
+    indicators: Annotated[List[str], Field(description="要计算的技术指标名称列表，如['MA5','BOLL']")]
+
+class PlotKlineParams(BaseModel):
+    data: Annotated[List[Dict], Field(description="历史K线数据列表，每项包含open/high/low/close等字段")]
+    indicators: Annotated[Optional[List[str]], Field(default=['MA5','MA10'], description="要绘制的技术指标名称列表")]
+    title: Annotated[str, Field(default='Stock Chart', description="图表标题")]
+    save_path: Annotated[Optional[str], Field(default=None, description="图表保存路径，为None则直接显示")]
+
+class AnalyzeCrossParams(BaseModel):
+    data1: Annotated[List[float], Field(description="第一条线的数据序列")]
+    data2: Annotated[List[float], Field(description="第二条线的数据序列")]
+
+# ========== 新服务结构 ==========
+async def serve() -> None:
+    server = Server("mcp-ashare-quant")
+
+    @server.list_tools()
+    async def list_tools() -> list[Tool]:
+        return [
+            Tool(name="recommend_a_shares", description="推荐A股精选股票", inputSchema=RecommendASharesParams.model_json_schema()),
+            Tool(name="get_stock_data", description="获取股票历史K线数据", inputSchema=GetStockDataParams.model_json_schema()),
+            Tool(name="calculate_technical_indicators", description="计算技术指标", inputSchema=CalculateTechnicalIndicatorsParams.model_json_schema()),
+            Tool(name="plot_kline", description="绘制K线图", inputSchema=PlotKlineParams.model_json_schema()),
+            Tool(name="analyze_cross", description="分析两条线的交叉情况", inputSchema=AnalyzeCrossParams.model_json_schema()),
+        ]
+
+    @server.call_tool()
+    async def call_tool(name: str, arguments: dict) -> list[TextContent]:
+        try:
+            if name == "recommend_a_shares":
+                args = RecommendASharesParams(**arguments)
+                result = await recommend_a_shares(
+                    limit=args.limit,
+                    min_price=args.min_price,
+                    max_price=args.max_price,
+                    min_volume=args.min_volume,
+                    target_pe=args.target_pe,
+                    target_pb=args.target_pb,
+                    target_turnover=args.target_turnover
+                )
+                return [TextContent(type="text", text=str(result))]
+            elif name == "get_stock_data":
+                args = GetStockDataParams(**arguments)
+                result = await get_stock_data(
+                    code=args.code,
+                    frequency=args.frequency,
+                    count=args.count,
+                    end_date=args.end_date
+                )
+                return [TextContent(type="text", text=str(result))]
+            elif name == "calculate_technical_indicators":
+                args = CalculateTechnicalIndicatorsParams(**arguments)
+                result = await calculate_technical_indicators(
+                    data=args.data,
+                    indicators=args.indicators
+                )
+                return [TextContent(type="text", text=str(result))]
+            elif name == "plot_kline":
+                args = PlotKlineParams(**arguments)
+                result = await plot_kline(
+                    data=args.data,
+                    indicators=args.indicators,
+                    title=args.title,
+                    save_path=args.save_path
+                )
+                return [TextContent(type="text", text=str(result))]
+            elif name == "analyze_cross":
+                args = AnalyzeCrossParams(**arguments)
+                result = await analyze_cross(
+                    data1=args.data1,
+                    data2=args.data2
+                )
+                return [TextContent(type="text", text=str(result))]
+            else:
+                raise ValueError(f"未知的工具名称: {name}")
+        except Exception as e:
+            raise Exception(str(e))
+
+    @server.list_prompts()
+    async def list_prompts() -> list[Prompt]:
+        return []
+
+    @server.get_prompt()
+    async def get_prompt(name: str, arguments: dict | None) -> GetPromptResult:
+        raise Exception("不支持的操作")
+
+    options = server.create_initialization_options()
+    async with stdio_server() as (read_stream, write_stream):
+        await server.run(read_stream, write_stream, options, raise_exceptions=True)
+
+def main():
+    asyncio.run(serve())
+
+if __name__ == '__main__':
+    main()
