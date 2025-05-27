@@ -1,0 +1,41 @@
+{
+  "name": "caiyun-mcp-tools",
+  "version": "1.1.0",
+  "description": "Get weather information from Caiyun Weather API",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "caiyun-mcp-tools": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "caiyun",
+    "weather",
+    "api",
+    "cursor",
+    "ai"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PsychArch/caiyun-mcp-tools.git"
+  },
+  "bugs": {
+    "url": "https://github.com/PsychArch/caiyun-mcp-tools/issues"
+  },
+  "homepage": "https://github.com/PsychArch/caiyun-mcp-tools#readme",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.8.0",
+    "node-fetch": "^3.3.2",
+    "zod": "^3.24.2"
+  }
+}
