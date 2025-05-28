@@ -14,20 +14,14 @@ from pydantic import BaseModel, Field
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import (
-    ErrorData,
     GetPromptResult,
     Prompt,
-    PromptArgument,
-    PromptMessage,
     TextContent,
     Tool,
-    INVALID_PARAMS,
-    INTERNAL_ERROR,
 )
 import asyncio
 import uuid
 import httpx
-import shutil
 
 
 def get_stock_code_by_name(name: str) -> Optional[str]:
@@ -462,7 +456,7 @@ async def serve() -> None:
     @server.list_tools()
     async def list_tools() -> list[Tool]:
         return [
-            Tool(name="recommend_a_shares", description="推荐A股精选股票", inputSchema=RecommendASharesParams.model_json_schema()),
+            Tool(name="recommend_a_shares", description="推荐A股精选股票", inputSchema=RecommendASharesParams.model_json_schema(),outputSchema=RecommendASharesParams.model_json_schema()),
             Tool(name="get_stock_data", description="获取股票历史K线数据", inputSchema=GetStockDataParams.model_json_schema()),
             Tool(name="calculate_technical_indicators", description="计算技术指标", inputSchema=CalculateTechnicalIndicatorsParams.model_json_schema()),
             Tool(name="plot_kline", description="绘制K线图", inputSchema=PlotKlineParams.model_json_schema()),
