@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -9,11 +7,69 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import fetch from "node-fetch";
 
-// 定义站点信息接口
+// 接口定义
+interface HotItem {
+  id?: string;
+  title: string;
+  desc?: string;
+  cover?: string;
+  author?: string;
+  timestamp?: number;
+  hot?: number;
+  url?: string;
+  mobileUrl?: string;
+}
+
+interface ApiResponse {
+  data: HotItem[];
+}
+
 interface SiteInfo {
-  "站点": string;
-  "类别": string;
-  "调用名称": string;
+  站点: string;
+  类别: string;
+  调用名称: string;
+}
+
+// API配置
+const API_BASE_URL = "https://www.mcpcn.cc/newsapi";
+
+// Schema定义
+const OUTPUT_SCHEMA = {
+  type: "object" as const,
+  description: "热门榜单数据返回格式",
+  properties: {
+    content: {
+      type: "array",
+      description: "返回内容数组，包含多条热门数据",
+      items: {
+        type: "object",
+        description: "单条热门数据的内容结构 (JSON object with pre-formatted fields)",
+        properties: {
+          itemDisplayTitle: { type: "string", description: "列表项的展示标题 (例如: 1. 标题内容)" },
+          itemTitle: { type: "string", description: "原始标题" },
+          itemUrl: { type: "string", description: "格式化的原文链接 (例如: 🔗 链接：https://xxx.com/xxx)" },
+          itemMobileUrl: { type: "string", description: "格式化的移动端链接 (例如: 📱 移动端链接：https://m.xxx.com/xxx)" },
+          itemHotness: { type: "string", description: "格式化的热度 (例如: 🔥 热度：10.5万)" },
+          itemTimestamp: { type: "string", description: "格式化的发布时间 (例如: ⏰ 时间：5分钟前)" },
+          itemDescription: { type: "string", description: "格式化的内容描述 (例如: 📝 描述：这是描述内容)" },
+          itemAuthor: { type: "string", description: "格式化的作者信息 (例如: 👤 作者：张三)" },
+          itemId: { type: "string", description: "格式化的唯一标识符 (例如: 🆔 ID：12345)" }
+        },
+        required: ["itemDisplayTitle", "itemTitle"],
+        additionalProperties: false
+      },
+      minItems: 1,
+      maxItems: 4
+    },
+    isError: {
+      type: "boolean",
+      description: "请求状态标识：\n" +
+                  "- false: 表示请求成功\n" +
+                  "- true: 表示请求失败"
+    }
+  },
+  required: ["content", "isError"],
+  additionalProperties: false
 }
 
 // 站点信息列表
@@ -21,7 +77,6 @@ const SITE_LIST: SiteInfo[] = [
   { "站点": "哔哩哔哩", "类别": "热门榜", "调用名称": "bilibili" },
   { "站点": "AcFun", "类别": "排行榜", "调用名称": "acfun" },
   { "站点": "微博", "类别": "热搜榜", "调用名称": "weibo" },
-  { "站点": "知乎", "类别": "热榜", "调用名称": "zhihu" },
   { "站点": "知乎日报", "类别": "推荐榜", "调用名称": "zhihu-daily" },
   { "站点": "百度", "类别": "热搜榜", "调用名称": "baidu" },
   { "站点": "抖音", "类别": "热点榜", "调用名称": "douyin" },
@@ -65,52 +120,6 @@ const SITE_LIST: SiteInfo[] = [
   { "站点": "历史上的今天", "类别": "月-日", "调用名称": "history" }
 ];
 
-// 定义获取站点数据的输出结构 (用于所有单个站点工具)
-const SITE_DATA_OUTPUT_SCHEMA = {
-  type: "object" as const,
-  properties: {
-    content: {
-      type: "array",
-      description: "返回内容数组",
-      items: {
-        type: "object",
-        properties: {
-          type: {
-            type: "string",
-            enum: ["text"],
-            description: "内容类型，固定为text"
-          },
-          text: {
-            type: "string",
-            description: "格式化的榜单数据文本，包含以下信息：\n- 站点名称和类别\n- 数据总数和显示条数\n- 每条数据包含：\n  * 排名和标题\n  * 🔗 链接地址\n  * 📱 移动端链接（如果不同）\n  * 🔥 热度（格式化为万/亿）\n  * ⏰ 时间（相对时间或具体时间）\n  * 📝 描述信息（如果有）\n  * 🆔 ID信息（如果有）"
-          }
-        },
-        required: ["type", "text"]
-      }
-    },
-    isError: {
-      type: "boolean",
-      description: "是否为错误响应，true表示获取数据失败"
-    }
-  },
-  required: ["content", "isError"],
-  additionalProperties: false
-};
-
-// 为每个站点生成一个工具
-const SITE_SPECIFIC_TOOLS: Tool[] = SITE_LIST.map((site): Tool => {
-  const toolName = `get_data_${site.调用名称}`;
-  return {
-    name: toolName,
-    description: `获取 ${site.站点} - ${site.类别} 的数据`,
-    inputSchema: {
-      type: "object",
-      properties: {},
-    },
-    outputSchema: SITE_DATA_OUTPUT_SCHEMA
-  };
-});
-
 // 工具定义
 const GET_SITE_LIST_TOOL: Tool = {
   name: "get_site_list",
@@ -119,179 +128,165 @@ const GET_SITE_LIST_TOOL: Tool = {
     type: "object",
     properties: {},
   },
+  outputSchema: OUTPUT_SCHEMA,
 };
+
+const SITE_SPECIFIC_TOOLS: Tool[] = SITE_LIST.map(
+  (site): Tool => ({
+    name: `get_data_${site.调用名称}`,
+    description: `获取 ${site.站点} - ${site.类别} 的数据`,
+    inputSchema: {
+      type: "object",
+      properties: {},
+    },
+    outputSchema: OUTPUT_SCHEMA,
+  })
+);
 
 const TOOLS: readonly Tool[] = [GET_SITE_LIST_TOOL, ...SITE_SPECIFIC_TOOLS];
 
-// 统一的错误处理函数
+// 错误处理 - 返回符合MCP标准的JSON格式
 function handleError(message: string, isError: boolean = true) {
+  const errorResult = {
+    content: [
+      {
+        itemDisplayTitle: "处理错误",
+        itemTitle: message
+      }
+    ],
+    isError
+  };
+
   return {
-    content: [{ type: "text", text: message }],
-    isError,
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(errorResult, null, 2)
+      }
+    ]
   };
 }
 
-// 处理获取站点列表的请求
-async function handleGetSiteList() {
-  const siteListText = SITE_LIST.map(site => `站点: ${site.站点}, 类别: ${site.类别}`).join("\n");
-  return {
-    content: [{
-      type: "text",
-      text: `支持的站点列表:\n${siteListText}`
-    }],
-    isError: false
-  };
-}
-
-// 处理根据站点名称获取数据的请求
-async function handleGetSiteData(siteName: string) {
-  // 查找目标站点
-  const targetSite = SITE_LIST.find(site => site.站点 === siteName);
-
-  // 如果未找到目标站点，返回错误信息
-  if (!targetSite) {
-    return handleError(`未找到站点: ${siteName}。请从支持的站点列表中选择。`);
-  }
-
-  const apiUrl = `https://www.mcpcn.cc/newsapi/${targetSite.调用名称}`;
-
-  try {
-    // 发起请求获取数据
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
-      return handleError(`获取 ${siteName} 数据失败: HTTP 状态 ${response.status}`);
-    }
-
-    const data: any = await response.json();
-
-    // 检查数据格式并返回结果
-    if (data && Array.isArray(data.data) && data.data.length > 0) {
-      const formattedData = data.data.slice(0, 30).map((item: any, index: number) => {
-        // 基础信息提取
-        const title = item.title || "无标题"; // 新闻标题
-        const url = item.url || item.link || ""; // 新闻链接
-        const mobileUrl = item.mobileUrl || ""; // 移动端链接
-        
-        // 热度信息处理
-        const hot = item.hot ? formatHotNumber(item.hot) : null; // 热度数值，格式化显示
-        
-        // 时间信息处理
-        const timestamp = item.timestamp ? formatTimestamp(item.timestamp) : null; // 时间戳转换为可读时间
-        
-        // 其他信息收集
-        const otherInfo: string[] = [];
-        
-        // 添加热度信息（如果存在）
-        if (hot) {
-          otherInfo.push(`🔥 热度: ${hot}`);
-        }
-        
-        // 添加时间信息（如果存在）
-        if (timestamp) {
-          otherInfo.push(`⏰ 时间: ${timestamp}`);
-        }
-        
-        // 添加描述信息（如果存在）
-        if (item.desc) {
-          otherInfo.push(`📝 描述: ${item.desc}`);
-        }
-        
-        // 添加ID信息（如果存在）
-        if (item.id) {
-          otherInfo.push(`🆔 ID: ${item.id}`);
-        }
-
-        // 格式化输出文本
-        let text = `${index + 1}. ${title}`;
-        
-        // 添加主要链接
-        if (url) {
-          text += `\n   🔗 链接: ${url}`;
-        }
-        
-        // 添加移动端链接（如果与主链接不同）
-        if (mobileUrl && mobileUrl !== url) {
-          text += `\n   📱 移动端: ${mobileUrl}`;
-        }
-        
-        // 添加其他详细信息
-        if (otherInfo.length > 0) {
-          text += `\n   ${otherInfo.join(" | ")}`;
-        }
-        
-        return text;
-      }).join("\n\n");
-      
-      return {
-        content: [{
-          type: "text",
-          text: `${siteName} - ${targetSite.类别} (共${data.data.length}条数据，显示前30条):\n\n${formattedData}`
-        }],
-        isError: false
-      };
-    } else {
-      return handleError(`未找到 ${siteName} 的有效数据或数据格式不正确。`);
-    }
-  } catch (error: any) {
-    return handleError(`查询 ${siteName} 出错: ${error.message}`);
-  }
-}
-
-/**
- * 格式化热度数值，将大数字转换为更易读的格式
- * @param hot 热度数值
- * @returns 格式化后的热度字符串
- */
-function formatHotNumber(hot: number): string {
+// 格式化热度值
+function formatHotValue(hot: number): string {
   if (hot >= 100000000) {
-    // 大于1亿，显示为亿
     return `${(hot / 100000000).toFixed(1)}亿`;
   } else if (hot >= 10000) {
-    // 大于1万，显示为万
     return `${(hot / 10000).toFixed(1)}万`;
-  } else {
-    // 小于1万，直接显示
-    return hot.toString();
   }
+  return hot.toString();
 }
 
-/**
- * 格式化时间戳为可读的时间格式
- * @param timestamp 时间戳（毫秒）
- * @returns 格式化后的时间字符串
- */
+// 格式化时间戳
 function formatTimestamp(timestamp: number): string {
   const date = new Date(timestamp);
   const now = new Date();
-  const diffMs = now.getTime() - timestamp;
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffHours / 24);
-  
-  // 如果是今天的内容，显示相对时间
-  if (diffDays === 0) {
-    if (diffHours === 0) {
-      const diffMinutes = Math.floor(diffMs / (1000 * 60));
-      return diffMinutes <= 0 ? "刚刚" : `${diffMinutes}分钟前`;
-    } else {
-      return `${diffHours}小时前`;
-    }
-  } 
-  // 如果是昨天的内容
-  else if (diffDays === 1) {
-    return `昨天 ${date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}`;
-  }
-  // 如果是更早的内容，显示具体日期
-  else {
-    return date.toLocaleString('zh-CN', {
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const diff = now.getTime() - date.getTime();
+
+  if (diff < 60000) {
+    return '刚刚';
+  } else if (diff < 3600000) {
+    return `${Math.floor(diff / 60000)}分钟前`;
+  } else if (diff < 86400000) {
+    return `${Math.floor(diff / 3600000)}小时前`;
+  } else {
+    return date.toLocaleString();
   }
 }
 
-// 服务器设置
+// 获取站点列表处理函数 - 返回JSON格式
+async function handleGetSiteList() {
+  const result = {
+    content: SITE_LIST.map((site, index) => ({
+      itemDisplayTitle: `${index + 1}. ${site.站点}（${site.类别}）`,
+      itemTitle: `${site.站点}（${site.类别}）`
+    })),
+    isError: false
+  };
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(result, null, 2)
+      }
+    ]
+  };
+}
+
+// 获取站点数据处理函数 - 返回JSON格式
+async function handleGetSiteData(siteName: string) {
+  try {
+    const targetSite = SITE_LIST.find((site) => site.站点 === siteName);
+    if (!targetSite) {
+      throw new Error(`未找到站点: ${siteName}`);
+    }
+
+    const apiUrl = `${API_BASE_URL}/${targetSite.调用名称}`;
+    const response = await fetch(apiUrl);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const apiResponse = (await response.json()) as ApiResponse;
+
+    if (!apiResponse?.data || !Array.isArray(apiResponse.data)) {
+      throw new Error("Invalid API response format");
+    }
+
+    // 检查API返回的数据是否为空
+    if (apiResponse.data.length === 0) {
+      throw new Error(`API for ${siteName} returned no data items. This site might have no hot content currently.`);
+    }
+
+    // 构建符合schema的JSON数据
+    const result = {
+      content: apiResponse.data.map((item: HotItem, index: number) => {
+        const outputItem: {
+          itemDisplayTitle: string;
+          itemTitle: string;
+          itemUrl?: string;
+          itemMobileUrl?: string;
+          itemHotness?: string;
+          itemTimestamp?: string;
+          itemDescription?: string;
+          itemAuthor?: string;
+          itemId?: string;
+        } = {
+          itemDisplayTitle: `${index + 1}. ${item.title}`,
+          itemTitle: item.title,
+        };
+        
+        if (item.url) outputItem.itemUrl = `🔗 链接：${item.url}`;
+        if (item.mobileUrl) outputItem.itemMobileUrl = `📱 移动端链接：${item.mobileUrl}`;
+        if (item.hot !== undefined) outputItem.itemHotness = `🔥 热度：${formatHotValue(item.hot)}`;
+        if (item.timestamp !== undefined) outputItem.itemTimestamp = `⏰ 时间：${formatTimestamp(item.timestamp)}`;
+        if (item.desc) outputItem.itemDescription = `📝 描述：${item.desc}`;
+        if (item.author) outputItem.itemAuthor = `👤 作者：${item.author}`;
+        if (item.id) outputItem.itemId = `🆔 ID：${item.id}`;
+        
+        return outputItem;
+      }),
+      isError: false
+    };
+
+    // 返回符合MCP标准的格式，内容为JSON字符串
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(result, null, 2)
+        }
+      ]
+    };
+  } catch (error) {
+    console.error("获取站点数据失败:", error);
+    return handleError(`获取 ${siteName} 数据失败: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+// 服务器配置和启动
 const server = new Server(
   {
     name: "mcp-daily-hot-list",
@@ -307,52 +302,54 @@ const server = new Server(
   }
 );
 
-// 设置请求处理程序
-server.setRequestHandler(ListToolsRequestSchema, async (request: any) => {
-  return { tools: TOOLS as Tool[] }; 
+// 请求处理
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+  return { tools: TOOLS };
 });
 
-server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
-    const toolName = request.params.name; // 获取工具名称
-    console.error(`收到工具调用请求: ${toolName}`); // 添加日志
+    const toolName = request.params.name;
+    console.error(`收到工具调用请求: ${toolName}`);
 
     if (toolName === "get_site_list") {
-      return await handleGetSiteList(); // 处理获取站点列表请求
+      return await handleGetSiteList();
     }
 
-    // 检查是否为特定站点的工具调用
     const siteToolPrefix = "get_data_";
     if (toolName.startsWith(siteToolPrefix)) {
       const siteCallName = toolName.substring(siteToolPrefix.length);
-      console.error(`尝试获取站点数据: ${siteCallName}`); // 添加日志
-      const targetSite = SITE_LIST.find(s => s.调用名称 === siteCallName);
+      const targetSite = SITE_LIST.find((s) => s.调用名称 === siteCallName);
+
       if (targetSite) {
-        console.error(`找到目标站点: ${targetSite.站点}`); // 添加日志
-        return await handleGetSiteData(targetSite.站点); // 使用站点的中文名称调用
-      } else {
-        return handleError(`未找到调用名称为 ${siteCallName} 的站点配置。`);
+        console.error(`处理站点请求: ${targetSite.站点}`);
+        return await handleGetSiteData(targetSite.站点);
       }
+
+      return handleError(`未找到调用名称为 ${siteCallName} 的站点配置`);
     }
 
     return handleError(`未知工具: ${toolName}`);
   } catch (error) {
-    console.error('处理请求时发生错误:', error); // 添加错误日志
-    return handleError(`错误: ${error instanceof Error ? error.message : String(error)}`);
+    console.error("处理请求时发生错误:", error);
+    return handleError(
+      `系统错误: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 });
 
-// 运行服务器
+// 启动服务器
 async function runServer() {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  console.error("MCP 日报热门榜服务器正在通过 stdio 运行");
-  console.error(`已注册 ${TOOLS.length} 个工具`); // 添加启动日志
-  console.error(`工具列表: ${TOOLS.map(t => t.name).join(', ')}`); // 显示所有工具名称
+  try {
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
+    console.error("MCP 日报热门榜服务器已启动");
+    console.error(`已注册 ${TOOLS.length} 个工具`);
+    console.error(`工具列表: ${TOOLS.map((t) => t.name).join(", ")}`);
+  } catch (error) {
+    console.error("服务器启动失败:", error);
+    process.exit(1);
+  }
 }
 
-// 启动服务器并处理错误
-runServer().catch((error) => {
-  console.error("运行服务器时发生致命错误:", error);
-  process.exit(1);
-});
+runServer();
