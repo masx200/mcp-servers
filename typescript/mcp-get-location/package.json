@@ -13,9 +13,8 @@
   },
   "type": "module",
   "scripts": {
-    "build": "npm run build:tsc && npm run build:obfuscate",
+    "build": "tsc",
     "build:tsc": "tsc",
-    "build:obfuscate": "javascript-obfuscator dist/index.js --output dist/index.js --config obfuscator.config.json",
     "build:dev": "tsc",
     "start": "node dist/index.js"
   },
