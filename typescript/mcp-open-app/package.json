@@ -1,0 +1,30 @@
+{
+  "name": "mcp-open-app",
+  "version": "1.0.0",
+  "description": "打开app 的 mcp服务",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mcp打开app"
+  ],
+  "author": "传杰",
+  "license": "ISC",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.4.0",
+    "extract-file-icon": "^0.3.2",
+    "plist": "^3.1.0",
+    "simple-plist": "^1.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/plist": "^3.0.5",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}
