@@ -820,7 +820,7 @@ async function handleConvertFormat(inputPaths: string[], targetFormat: string, o
         type: "text",
         text: JSON.stringify({
           success: true,
-          message: `成功转换了 ${results.length} 个图片`,
+          message: `成功转换了 ${results.length} 张图片，保存在${outputPath}`,
           convertedFiles: results
         }, null, 2)
       }],
@@ -851,7 +851,7 @@ async function handleCompressToSize(
         type: "text",
         text: JSON.stringify({
           success: true,
-          message: `成功压缩了 ${results.length} 个图片到目标大小 ${size}`,
+          message: `成功压缩了 ${results.length} 张图片到目标大小 ${size}，保存在${outputPath}`,
           compressedFiles: results
         }, null, 2)
       }],
@@ -882,7 +882,7 @@ async function handleCompressToPercent(
         type: "text",
         text: JSON.stringify({
           success: true,
-          message: `成功压缩了 ${results.length} 个图片到原始大小的 ${parsePercent(percent)}%`,
+          message: `成功压缩了 ${results.length} 张图片到原始大小的 ${parsePercent(percent)}%，保存在${outputPath}`,
           compressedFiles: results
         }, null, 2)
       }],
@@ -914,7 +914,7 @@ async function handleResize(
         type: "text",
         text: JSON.stringify({
           success: true,
-          message: `成功调整了 ${results.length} 个图片的尺寸`,
+          message: `成功调整了 ${results.length} 张图片的尺寸，保存在${outputPath}`,
           resizedFiles: results
         }, null, 2)
       }],
@@ -940,7 +940,7 @@ async function handleMetadata(inputPaths: string[]) {
         type: "text",
         text: JSON.stringify({
           success: true,
-          message: `成功读取了 ${Object.keys(results).length} 个图片的元数据`,
+          message: `成功读取了 ${Object.keys(results).length} 张图片的元数据`,
           metadata: results
         }, null, 2)
       }],
@@ -971,7 +971,7 @@ async function handleRotate(
         type: "text",
         text: JSON.stringify({
           success: true,
-          message: `成功旋转了 ${results.length} 个图片（角度: ${angle}°）`,
+          message: `成功旋转了 ${results.length} 张图片（角度: ${angle}°），保存在${outputPath}`,
           rotatedFiles: results
         }, null, 2)
       }],
@@ -1002,7 +1002,7 @@ async function handleFlip(
         type: "text",
         text: JSON.stringify({
           success: true,
-          message: `成功${flipType === 'horizontal' ? '水平' : '垂直'}翻转了 ${results.length} 个图片`,
+          message: `成功${flipType === 'horizontal' ? '水平' : '垂直'}翻转了 ${results.length} 张图片，保存在${outputPath}`,
           flippedFiles: results
         }, null, 2)
       }],
@@ -1058,7 +1058,7 @@ async function handleWatermark(
         type: "text",
         text: JSON.stringify({
           success: true,
-          message: `成功为 ${results.length} 个图片添加${positionDesc}水印${fontSizeInfo}`,
+          message: `成功为 ${results.length} 张图片添加${positionDesc}水印${fontSizeInfo}，保存在${outputPath}`,
           watermarkedFiles: results
         }, null, 2)
       }],
