@@ -1,31 +1,41 @@
 # MCP Open App Server
 
-一个基于 MCP (Model Context Protocol) 的应用程序启动服务器，支持搜索和打开系统中安装的应用程序。
+一个基于 MCP (Model Context Protocol) 的轻量级应用程序启动服务器，支持搜索和打开系统中安装的应用程序。
 
 ## 功能特性
 
 - 🔍 **跨平台应用搜索**: 支持 macOS、Windows、Linux 三大平台
 - 🚀 **应用启动**: 可以通过名称直接启动应用程序
 - 🔧 **MCP 协议**: 基于 Model Context Protocol 标准
-- 📱 **图标支持**: 自动获取应用程序图标
 - 🌐 **多语言**: 支持中文应用名称搜索
+- ⚡ **轻量级**: 移除了图标处理等重量级功能，专注于核心功能
+
+## 优化特性
+
+- **简化架构**: 只保留名称、路径、关键词等核心字段
+- **高效搜索**: 支持模糊匹配、拼音搜索
+- **精准定位**: macOS 只搜索 Applications 文件夹，避免系统级应用干扰
+- **无依赖**: 移除了复杂的图标提取和 plist 解析依赖
 
 ## 支持的平台
 
 ### macOS
-- 使用 `system_profiler` 获取应用列表
-- 支持 `.app` 和 `.prefPane` 文件
-- 自动提取应用图标
+- 扫描 `/Applications` 目录
+- 扫描 `/System/Applications` 目录（可选）
+- 扫描用户 `~/Applications` 目录
+- 支持 `.app` 包
 
 ### Windows
-- 扫描开始菜单快捷方式
-- 支持 `.lnk` 文件解析
-- 使用 PowerShell 读取快捷方式信息
+- 扫描 `C:\Program Files` 目录
+- 扫描 `C:\Program Files (x86)` 目录
+- 扫描用户程序目录
+- 支持 `.exe` 文件
 
 ### Linux
-- 扫描 `.desktop` 文件
-- 支持多个标准应用目录
-- 自动查找应用图标
+- 扫描 `/usr/share/applications` 目录
+- 扫描 `/usr/local/share/applications` 目录
+- 扫描用户 `~/.local/share/applications` 目录
+- 支持 `.desktop` 文件
 
 ## 安装与使用
 
@@ -49,11 +59,6 @@ npm start
 npm run dev
 ```
 
-### 测试功能
-```bash
-node test.js
-```
-
 ## MCP 工具
 
 服务器提供以下三个工具：
@@ -62,7 +67,7 @@ node test.js
 搜索系统中安装的应用程序
 
 **参数:**
-- `query` (可选): 搜索关键词，支持应用名称、路径和关键词搜索
+- `query` (可选): 搜索关键词，支持应用名称和关键词搜索
 
 **示例:**
 ```json
@@ -112,36 +117,28 @@ src/
 │       ├── index.ts        # 主入口
 │       ├── darwin.ts       # macOS 实现
 │       ├── win.ts          # Windows 实现
-│       ├── linux.ts        # Linux 实现
-│       └── get-mac-app/    # macOS 专用工具
-│           ├── index.ts
-│           ├── getApps.ts  # 获取应用列表
-│           └── app2png.ts  # 图标转换
+│       └── linux.ts        # Linux 实现
 ```
 
 ## 依赖包
 
 ### 运行时依赖
 - `@modelcontextprotocol/sdk`: MCP 协议实现
-- `simple-plist`: macOS plist 文件解析
-- `plist`: 另一个 plist 解析库
-- `extract-file-icon`: Windows 图标提取 (可选)
 
 ### 开发依赖
 - `typescript`: TypeScript 编译器
 - `tsx`: TypeScript 执行器
 - `@types/node`: Node.js 类型定义
-- `@types/plist`: plist 类型定义
 
-## 开发说明
+## 优化说明
 
-本项目将原有的 Electron 应用搜索代码转换为纯 Node.js 实现：
+本次优化主要进行了以下改进：
 
-1. **移除 Electron 依赖**: 不再依赖 `electron` 和相关 API
-2. **纯 Node.js 实现**: 使用标准 Node.js API 和第三方包
-3. **类型安全**: 全面使用 TypeScript 提供类型安全
-4. **模块化设计**: 清晰的模块分离，便于维护和扩展
-5. **跨平台兼容**: 统一的接口，平台特定的实现
+1. **移除复杂依赖**: 删除了 `plist`、`simple-plist`、`extract-file-icon` 等依赖
+2. **简化数据结构**: AppInfo 接口只保留 `name`、`path`、`keywords` 三个核心字段
+3. **精简搜索逻辑**: 移除图标处理、复杂的 plist 解析等重量级功能
+4. **优化搜索范围**: macOS 只搜索应用程序文件夹，避免系统级应用
+5. **提升性能**: 大幅减少 I/O 操作和计算复杂度
 
 ## 许可证
 
