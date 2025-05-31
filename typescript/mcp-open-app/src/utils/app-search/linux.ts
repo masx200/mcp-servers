@@ -1,227 +1,131 @@
-import * as path from "path";
-import * as fs from "fs";
-import * as os from "os";
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
+import { promisify } from 'util';
 
-const app_paths = [
-  "/usr/share/applications",
-  "/var/lib/snapd/desktop/applications",
-  `${os.homedir()}/.local/share/applications`,
-];
-const emptyIcon = "";
+const readdir = promisify(fs.readdir);
+const readFile = promisify(fs.readFile);
+const stat = promisify(fs.stat);
 
-function dirAppRead(dir: string, target: string[]): void {
-  let files: Array<string> | null = null;
-  try {
-    if (!fs.existsSync(dir)) return;
-    files = fs.readdirSync(dir);
-  } catch (e) {
-    return;
-  }
-  if (files.length !== 0) {
-    for (const file of files) {
-      const app = path.join(dir, file);
-      path.extname(app) === ".desktop" && target.push(app);
-    }
-  }
+export interface AppInfo {
+  name: string;
+  path: string;
+  keywords: string[];
 }
 
-function convertEntryFile2Feature(appPath: string): any {
-  let appInfo: any = null;
-  try {
-    appInfo = fs.readFileSync(appPath, "utf8");
-  } catch (e) {
-    return null;
-  }
-  if (!appInfo.includes("[Desktop Entry]")) {
-    return null;
-  }
-  appInfo = appInfo
-    .substring(appInfo.indexOf("[Desktop Entry]"))
-    .replace("[Desktop Entry]", "")
-    .trim();
-
-  /**
-   * appInfo eg:
-   * Version=1.0
-   * Name=FireFox
-   * Name[ar]=***
-   * Name[ast]=***
-   * [Desktop Action new-private-window]
-   * Name=***
-   */
-  const splitIndex = appInfo.indexOf("\n[");
-
-  if (splitIndex > 0) {
-    appInfo = appInfo.substring(0, splitIndex).trim();
-  }
-
-  const targetAppInfo: any = {};
-  const matches = appInfo.match(/^[\w\-[\]]+ ?=.*$/gm);
-  if (matches) {
-    matches.forEach((e: string) => {
-      const index = e.indexOf("=");
-      targetAppInfo[e.substring(0, index).trim()] = e.substring(index + 1).trim();
-    });
-  }
-
-  /**
-   * targetAppInfo = {
-   * Type: "Application",
-   * Version: "1.0",
-   * Exec: "xxxx",
-   * }
-   */
-
-  if (targetAppInfo.Type !== "Application") {
-    return null;
-  }
-  if (!targetAppInfo.Exec) {
-    return null;
-  }
-  if (
-    targetAppInfo.NoDisplay === "true" &&
-    !targetAppInfo.Exec.startsWith("gnome-control-center")
-  ) {
-    return null;
+function generateKeywords(appName: string): string[] {
+  const keywords = [appName];
+  
+  // 添加小写版本
+  keywords.push(appName.toLowerCase());
+  
+  // 移除空格和特殊字符的版本
+  const cleanName = appName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '');
+  if (cleanName !== appName) {
+    keywords.push(cleanName);
+    keywords.push(cleanName.toLowerCase());
   }
   
-  let desktop_session = String(process.env.DESKTOP_SESSION || "").toLowerCase();
-  if (desktop_session === "ubuntu") {
-    desktop_session = "gnome";
-    if (
-      targetAppInfo.OnlyShowIn &&
-      !targetAppInfo.OnlyShowIn.toLowerCase().includes(desktop_session)
-    ) {
-      return null;
-    }
-  }
-  if (
-    targetAppInfo.NotShowIn &&
-    targetAppInfo.NotShowIn.toLowerCase().includes(desktop_session)
-  ) {
-    return null;
-  }
-  
-  let icon = targetAppInfo.Icon;
-  if (!icon) return null;
-  if (icon.startsWith("/")) {
-    if (!fs.existsSync(icon)) return null;
-  } else if (
-    appPath.startsWith("/usr/share/applications") ||
-    appPath.startsWith("/var/lib/snapd/desktop/applications")
-  ) {
-    icon = getIcon(icon);
-  } else {
-    if (
-      !appPath.startsWith(
-        os.homedir() + "/.local/share/applications"
-      )
-    )
-      return null;
-    appPath = path.join(
-      os.homedir(),
-      ".local/share/icons",
-      appPath + ".png"
-    );
-    fs.existsSync(appPath) || (appPath = emptyIcon);
-  }
-  
-  let desc = "";
-  const LANG = (process.env.LANG || "en_US").split(".")[0];
-  if (`Comment[${LANG}]` in targetAppInfo) {
-    desc = targetAppInfo[`Comment[${LANG}]`];
-  } else if (targetAppInfo.Comment) {
-    desc = targetAppInfo.Comment;
-  } else {
-    desc = appPath;
-  }
-
-  let execPath = targetAppInfo.Exec.replace(/ %[A-Za-z]/g, "")
-    .replace(/"/g, "")
-    .trim();
-  targetAppInfo.Terminal === "true" &&
-    (execPath = "gnome-terminal -x " + execPath);
-
-  const info = {
-    value: "plugin",
-    pluginType: "app",
-    desc,
-    icon: "file://" + icon,
-    keyWords: [targetAppInfo.Name],
-    action: execPath,
-    name: targetAppInfo.Name,
-    names: [targetAppInfo.Name]
-  };
-
-  if ("X-Ubuntu-Gettext-Domain" in targetAppInfo) {
-    const cmd = targetAppInfo["X-Ubuntu-Gettext-Domain"];
-    cmd && cmd !== targetAppInfo.Name && info.keyWords.push(cmd);
-  }
-  return info;
+  return [...new Set(keywords)];
 }
 
-function getIcon(filePath: string): string {
-  const themes = [
-    "ubuntu-mono-dark",
-    "ubuntu-mono-light",
-    "Yaru",
-    "hicolor",
-    "Adwaita",
-    "Humanity",
-  ];
-
-  const sizes = ["48x48", "48", "scalable", "256x256", "512x512", "256", "512"];
-  const types = [
-    "apps",
-    "categories",
-    "devices",
-    "mimetypes",
-    "legacy",
-    "actions",
-    "places",
-    "status",
-    "mimes",
-  ];
-  const exts = [".png", ".svg"];
-  for (const theme of themes) {
-    for (const size of sizes) {
-      for (const type of types) {
-        for (const ext of exts) {
-          let iconPath = path.join(
-            "/usr/share/icons",
-            theme,
-            size,
-            type,
-            filePath + ext
-          );
-          if (fs.existsSync(iconPath)) return iconPath;
-          iconPath = path.join(
-            "/usr/share/icons",
-            theme,
-            type,
-            size,
-            filePath + ext
-          );
-          if (fs.existsSync(iconPath)) return iconPath;
-        }
+async function parseDesktopFile(filePath: string): Promise<AppInfo | null> {
+  try {
+    const content = await readFile(filePath, 'utf-8');
+    const lines = content.split('\n');
+    
+    let name = '';
+    let exec = '';
+    let hidden = false;
+    let noDisplay = false;
+    
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      
+      if (trimmedLine.startsWith('Name=')) {
+        name = trimmedLine.substring(5);
+      } else if (trimmedLine.startsWith('Exec=')) {
+        exec = trimmedLine.substring(5);
+      } else if (trimmedLine.startsWith('Hidden=true')) {
+        hidden = true;
+      } else if (trimmedLine.startsWith('NoDisplay=true')) {
+        noDisplay = true;
       }
     }
+    
+    if (!name || !exec || hidden || noDisplay) {
+      return null;
+    }
+    
+    // 清理exec路径
+    exec = exec.replace(/%[uUfF]/g, '').trim();
+    
+    return {
+      name,
+      path: exec,
+      keywords: generateKeywords(name)
+    };
+  } catch (error) {
+    return null;
   }
-  return fs.existsSync(path.join("/usr/share/pixmaps", filePath + ".png"))
-    ? path.join("/usr/share/pixmaps", filePath + ".png")
-    : emptyIcon;
 }
 
-export default async (): Promise<any[]> => {
-  const apps: any = [];
-  const fileList: string[] = [];
-  app_paths.forEach((dir) => {
-    dirAppRead(dir, fileList);
-  });
+async function scanDirectory(dirPath: string): Promise<AppInfo[]> {
+  const apps: AppInfo[] = [];
+  
+  try {
+    if (!fs.existsSync(dirPath)) return apps;
+    
+    const items = await readdir(dirPath);
+    
+    for (const item of items) {
+      const fullPath = path.join(dirPath, item);
+      
+      try {
+        const stats = await stat(fullPath);
+        
+        if (stats.isFile() && item.endsWith('.desktop')) {
+          const app = await parseDesktopFile(fullPath);
+          if (app) {
+            apps.push(app);
+          }
+        }
+      } catch (error) {
+        continue;
+      }
+    }
+  } catch (error) {
+    console.error(`无法扫描目录 ${dirPath}:`, error);
+  }
+  
+  return apps;
+}
 
-  fileList.forEach((e) => {
-    const app = convertEntryFile2Feature(e);
-    if (app) apps.push(app);
-  });
-  return apps.filter((app: any) => !!app);
+export default async (): Promise<AppInfo[]> => {
+  const applications: AppInfo[] = [];
+  
+  // Linux标准应用目录
+  const appDirectories = [
+    '/usr/share/applications',
+    '/usr/local/share/applications',
+    path.join(os.homedir(), '.local/share/applications')
+  ];
+  
+  for (const dir of appDirectories) {
+    if (fs.existsSync(dir)) {
+      const apps = await scanDirectory(dir);
+      applications.push(...apps);
+    }
+  }
+  
+  // 去重并排序
+  const uniqueApps = applications.reduce((acc: AppInfo[], current) => {
+    const exists = acc.find(app => app.name === current.name);
+    if (!exists) {
+      acc.push(current);
+    }
+    return acc;
+  }, []);
+  
+  return uniqueApps.sort((a, b) => a.name.localeCompare(b.name));
 };

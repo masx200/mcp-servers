@@ -55,7 +55,7 @@ class AppMcpServer {
         },
         {
           name: "open_app",
-          description: "根据应用名称打开应用程序",
+          description: "根据应用名称打开应用程序，打开应用程序",
           inputSchema: {
             type: "object",
             properties: {
@@ -116,8 +116,7 @@ class AppMcpServer {
         const queryLower = query.toLowerCase();
         filteredApps = apps.filter(app => 
           app.name.toLowerCase().includes(queryLower) ||
-          app.keyWords.some(keyword => keyword.toLowerCase().includes(queryLower)) ||
-          app.desc.toLowerCase().includes(queryLower)
+          app.keywords.some(keyword => keyword.toLowerCase().includes(queryLower))
         );
       }
 
@@ -132,11 +131,8 @@ class AppMcpServer {
               query: query,
               apps: filteredApps.map(app => ({
                 name: app.name,
-                description: app.desc,
-                keywords: app.keyWords,
-                action: app.action,
-                icon: app.icon,
-                path: app.path || app.desc
+                keywords: app.keywords,
+                path: app.path
               }))
             }, null, 2)
           }
@@ -160,7 +156,7 @@ class AppMcpServer {
       const apps = await appSearch();
       const app = apps.find(app => 
         app.name.toLowerCase() === appName.toLowerCase() ||
-        app.keyWords.some(keyword => keyword.toLowerCase() === appName.toLowerCase())
+        app.keywords.some(keyword => keyword.toLowerCase() === appName.toLowerCase())
       );
 
       if (!app) {
@@ -176,13 +172,15 @@ class AppMcpServer {
 
       // 根据平台执行不同的打开命令
       const platform = getPlatform();
-      let command = app.action;
+      let command: string;
       
-      // 确保命令能正确执行
-      if (platform === 'win32' && !command.startsWith('start')) {
-        command = `start "" "${app.path || app.desc}"`;
-      } else if (platform === 'darwin' && !command.startsWith('open')) {
-        command = `open "${app.path || app.desc}"`;
+      if (platform === 'darwin') {
+        command = `open "${app.path}"`;
+      } else if (platform === 'win32') {
+        command = `start "" "${app.path}"`;
+      } else {
+        // Linux
+        command = `xdg-open "${app.path}"`;
       }
 
       await execAsync(command);
@@ -191,7 +189,7 @@ class AppMcpServer {
         content: [
           {
             type: "text",
-            text: `成功打开应用: ${app.name}\n路径: ${app.path || app.desc}\n执行命令: ${command}`
+            text: `成功打开应用: ${app.name}\n路径: ${app.path}\n执行命令: ${command}`
           }
         ]
       };

@@ -16,14 +16,10 @@
   "author": "传杰",
   "license": "ISC",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^0.4.0",
-    "extract-file-icon": "^0.3.2",
-    "plist": "^3.1.0",
-    "simple-plist": "^1.4.0"
+    "@modelcontextprotocol/sdk": "^0.4.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "@types/plist": "^3.0.5",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
   }
