@@ -7,7 +7,6 @@ const app_paths = [
   "/var/lib/snapd/desktop/applications",
   `${os.homedir()}/.local/share/applications`,
 ];
-const emptyIcon = "";
 
 function dirAppRead(dir: string, target: string[]): void {
   let files: Array<string> | null = null;
@@ -102,40 +101,7 @@ function convertEntryFile2Feature(appPath: string): any {
     return null;
   }
   
-  let icon = targetAppInfo.Icon;
-  if (!icon) return null;
-  if (icon.startsWith("/")) {
-    if (!fs.existsSync(icon)) return null;
-  } else if (
-    appPath.startsWith("/usr/share/applications") ||
-    appPath.startsWith("/var/lib/snapd/desktop/applications")
-  ) {
-    icon = getIcon(icon);
-  } else {
-    if (
-      !appPath.startsWith(
-        os.homedir() + "/.local/share/applications"
-      )
-    )
-      return null;
-    appPath = path.join(
-      os.homedir(),
-      ".local/share/icons",
-      appPath + ".png"
-    );
-    fs.existsSync(appPath) || (appPath = emptyIcon);
-  }
-  
-  let desc = "";
-  const LANG = (process.env.LANG || "en_US").split(".")[0];
-  if (`Comment[${LANG}]` in targetAppInfo) {
-    desc = targetAppInfo[`Comment[${LANG}]`];
-  } else if (targetAppInfo.Comment) {
-    desc = targetAppInfo.Comment;
-  } else {
-    desc = appPath;
-  }
-
+  // 简化路径获取逻辑，直接使用可执行文件路径
   let execPath = targetAppInfo.Exec.replace(/ %[A-Za-z]/g, "")
     .replace(/"/g, "")
     .trim();
@@ -144,11 +110,8 @@ function convertEntryFile2Feature(appPath: string): any {
 
   const info = {
     value: "plugin",
-    pluginType: "app",
-    desc,
-    icon: "file://" + icon,
+    path: execPath,
     keyWords: [targetAppInfo.Name],
-    action: execPath,
     name: targetAppInfo.Name,
     names: [targetAppInfo.Name]
   };
@@ -158,58 +121,6 @@ function convertEntryFile2Feature(appPath: string): any {
     cmd && cmd !== targetAppInfo.Name && info.keyWords.push(cmd);
   }
   return info;
-}
-
-function getIcon(filePath: string): string {
-  const themes = [
-    "ubuntu-mono-dark",
-    "ubuntu-mono-light",
-    "Yaru",
-    "hicolor",
-    "Adwaita",
-    "Humanity",
-  ];
-
-  const sizes = ["48x48", "48", "scalable", "256x256", "512x512", "256", "512"];
-  const types = [
-    "apps",
-    "categories",
-    "devices",
-    "mimetypes",
-    "legacy",
-    "actions",
-    "places",
-    "status",
-    "mimes",
-  ];
-  const exts = [".png", ".svg"];
-  for (const theme of themes) {
-    for (const size of sizes) {
-      for (const type of types) {
-        for (const ext of exts) {
-          let iconPath = path.join(
-            "/usr/share/icons",
-            theme,
-            size,
-            type,
-            filePath + ext
-          );
-          if (fs.existsSync(iconPath)) return iconPath;
-          iconPath = path.join(
-            "/usr/share/icons",
-            theme,
-            type,
-            size,
-            filePath + ext
-          );
-          if (fs.existsSync(iconPath)) return iconPath;
-        }
-      }
-    }
-  }
-  return fs.existsSync(path.join("/usr/share/pixmaps", filePath + ".png"))
-    ? path.join("/usr/share/pixmaps", filePath + ".png")
-    : emptyIcon;
 }
 
 export default async (): Promise<any[]> => {

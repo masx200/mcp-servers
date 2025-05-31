@@ -17,12 +17,6 @@ const startMenu = path.join(
 const fileLists: any = [];
 const isZhRegex = /[\u4e00-\u9fa5]/;
 
-const icondir = path.join(os.tmpdir(), 'ProcessIcon');
-const exists = fs.existsSync(icondir);
-if (!exists) {
-  fs.mkdirSync(icondir);
-}
-
 interface ShortcutInfo {
   target?: string;
 }
@@ -44,22 +38,6 @@ const readShortcutLink = (filePath: string): Promise<ShortcutInfo> => {
       }
     });
   });
-};
-
-const getico = async (app: any) => {
-  try {
-    // 尝试使用extract-file-icon包
-    const extractFileIcon = await import('extract-file-icon');
-    const fileIconFunc = extractFileIcon.default || extractFileIcon;
-    const buffer = fileIconFunc(app.desc, 32);
-    const iconpath = path.join(icondir, `${app.name}.png`);
-
-    if (!fs.existsSync(iconpath)) {
-      fs.writeFileSync(iconpath, buffer, 'base64');
-    }
-  } catch (e) {
-    console.log(e, app.desc);
-  }
 };
 
 async function fileDisplay(filePath: string): Promise<void> {
@@ -101,25 +79,14 @@ async function fileDisplay(filePath: string): Promise<void> {
               keyWords.push(firstLatter);
             }
 
-            const icon = path.join(
-              os.tmpdir(),
-              'ProcessIcon',
-              `${encodeURIComponent(appName)}.png`
-            );
-
             const appInfo = {
               value: 'plugin',
-              desc: appDetail.target,
-              type: 'app',
-              icon,
-              pluginType: 'app',
-              action: `start "" "${appDetail.target}"`,
+              path: appDetail.target,
               keyWords: keyWords,
               name: appName,
               names: JSON.parse(JSON.stringify(keyWords)),
             };
             fileLists.push(appInfo);
-            await getico(appInfo);
           }
           
           if (isDir) {

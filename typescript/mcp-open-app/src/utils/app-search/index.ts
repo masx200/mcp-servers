@@ -6,11 +6,7 @@ import linux from './linux.js';
 export interface AppInfo {
   _name?: string;
   path?: string;
-  icon?: string;
   value: string;
-  desc: string;
-  pluginType: string;
-  action: string;
   keyWords: string[];
   name: string;
   names: string[];

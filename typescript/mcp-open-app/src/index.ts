@@ -17,7 +17,7 @@ const execAsync = promisify(exec);
 
 class AppMcpServer {
   private server: Server;
-
+  private apps: AppInfo[] = [];
   constructor() {
     this.server = new Server({
       name: "app-open-server",
@@ -39,23 +39,33 @@ class AppMcpServer {
   private setupToolHandlers(): void {
     this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
       tools: [
-        {
-          name: "search_apps",
-          description: "搜索系统中安装的应用程序",
-          inputSchema: {
-            type: "object",
-            properties: {
-              query: {
-                type: "string",
-                description: "搜索关键词，如果为空则返回所有应用",
-                default: ""
-              }
-            }
-          }
-        },
+        // {
+        //   name: "get_all_apps",
+        //   description: "获取系统中安装的所有应用程序",
+        //   inputSchema: {
+        //     type: "object",
+        //     properties: {}
+        //   }
+        // },
+        // {
+        //   name: "search_apps",
+        //   description: "搜索系统中安装的应用程序",
+        //   inputSchema: {
+        //     type: "object",
+        //     properties: {
+        //       query: {
+        //         type: "string",
+        //         description: "搜索关键词，如果为空则返回所有应用",
+        //         default: ""
+        //       }
+        //     }
+        //   }
+        // },
         {
           name: "open_app",
-          description: "根据应用名称打开应用程序",
+          description: `
+            打开应用程序,根据应用名称打开应用程序；
+          `,
           inputSchema: {
             type: "object",
             properties: {
@@ -85,6 +95,8 @@ class AppMcpServer {
         switch (name) {
           case "search_apps":
             return await this.handleSearchApps(args);
+          case "get_all_apps":
+            return await this.getAllApps();
           case "open_app":
             return await this.handleOpenApp(args);
           case "get_platform_info":
@@ -105,19 +117,51 @@ class AppMcpServer {
     });
   }
 
+  private async getAllApps() {
+    try {
+      if (this.apps.length === 0) {
+        console.error('没缓存apps');
+        this.apps = await appSearch();
+      }else{
+        console.error('有缓存apps');
+      }
+  
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({
+              apps: this.apps
+            }, null, 2)
+          }
+        ]
+      };
+    } catch (error) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `搜索应用时发生错误: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
   private async handleSearchApps(args: any) {
     const query = args?.query || "";
     
     try {
-      const apps = await appSearch();
+      if (this.apps.length === 0) {
+        console.error('没缓存apps');
+        this.apps = await appSearch();
+      }else{
+        console.error('有缓存apps');
+      }
       
-      let filteredApps = apps;
+      let filteredApps = this.apps;
       if (query) {
         const queryLower = query.toLowerCase();
-        filteredApps = apps.filter(app => 
+        filteredApps = this.apps.filter(app => 
           app.name.toLowerCase().includes(queryLower) ||
-          app.keyWords.some(keyword => keyword.toLowerCase().includes(queryLower)) ||
-          app.desc.toLowerCase().includes(queryLower)
+          app.keyWords.some(keyword => keyword.toLowerCase().includes(queryLower))
         );
       }
 
@@ -127,16 +171,13 @@ class AppMcpServer {
             type: "text",
             text: JSON.stringify({
               platform: getPlatform(),
-              totalApps: apps.length,
+              totalApps: this.apps.length,
               filteredApps: filteredApps.length,
               query: query,
               apps: filteredApps.map(app => ({
                 name: app.name,
-                description: app.desc,
                 keywords: app.keyWords,
-                action: app.action,
-                icon: app.icon,
-                path: app.path || app.desc
+                path: app.path || app.name
               }))
             }, null, 2)
           }
@@ -157,10 +198,12 @@ class AppMcpServer {
     }
 
     try {
-      const apps = await appSearch();
-      const app = apps.find(app => 
+      if (this.apps.length === 0) {
+        this.apps = await appSearch();
+      }
+      const app = this.apps.find(app => 
         app.name.toLowerCase() === appName.toLowerCase() ||
-        app.keyWords.some(keyword => keyword.toLowerCase() === appName.toLowerCase())
+        app.keyWords.some(keyword => keyword.toLowerCase().includes(appName.toLowerCase()))
       );
 
       if (!app) {
@@ -176,13 +219,16 @@ class AppMcpServer {
 
       // 根据平台执行不同的打开命令
       const platform = getPlatform();
-      let command = app.action;
+      let command = '';
+      const appPath = app.path || app.name;
       
-      // 确保命令能正确执行
-      if (platform === 'win32' && !command.startsWith('start')) {
-        command = `start "" "${app.path || app.desc}"`;
-      } else if (platform === 'darwin' && !command.startsWith('open')) {
-        command = `open "${app.path || app.desc}"`;
+      if (platform === 'win32') {
+        command = `start "" "${appPath}"`;
+      } else if (platform === 'darwin') {
+        command = `open "${appPath}"`;
+      } else {
+        // Linux - 直接执行路径
+        command = appPath;
       }
 
       await execAsync(command);
@@ -191,7 +237,7 @@ class AppMcpServer {
         content: [
           {
             type: "text",
-            text: `成功打开应用: ${app.name}\n路径: ${app.path || app.desc}\n执行命令: ${command}`
+            text: `成功打开应用: ${app.name}\n路径: ${appPath}\n执行命令: ${command}`
           }
         ]
       };
