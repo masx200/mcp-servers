@@ -1,6 +1,6 @@
 {
   "name": "@mcpcn/mcp-bilibili",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Bilibili OAuth2扫码授权与API集成的MCP服务",
   "main": "dist/index.js",
   "files": [

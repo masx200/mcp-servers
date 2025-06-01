@@ -1,6 +1,6 @@
 {
   "name": "@mcpcn/mcp-image-processor",
-  "version": "1.0.0",
+  "version": "1.0.6",
   "description": "MCP server for image processing",
   "main": "dist/index.js",
   "scripts": {
@@ -10,26 +10,32 @@
     "serve": "node dist/index.js"
   },
   "bin": {
-    "mcp-ip-query": "dist/index.js"
+    "mcp-image-processor": "dist/index.js"
   },
   "files": [
     "dist",
     "README.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [
+    "mcp",
     "image",
     "processing",
-    "mcp"
+    "sharp",
+    "model-context-protocol"
   ],
-  "author": "",
-  "license": "ISC",
+  "author": "mcpcn",
+  "license": "MIT",
   "dependencies": {
-   "@modelcontextprotocol/sdk": "^1.9.0",
-    "@types/sharp": "^0.31.1",
-    "sharp": "^0.33.2"
+    "@modelcontextprotocol/sdk": "1.12.0",
+    "sharp": "^0.33.2",
+    "semver": "^7.6.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "@types/sharp": "^0.31.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.0"
   }

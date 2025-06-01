@@ -1,6 +1,6 @@
 {
   "name": "@mcpcn/mcp-qrcode",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "QR Code generation and decoding MCP server",
   "main": "dist/index.js",
   "scripts": {

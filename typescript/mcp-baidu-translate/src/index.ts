@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -6,7 +8,8 @@ import {
   Tool,
 } from "@modelcontextprotocol/sdk/types.js";
 import fetch from "node-fetch";
-import { MD5 } from "crypto-js";
+import pkg from "crypto-js";
+const { MD5 } = pkg;
 
 // 从环境变量获取百度翻译API凭证
 function getBaiduApiCredentials() {
@@ -249,7 +252,6 @@ async function handleTranslateText(input: any) {
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("处理翻译请求时发生错误:", errorMessage);
     return {
       content: [],
       isError: true,
@@ -290,10 +292,7 @@ const server = new Server(
   },
   {
     capabilities: {
-      tools: TOOLS.reduce((acc, tool) => {
-        acc[tool.name] = tool;
-        return acc;
-      }, {} as Record<string, Tool>),
+      tools: {},
     },
   }
 );
@@ -308,15 +307,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const toolName = request.params.name;
     const toolInput = request.params.arguments;
 
-    console.error(`收到工具调用请求: ${toolName}, 输入: ${JSON.stringify(toolInput)}`);
-
     if (toolName === TRANSLATE_TEXT_TOOL.name) {
       return await handleTranslateText(toolInput);
     } else if (toolName === GET_SUPPORTED_LANGUAGES_TOOL.name) {
       return handleGetSupportedLanguages();
     }
 
-    console.error(`未知的工具名称: ${toolName}`);
     return {
       content: [],
       isError: true,
@@ -324,7 +320,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("处理工具调用请求时发生严重错误:", errorMessage);
     return {
       content: [],
       isError: true,
@@ -338,10 +333,7 @@ async function runServer() {
   try {
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    console.error("MCP 百度翻译服务已启动");
-    console.error(`已注册 ${TOOLS.length} 个工具: ${TOOLS.map((t) => t.name).join(", ")}`);
   } catch (error) {
-    console.error("MCP 服务启动失败:", error);
     process.exit(1);
   }
 }

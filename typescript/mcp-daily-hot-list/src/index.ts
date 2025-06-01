@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -281,7 +283,7 @@ async function handleGetSiteData(siteName: string) {
       ]
     };
   } catch (error) {
-    console.error("获取站点数据失败:", error);
+    console.error("获取站点数据失败:", error);  
     return handleError(`获取 ${siteName} 数据失败: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
@@ -310,7 +312,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     const toolName = request.params.name;
-    console.error(`收到工具调用请求: ${toolName}`);
 
     if (toolName === "get_site_list") {
       return await handleGetSiteList();
@@ -322,7 +323,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const targetSite = SITE_LIST.find((s) => s.调用名称 === siteCallName);
 
       if (targetSite) {
-        console.error(`处理站点请求: ${targetSite.站点}`);
         return await handleGetSiteData(targetSite.站点);
       }
 
@@ -343,9 +343,6 @@ async function runServer() {
   try {
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    console.error("MCP 日报热门榜服务器已启动");
-    console.error(`已注册 ${TOOLS.length} 个工具`);
-    console.error(`工具列表: ${TOOLS.map((t) => t.name).join(", ")}`);
   } catch (error) {
     console.error("服务器启动失败:", error);
     process.exit(1);

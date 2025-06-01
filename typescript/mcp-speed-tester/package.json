@@ -1,6 +1,6 @@
 {
   "name": "@mcpcn/mcp-speed-tester",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MCP service for network speed testing",
   "main": "dist/index.js",
   "type": "module",
@@ -25,4 +25,4 @@
     "typescript": "^5.3.3",
     "ts-node": "^10.9.2"
   }
-} 
+}
