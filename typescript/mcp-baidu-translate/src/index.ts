@@ -218,13 +218,9 @@ async function handleTranslateText(input: any) {
       sign: sign,
     });
 
-    console.error(params.toString());
-
     // 发送请求
     const response = await fetch(`${API_ENDPOINT}?${params.toString()}`);
 
-    console.error(response);
-    
     if (!response.ok) {
       return {
         content: [],
