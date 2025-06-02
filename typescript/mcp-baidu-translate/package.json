@@ -1,6 +1,6 @@
 {
   "name": "@mcpcn/mcp-baidu-translate",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "百度翻译API服务",
   "main": "dist/index.js",
   "type": "module",
