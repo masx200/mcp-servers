@@ -102,8 +102,6 @@ async function handleEnterpriseInfoQuery(keyword: string){
   const querys = `keyword=${encodedKeyword}`;
   const url = `${host}${path}?${querys}`;
 
-  console.log("请求URL:", url); // 调试用
-
   // 设置请求头，与Python代码保持一致
   const headers = {
     "Authorization": `APPCODE ${ENTERPRISE_INFO_API_KEY}`
@@ -198,7 +196,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 async function runServer() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("企业信息查询 MCP 服务器正在通过 stdio 运行");
 }
 
 runServer().catch((error) => {
