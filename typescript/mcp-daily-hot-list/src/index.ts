@@ -296,10 +296,7 @@ const server = new Server(
   },
   {
     capabilities: {
-      tools: TOOLS.reduce((acc, tool) => {
-        acc[tool.name] = tool;
-        return acc;
-      }, {} as Record<string, Tool>),
+      tools: {}
     },
   }
 );

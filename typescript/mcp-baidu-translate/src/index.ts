@@ -91,7 +91,7 @@ function generateSign(text: string, salt: number): string {
 // 翻译工具定义
 const TRANSLATE_TEXT_TOOL: Tool = {
   name: "translate_text",
-  description: "使用百度翻译API翻译文本内容",
+  description: "使用百度翻译进行文本翻译",
   inputSchema: {
     type: "object" as const,
     properties: {
@@ -185,7 +185,7 @@ async function handleTranslateText(input: any) {
     };
   }
 
-  const { text, from_lang = "auto", to_lang } = input;
+  const { text, from_lang, to_lang } = input;
 
   if (!text) {
     return {
@@ -211,16 +211,20 @@ async function handleTranslateText(input: any) {
     // 构建请求参数
     const params = new URLSearchParams({
       q: text,
-      from: from_lang,
+      from: from_lang || "auto",
       to: to_lang,
       appid: APP_ID,
       salt: salt.toString(),
       sign: sign,
     });
 
+    console.error(params.toString());
+
     // 发送请求
     const response = await fetch(`${API_ENDPOINT}?${params.toString()}`);
 
+    console.error(response);
+    
     if (!response.ok) {
       return {
         content: [],
