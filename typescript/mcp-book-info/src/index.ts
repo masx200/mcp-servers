@@ -61,9 +61,9 @@ interface BookSearchResponse {
 }
 
 function getAppCode(): string {
-  const appCode = process.env.JISU_APPCODE;
+  const appCode = process.env.JISU_ALIYUN_APPCODE;
   if (!appCode) {
-    console.error("环境变量JISU_APPCODE未设置");
+    console.error("JISU_ALIYUN_APPCODE environment variable is not set");
     process.exit(1);
   }
   return appCode;
@@ -120,6 +120,8 @@ async function handleIsbnQuery(isbn: string) {
   // 构建查询字符串
   const url = `${host}${path}?isbn=${isbn}`;
 
+  console.log("请求URL:", url);
+
   try {
     const response = await fetch(url, {
       method: 'GET',
@@ -129,6 +131,8 @@ async function handleIsbnQuery(isbn: string) {
       },
       agent: agent
     });
+
+    console.log("响应状态:", response.status);
 
     if (!response.ok) {
       console.error(`HTTP 错误: ${response.status}`);
@@ -142,6 +146,7 @@ async function handleIsbnQuery(isbn: string) {
     }
 
     const content = await response.text();
+    console.log("响应内容:", content);
 
     try {
       const data = JSON.parse(content) as BookInfoResponse;
@@ -193,6 +198,8 @@ async function handleBookSearch(title: string, pagenum: number = 1) {
   const querys = `pagenum=${pagenum}&title=${encodedTitle}`;
   const url = `${host}${path}?${querys}`;
 
+  console.log("请求URL:", url);
+
   try {
     const response = await fetch(url, {
       method: 'GET',
@@ -202,6 +209,8 @@ async function handleBookSearch(title: string, pagenum: number = 1) {
       },
       agent: agent
     });
+
+    console.log("响应状态:", response.status);
 
     if (!response.ok) {
       console.error(`HTTP 错误: ${response.status}`);
@@ -215,6 +224,7 @@ async function handleBookSearch(title: string, pagenum: number = 1) {
     }
 
     const content = await response.text();
+    console.log("响应内容:", content);
 
     try {
       const data = JSON.parse(content) as BookSearchResponse;
@@ -314,6 +324,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 async function runServer() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
+  console.error("图书信息查询 MCP 服务器正在通过 stdio 运行");
 }
 
 runServer().catch((error) => {

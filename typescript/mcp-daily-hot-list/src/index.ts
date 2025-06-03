@@ -122,30 +122,23 @@ const SITE_LIST: SiteInfo[] = [
   { "站点": "历史上的今天", "类别": "月-日", "调用名称": "history" }
 ];
 
-// 工具定义
-const GET_SITE_LIST_TOOL: Tool = {
-  name: "get_site_list",
-  description: "获取支持的站点列表及其类别",
+// 工具定义 - 合并为单个通用工具
+const GET_HOT_DATA_TOOL: Tool = {
+  name: "get_hot_data",
+  description: "获取指定站点的热门数据",
   inputSchema: {
     type: "object",
-    properties: {},
+    properties: {
+      site: {
+        type: "string",
+        description: "站点名称或调用名称，例如'微博'或'weibo'。不传参数则返回支持的站点列表。"
+      }
+    },
   },
   outputSchema: OUTPUT_SCHEMA,
 };
 
-const SITE_SPECIFIC_TOOLS: Tool[] = SITE_LIST.map(
-  (site): Tool => ({
-    name: `get_data_${site.调用名称}`,
-    description: `获取 ${site.站点} - ${site.类别} 的数据`,
-    inputSchema: {
-      type: "object",
-      properties: {},
-    },
-    outputSchema: OUTPUT_SCHEMA,
-  })
-);
-
-const TOOLS: readonly Tool[] = [GET_SITE_LIST_TOOL, ...SITE_SPECIFIC_TOOLS];
+const TOOLS: readonly Tool[] = [GET_HOT_DATA_TOOL];
 
 // 错误处理 - 返回符合MCP标准的JSON格式
 function handleError(message: string, isError: boolean = true) {
@@ -217,11 +210,18 @@ async function handleGetSiteList() {
 }
 
 // 获取站点数据处理函数 - 返回JSON格式
-async function handleGetSiteData(siteName: string) {
+async function handleGetSiteData(siteParam: string) {
   try {
-    const targetSite = SITE_LIST.find((site) => site.站点 === siteName);
+    // 先尝试按站点名查找
+    let targetSite = SITE_LIST.find((site) => site.站点 === siteParam);
+
+    // 如果找不到，则尝试按调用名称查找
     if (!targetSite) {
-      throw new Error(`未找到站点: ${siteName}`);
+      targetSite = SITE_LIST.find((site) => site.调用名称 === siteParam);
+    }
+
+    if (!targetSite) {
+      throw new Error(`未找到站点: ${siteParam}`);
     }
 
     const apiUrl = `${API_BASE_URL}/${targetSite.调用名称}`;
@@ -239,7 +239,7 @@ async function handleGetSiteData(siteName: string) {
 
     // 检查API返回的数据是否为空
     if (apiResponse.data.length === 0) {
-      throw new Error(`API for ${siteName} returned no data items. This site might have no hot content currently.`);
+      throw new Error(`API for ${targetSite.站点} returned no data items. This site might have no hot content currently.`);
     }
 
     // 构建符合schema的JSON数据
@@ -259,7 +259,7 @@ async function handleGetSiteData(siteName: string) {
           itemDisplayTitle: `${index + 1}. ${item.title}`,
           itemTitle: item.title,
         };
-        
+
         if (item.url) outputItem.itemUrl = `🔗 链接：${item.url}`;
         if (item.mobileUrl) outputItem.itemMobileUrl = `📱 移动端链接：${item.mobileUrl}`;
         if (item.hot !== undefined) outputItem.itemHotness = `🔥 热度：${formatHotValue(item.hot)}`;
@@ -267,7 +267,7 @@ async function handleGetSiteData(siteName: string) {
         if (item.desc) outputItem.itemDescription = `📝 描述：${item.desc}`;
         if (item.author) outputItem.itemAuthor = `👤 作者：${item.author}`;
         if (item.id) outputItem.itemId = `🆔 ID：${item.id}`;
-        
+
         return outputItem;
       }),
       isError: false
@@ -283,8 +283,8 @@ async function handleGetSiteData(siteName: string) {
       ]
     };
   } catch (error) {
-    console.error("获取站点数据失败:", error);  
-    return handleError(`获取 ${siteName} 数据失败: ${error instanceof Error ? error.message : String(error)}`);
+    console.error("获取站点数据失败:", error);
+    return handleError(`获取 ${siteParam} 数据失败: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -310,20 +310,17 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     const toolName = request.params.name;
 
-    if (toolName === "get_site_list") {
-      return await handleGetSiteList();
-    }
+    if (toolName === "get_hot_data") {
+      // 获取站点参数
+      const site = request.params.arguments?.site as string | undefined;
 
-    const siteToolPrefix = "get_data_";
-    if (toolName.startsWith(siteToolPrefix)) {
-      const siteCallName = toolName.substring(siteToolPrefix.length);
-      const targetSite = SITE_LIST.find((s) => s.调用名称 === siteCallName);
-
-      if (targetSite) {
-        return await handleGetSiteData(targetSite.站点);
+      // 如果没有提供站点参数，则返回站点列表
+      if (!site) {
+        return await handleGetSiteList();
       }
 
-      return handleError(`未找到调用名称为 ${siteCallName} 的站点配置`);
+      // 否则处理特定站点的数据
+      return await handleGetSiteData(site);
     }
 
     return handleError(`未知工具: ${toolName}`);
