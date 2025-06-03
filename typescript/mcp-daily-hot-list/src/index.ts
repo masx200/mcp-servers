@@ -74,6 +74,41 @@ const OUTPUT_SCHEMA = {
   additionalProperties: false
 }
 
+// Schema定义 - 站点列表
+const SITE_LIST_OUTPUT_SCHEMA = {
+  type: "object" as const,
+  description: "支持的新闻站点列表返回格式",
+  properties: {
+    sites: {
+      type: "array",
+      description: "新闻站点列表",
+      items: {
+        type: "object",
+        description: "单个新闻站点的信息",
+        properties: {
+          siteName: { type: "string", description: "站点名称 (例如: 哔哩哔哩)" },
+          siteCategory: { type: "string", description: "站点类别 (例如: 热门榜)" },
+          siteIdentifier: { type: "string", description: "站点的调用名称 (例如: bilibili)" }
+        },
+        required: ["siteName", "siteCategory", "siteIdentifier"],
+        additionalProperties: false
+      },
+    },
+    isError: {
+      type: "boolean",
+      description: "请求状态标识：\n" +
+                  "- false: 表示请求成功\n" +
+                  "- true: 表示请求失败"
+    },
+    errorMessage: {
+        type: "string",
+        description: "当 isError 为 true 时，可能包含错误信息"
+    }
+  },
+  required: ["sites", "isError"],
+  additionalProperties: false
+};
+
 // 站点信息列表
 const SITE_LIST: SiteInfo[] = [
   { "站点": "哔哩哔哩", "类别": "热门榜", "调用名称": "bilibili" },
@@ -138,7 +173,17 @@ const GET_HOT_DATA_TOOL: Tool = {
   outputSchema: OUTPUT_SCHEMA,
 };
 
-const TOOLS: readonly Tool[] = [GET_HOT_DATA_TOOL];
+const LIST_NEWS_SOURCES_TOOL: Tool = {
+  name: "list_news_sources",
+  description: "列出所有可用的新闻来源站点及其类别。",
+  inputSchema: {
+    type: "object",
+    properties: {}
+  },
+  outputSchema: SITE_LIST_OUTPUT_SCHEMA,
+};
+
+const TOOLS: readonly Tool[] = [GET_HOT_DATA_TOOL, LIST_NEWS_SOURCES_TOOL];
 
 // 错误处理 - 返回符合MCP标准的JSON格式
 function handleError(message: string, isError: boolean = true) {
@@ -192,7 +237,7 @@ function formatTimestamp(timestamp: number): string {
 // 获取站点列表处理函数 - 返回JSON格式
 async function handleGetSiteList() {
   const result = {
-    content: SITE_LIST.map((site, index) => ({
+    content: SITE_LIST.slice(0, 30).map((site, index) => ({
       itemDisplayTitle: `${index + 1}. ${site.站点}（${site.类别}）`,
       itemTitle: `${site.站点}（${site.类别}）`
     })),
@@ -244,7 +289,7 @@ async function handleGetSiteData(siteParam: string) {
 
     // 构建符合schema的JSON数据
     const result = {
-      content: apiResponse.data.map((item: HotItem, index: number) => {
+      content: apiResponse.data.slice(0, 30).map((item: HotItem, index: number) => {
         const outputItem: {
           itemDisplayTitle: string;
           itemTitle: string;
@@ -288,6 +333,46 @@ async function handleGetSiteData(siteParam: string) {
   }
 }
 
+async function handleListNewsSources() {
+  try {
+    const sitesData = SITE_LIST.map(site => ({
+      siteName: site.站点,
+      siteCategory: site.类别,
+      siteIdentifier: site.调用名称
+    }));
+
+    const result = {
+      sites: sitesData,
+      isError: false
+    };
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(result, null, 2) // 添加 JSON.stringify
+        }
+      ]
+    };
+  } catch (error) {
+    console.error("列出新闻源失败:", error);
+    const errorPayload = {
+      sites: [],
+      isError: true,
+      errorMessage: `列出新闻源失败: ${error instanceof Error ? error.message : String(error)}`
+    };
+    return {
+      content: [
+        {
+          type: "text", // 修正拼写错误：ype -> type
+          text: JSON.stringify(errorPayload, null, 2) // 添加 JSON.stringify
+        }
+      ]
+    };
+  }
+}
+
+
 // 服务器配置和启动
 const server = new Server(
   {
@@ -321,6 +406,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       // 否则处理特定站点的数据
       return await handleGetSiteData(site);
+    }
+    else if (toolName === "list_news_sources") {
+      return await handleListNewsSources();
     }
 
     return handleError(`未知工具: ${toolName}`);
