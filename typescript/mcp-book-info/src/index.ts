@@ -71,7 +71,7 @@ function getAppCode(): string {
 
 const JISU_APPCODE = getAppCode();
 
-// 工具定义
+// 工具定义修改部分
 const ISBN_QUERY_TOOL: Tool = {
   name: "isbn_query",
   description: "通过ISBN查询图书信息",
@@ -84,6 +84,50 @@ const ISBN_QUERY_TOOL: Tool = {
       }
     },
     required: ["isbn"]
+  },
+  outputSchema: {
+    type: "object",
+    properties: {
+      status: { type: "number" },
+      msg: { type: "string" },
+      result: {
+        type: "object",
+        properties: {
+          title: { type: "string", description: "图书标题" },
+          subtitle: { type: "string", description: "副标题" },
+          pic: { type: "string", description: "图书封面图片URL" },
+          author: { type: "string", description: "作者" },
+          summary: { type: "string", description: "图书简介" },
+          publisher: { type: "string", description: "出版社" },
+          pubplace: { type: "string", description: "出版地" },
+          pubdate: { type: "string", description: "出版日期" },
+          page: { type: "any", description: "页数" },
+          price: { type: "string", description: "价格" },
+          binding: { type: "string", description: "装帧方式" },
+          isbn: { type: "string", description: "ISBN-13" },
+          isbn10: { type: "string", description: "ISBN-10" },
+          keyword: { type: "string", description: "关键词" },
+          edition: { type: "string", description: "版次" },
+          impression: { type: "string", description: "印次" },
+          language: { type: "string", description: "语言" },
+          format: { type: "string", description: "开本" },
+          class: { type: "string", description: "分类号" },
+          cip: { type: "string", description: "CIP数据核字号" },
+          sellerlist: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                seller: { type: "string", description: "销售商" },
+                price: { type: "string", description: "售价" },
+                link: { type: "string", description: "购买链接" }
+              }
+            },
+            description: "销售商列表"
+          }
+        }
+      }
+    }
   }
 };
 
@@ -103,8 +147,38 @@ const BOOK_SEARCH_TOOL: Tool = {
       }
     },
     required: ["title"]
+  },
+  outputSchema: {
+    type: "object",
+    properties: {
+      status: { type: "number" },
+      msg: { type: "string" },
+      result: {
+        type: "object",
+        properties: {
+          keyword: { type: "string", description: "搜索关键词" },
+          total: { type: "number", description: "总结果数" },
+          pagenum: { type: "number", description: "当前页码" },
+          pagesize: { type: "number", description: "每页结果数" },
+          list: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                title: { type: "string", description: "图书标题" },
+                author: { type: "string", description: "作者" },
+                pic: { type: "string", description: "图书封面图片URL" },
+                isbn: { type: "string", description: "ISBN" }
+              }
+            },
+            description: "搜索结果列表"
+          }
+        }
+      }
+    }
   }
 };
+
 
 const TOOLS = [ISBN_QUERY_TOOL, BOOK_SEARCH_TOOL] as const;
 
@@ -112,15 +186,10 @@ const TOOLS = [ISBN_QUERY_TOOL, BOOK_SEARCH_TOOL] as const;
 const agent = new https.Agent({
   rejectUnauthorized: false
 });
-
 async function handleIsbnQuery(isbn: string) {
   const host = 'https://jisuisbn.market.alicloudapi.com';
   const path = '/isbn/query';
-
-  // 构建查询字符串
   const url = `${host}${path}?isbn=${isbn}`;
-
-  console.log("请求URL:", url);
 
   try {
     const response = await fetch(url, {
@@ -132,10 +201,7 @@ async function handleIsbnQuery(isbn: string) {
       agent: agent
     });
 
-    console.log("响应状态:", response.status);
-
     if (!response.ok) {
-      console.error(`HTTP 错误: ${response.status}`);
       return {
         content: [{
           type: "text",
@@ -146,7 +212,6 @@ async function handleIsbnQuery(isbn: string) {
     }
 
     const content = await response.text();
-    console.log("响应内容:", content);
 
     try {
       const data = JSON.parse(content) as BookInfoResponse;
@@ -161,13 +226,16 @@ async function handleIsbnQuery(isbn: string) {
         };
       }
 
+      // 修改返回格式
       return {
+        structuredContent: data,
         content: [{
           type: "text",
           text: JSON.stringify(data, null, 2)
         }],
         isError: false
       };
+
     } catch (e) {
       return {
         content: [{
@@ -178,7 +246,6 @@ async function handleIsbnQuery(isbn: string) {
       };
     }
   } catch (error: any) {
-    console.error("请求出错:", error);
     return {
       content: [{
         type: "text",
@@ -189,16 +256,14 @@ async function handleIsbnQuery(isbn: string) {
   }
 }
 
+
 async function handleBookSearch(title: string, pagenum: number = 1) {
   const host = 'https://jisuisbn.market.alicloudapi.com';
   const path = '/isbn/search';
 
-  // 构建查询字符串
   const encodedTitle = encodeURIComponent(title);
   const querys = `pagenum=${pagenum}&title=${encodedTitle}`;
   const url = `${host}${path}?${querys}`;
-
-  console.log("请求URL:", url);
 
   try {
     const response = await fetch(url, {
@@ -210,10 +275,7 @@ async function handleBookSearch(title: string, pagenum: number = 1) {
       agent: agent
     });
 
-    console.log("响应状态:", response.status);
-
     if (!response.ok) {
-      console.error(`HTTP 错误: ${response.status}`);
       return {
         content: [{
           type: "text",
@@ -224,7 +286,6 @@ async function handleBookSearch(title: string, pagenum: number = 1) {
     }
 
     const content = await response.text();
-    console.log("响应内容:", content);
 
     try {
       const data = JSON.parse(content) as BookSearchResponse;
@@ -240,6 +301,7 @@ async function handleBookSearch(title: string, pagenum: number = 1) {
       }
 
       return {
+        structuredContent: data,
         content: [{
           type: "text",
           text: JSON.stringify(data, null, 2)
@@ -256,7 +318,6 @@ async function handleBookSearch(title: string, pagenum: number = 1) {
       };
     }
   } catch (error: any) {
-    console.error("请求出错:", error);
     return {
       content: [{
         type: "text",

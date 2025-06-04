@@ -41,7 +41,6 @@ const QUERY_PHONE_LOCATION_OUTPUT_SCHEMA = {
     isError: { type: "boolean", description: "请求是否发生错误" },
     errorMessage: { type: "string", description: "错误信息（如果 isError 为 true 时提供）" },
   },
-  required: ["content", "isError", "errorMessage"],
 };
 
 // 工具定义
@@ -130,13 +129,14 @@ async function handleQueryPhoneLocation(input: any) {
       };
     }
 
-    const locationText = [{"号码": phoneNumber, "省份": province, "城市": city, "运营商": sp}];
+    const locationInfo = { "号码": phoneNumber, "省份": province, "城市": city, "运营商": sp };
 
     return {
+      structuredContent: locationInfo,
       content: [
         {
           type: "text",
-          text: JSON.stringify(locationText, null, 2)
+          text: JSON.stringify([locationInfo], null, 2)
         },
       ],
       isError: false,

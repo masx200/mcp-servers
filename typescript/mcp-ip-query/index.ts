@@ -63,6 +63,16 @@ const GET_MY_IP_TOOL: Tool = {
     type: "object",
     properties: {},
     required: []
+  },
+  outputSchema: {
+    type: "object",
+    properties: {
+      ip: {
+        type: "string",
+        description: "IP地址"
+      }
+    },
+    required: ["ip"]
   }
 };
 
@@ -78,6 +88,36 @@ const GET_IP_LOCATION_TOOL: Tool = {
       }
     },
     required: ["ip"]
+  },
+  outputSchema: {
+    type: "object",
+    properties: {
+      ip: {
+        type: "string",
+        description: "IP地址"
+      },
+      country: {
+        type: "string",
+        description: "国家"
+      },
+      region: {
+        type: "string",
+        description: "省份/地区"
+      },
+      city: {
+        type: "string",
+        description: "城市"
+      },
+      isp: {
+        type: "string",
+        description: "互联网服务提供商"
+      },
+      orderNo: {
+        type: "string",
+        description: "订单号"
+      }
+    },
+    required: ["ip", "country", "region", "city", "isp"]
   }
 };
 
@@ -116,14 +156,15 @@ async function handleGetMyIP() {
     const ip = ipData.data;
     
     // 然后获取IP地址的地理位置信息
-    return await getIPLocation(ip);
-    // return {
-    //   content: [{
-    //     type: "text",
-    //     text: `IP地址: ${ip}`
-    //   }],
-    //   isError: false
-    // };
+    // return await getIPLocation(ip);
+    return {
+      structuredContent: { ip: ip },
+      content: [{
+        type: "text",
+        text: JSON.stringify({ ip: ip }, null, 2)
+      }],
+      isError: false
+    };
   } catch (error) {
     return {
       content: [{
@@ -176,6 +217,7 @@ async function getIPLocation(ip: string) {
     };
     
     return {
+      structuredContent: ipInfo,
       content: [{
         type: "text",
         text: JSON.stringify(ipInfo, null, 2)

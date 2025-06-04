@@ -126,7 +126,6 @@ async function convertFormat(
         .toFormat(targetFormat as keyof sharp.FormatEnum)
         .toFile(outputFilePath);
         
-      console.log(`Successfully converted ${imagePath} to ${outputFilePath}`);
       results.push(outputFilePath);
     } catch (error) {
       console.error(`Error converting ${imagePath}:`, error);
@@ -160,7 +159,6 @@ async function compressToSize(
       const stats = fs.statSync(imagePath);
       
       if (stats.size <= targetBytes) {
-        console.log(`${imagePath} is already smaller than target size`);
         if (!overwrite) {
           await fs.promises.copyFile(imagePath, outputFilePath);
         }
@@ -191,7 +189,6 @@ async function compressToSize(
       
       if (bestBuffer) {
         await fs.promises.writeFile(outputFilePath, bestBuffer);
-        console.log(`Successfully compressed ${imagePath} to ${outputFilePath} with quality ${bestQuality}`);
         results.push(outputFilePath);
       } else {
         throw new Error('Could not achieve target size while maintaining acceptable quality');
@@ -252,7 +249,6 @@ async function compressToPercent(
       
       if (bestBuffer) {
         await fs.promises.writeFile(outputFilePath, bestBuffer);
-        console.log(`Successfully compressed ${imagePath} to ${outputFilePath} with quality ${bestQuality}`);
         results.push(outputFilePath);
       } else {
         throw new Error('Could not achieve target size while maintaining acceptable quality');
@@ -316,7 +312,6 @@ async function resize(
         .resize(resizeOptions)
         .toFile(outputFilePath);
       
-      console.log(`Successfully resized ${imagePath} to ${outputFilePath}`);
       results.push(outputFilePath);
     } catch (error) {
       console.error(`Error resizing ${imagePath}:`, error);
@@ -344,7 +339,6 @@ async function getMetadata(
       const fileName = path.basename(imagePath);
       results[fileName] = metadata;
       
-      console.log(`Successfully read metadata from ${imagePath}`);
     } catch (error) {
       console.error(`Error reading metadata from ${imagePath}:`, error);
     }
@@ -377,7 +371,7 @@ async function rotate(
         .rotate(angle)
         .toFile(outputFilePath);
       
-      console.log(`Successfully rotated ${imagePath} by ${angle} degrees to ${outputFilePath}`);
+
       results.push(outputFilePath);
     } catch (error) {
       console.error(`Error rotating ${imagePath}:`, error);
@@ -418,7 +412,6 @@ async function flip(
           .toFile(outputFilePath);
       }
       
-      console.log(`Successfully flipped ${imagePath} ${flipType}ly to ${outputFilePath}`);
       results.push(outputFilePath);
     } catch (error) {
       console.error(`Error flipping ${imagePath}:`, error);
@@ -562,7 +555,6 @@ async function addTextWatermark(
         ])
         .toFile(outputFilePath);
       
-      console.log(`Successfully added ${positionDesc} watermark to ${imagePath}, saved at ${outputFilePath}`);
       results.push(outputFilePath);
     } catch (error) {
       console.error(`Error adding watermark to ${imagePath}:`, error);

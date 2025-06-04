@@ -61,7 +61,7 @@ const OUTPUT_SCHEMA = {
         additionalProperties: false
       },
       minItems: 1,
-      maxItems: 4
+      maxItems: 20
     },
     isError: {
       type: "boolean",
@@ -237,7 +237,7 @@ function formatTimestamp(timestamp: number): string {
 // 获取站点列表处理函数 - 返回JSON格式
 async function handleGetSiteList() {
   const result = {
-    content: SITE_LIST.slice(0, 30).map((site, index) => ({
+    content: SITE_LIST.slice(0, 20).map((site, index) => ({
       itemDisplayTitle: `${index + 1}. ${site.站点}（${site.类别}）`,
       itemTitle: `${site.站点}（${site.类别}）`
     })),
@@ -289,7 +289,7 @@ async function handleGetSiteData(siteParam: string) {
 
     // 构建符合schema的JSON数据
     const result = {
-      content: apiResponse.data.slice(0, 30).map((item: HotItem, index: number) => {
+      content: apiResponse.data.slice(0, 20).map((item: HotItem, index: number) => {
         const outputItem: {
           itemDisplayTitle: string;
           itemTitle: string;
@@ -320,6 +320,7 @@ async function handleGetSiteData(siteParam: string) {
 
     // 返回符合MCP标准的格式，内容为JSON字符串
     return {
+      structuredContent: result,
       content: [
         {
           type: "text",
@@ -347,10 +348,11 @@ async function handleListNewsSources() {
     };
 
     return {
+      structuredContent: result,
       content: [
         {
           type: "text",
-          text: JSON.stringify(result, null, 2) // 添加 JSON.stringify
+          text: JSON.stringify(result, null, 2)
         }
       ]
     };
@@ -364,8 +366,8 @@ async function handleListNewsSources() {
     return {
       content: [
         {
-          type: "text", // 修正拼写错误：ype -> type
-          text: JSON.stringify(errorPayload, null, 2) // 添加 JSON.stringify
+          type: "text",
+          text: JSON.stringify(errorPayload, null, 2)
         }
       ]
     };

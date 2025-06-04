@@ -710,6 +710,36 @@ const EXCHANGE_RATE_TOOL: Tool = {
       }
     },
     required: ["from", "amount", "to"]
+  },
+  outputSchema: {
+    type: "object",
+    properties: {
+      from: {
+        type: "string",
+        description: "源货币代码"
+      },
+      to: {
+        type: "string",
+        description: "目标货币代码"
+      },
+      fromname: {
+        type: "string",
+        description: "源货币名称"
+      },
+      toname: {
+        type: "string",
+        description: "目标货币名称"
+      },
+      rate: {
+        type: "string",
+        description: "汇率"
+      },
+      camount: {
+        type: "any",
+        description: "转换后的金额"
+      }
+    },
+    required: ["from", "to", "fromname", "toname", "rate", "camount"]
   }
 };
 
@@ -725,6 +755,20 @@ const CURRENCY_CONVERT_TOOL: Tool = {
       }
     },
     required: ["text"]
+  },
+  outputSchema: {
+    type: "object",
+    properties: {
+      result: {
+        type: "string",
+        description: "转换结果，可能是货币代码或货币名称"
+      },
+      found: {
+        type: "boolean",
+        description: "是否找到匹配的货币"
+      }
+    },
+    required: ["result", "found"]
   }
 };
 
@@ -781,17 +825,20 @@ async function handleExchangeRateConvert(from: string, amount: string, to: strin
     };
   }
 
+  const result = {
+    from: data.result.from,
+    to: data.result.to,
+    fromname: data.result.fromname,
+    toname: data.result.toname,
+    rate: data.result.rate,
+    camount: data.result.camount
+  };
+
   return {
+    structuredContent: result,
     content: [{
       type: "text",
-      text: JSON.stringify({
-        from: data.result.from,
-        to: data.result.to,
-        fromname:data.result.fromname,
-        toname:data.result.toname,
-        rate:data.result.rate,
-        camount:data.result.camount
-      }, null, 2)
+      text: JSON.stringify(result, null, 2)
     }],
     isError: false
   };
@@ -830,12 +877,17 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "currency_convert": {
         const { text } = request.params.arguments as { text: string };
         const result = currencyConvert(text);
+        
+        const response = {
+          result: result || "",
+          found: result !== null
+        };
+        
         return {
+          structuredContent: response,
           content: [{
             type: "text",
-            text: result
-              ? `转换结果: ${result}`
-              : "未找到匹配的货币代码或名称"
+            text: JSON.stringify(response, null, 2)
           }],
           isError: false
         };
