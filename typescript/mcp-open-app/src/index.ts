@@ -63,7 +63,7 @@ class AppMcpServer {
         // },
         {
           name: "open_app",
-          description: "打开应用程序,根据应用名称打开应用程序；",
+          description: "可根据应用名称搜索并打开用户安装的应用程序；",
           inputSchema: {
             type: "object",
             properties: {
@@ -77,7 +77,7 @@ class AppMcpServer {
         },
         {
           name: "get_platform_info",
-          description: "获取当前系统平台信息",
+          description: "获取当前用户所使用操作系统的信息",
           inputSchema: {
             type: "object",
             properties: {}
