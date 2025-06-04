@@ -63,9 +63,7 @@ class AppMcpServer {
         // },
         {
           name: "open_app",
-          description: `
-            打开应用程序,根据应用名称打开应用程序；
-          `,
+          description: "打开应用程序,根据应用名称打开应用程序；",
           inputSchema: {
             type: "object",
             properties: {
@@ -120,10 +118,8 @@ class AppMcpServer {
   private async getAllApps() {
     try {
       if (this.apps.length === 0) {
-        console.error('没缓存apps');
         this.apps = await appSearch();
       }else{
-        console.error('有缓存apps');
       }
   
 
@@ -150,10 +146,7 @@ class AppMcpServer {
     
     try {
       if (this.apps.length === 0) {
-        console.error('没缓存apps');
         this.apps = await appSearch();
-      }else{
-        console.error('有缓存apps');
       }
       
       let filteredApps = this.apps;
@@ -202,7 +195,7 @@ class AppMcpServer {
         this.apps = await appSearch();
       }
       const app = this.apps.find(app => 
-        app.name.toLowerCase() === appName.toLowerCase() ||
+        app.name.toLowerCase().includes(appName.toLowerCase()) ||
         app.keyWords.some(keyword => keyword.toLowerCase().includes(appName.toLowerCase()))
       );
 
@@ -269,7 +262,6 @@ class AppMcpServer {
   async run(): Promise<void> {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    console.error("App MCP 服务器已启动，监听stdio端口");
   }
 }
 
