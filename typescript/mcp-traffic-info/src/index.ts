@@ -32,6 +32,39 @@ const OIL_PRICE_TOOL: Tool = {
       }
     },
     required: ["prov"]
+  },
+  outputSchema: {
+    type: "object",
+    properties: {
+      msg: { type: "string" },
+      success: { type: "boolean" },
+      code: { type: "number" },
+      data: {
+        type: "object",
+        properties: {
+          orderNo: { type: "string" },
+          ret_code: { type: "number" },
+          list: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                prov: { type: "string", description: "省份" },
+                p0: { type: "string", description: "0号油价格" },
+                p89: { type: "string", description: "89号油价格" },
+                p90: { type: "string", description: "90号油价格" },
+                p92: { type: "string", description: "92号油价格" },
+                p93: { type: "string", description: "93号油价格" },
+                p95: { type: "string", description: "95号油价格" },
+                p97: { type: "string", description: "97号油价格" },
+                p98: { type: "string", description: "98号油价格" },
+                ct: { type: "string", description: "更新时间" }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 };
 
@@ -50,7 +83,32 @@ const VEHICLE_LIMIT_TOOL: Tool = {
         description: "日期，格式为YYYY-MM-DD，默认为今天"
       }
     },
-    required: ["city", "date"]
+    required: ["city"]
+  },
+  outputSchema: {
+    type: "object",
+    properties: {
+      status: { type: "string" },
+      msg: { type: "string" },
+      result: {
+        type: "object",
+        properties: {
+          city: { type: "string", description: "城市代码" },
+          cityname: { type: "string", description: "城市名称" },
+          date: { type: "string", description: "日期" },
+          week: { type: "string", description: "星期几" },
+          time: {
+            type: "array",
+            items: { type: "string" },
+            description: "限行时间段"
+          },
+          area: { type: "string", description: "限行区域详细描述" },
+          summary: { type: "string", description: "限行规则摘要" },
+          numberrule: { type: "string", description: "限行规则类型" },
+          number: { type: "string", description: "限行的尾号" }
+        }
+      }
+    }
   }
 };
 
@@ -78,6 +136,7 @@ async function handleOilPriceQuery(prov: string) {
 
     const data = await response.json();
     return {
+      structuredContent: data,
       content: [{
         type: "text",
         text: JSON.stringify(data, null, 2)
@@ -125,6 +184,7 @@ async function handleVehicleLimitQuery(city: string, date: string) {
 
     const data = await response.json();
     return {
+      structuredContent: data,
       content: [{
         type: "text",
         text: JSON.stringify(data, null, 2)
