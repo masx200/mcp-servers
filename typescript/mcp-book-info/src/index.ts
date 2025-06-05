@@ -6,11 +6,11 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
   Tool,
+  ServerResult,
 } from "@modelcontextprotocol/sdk/types.js";
 import fetch from "node-fetch";
-import https from "https";
 
-// 响应接口
+// 图书信息接口
 interface BookInfoResponse {
   status: number;
   msg: string;
@@ -43,6 +43,7 @@ interface BookInfoResponse {
   };
 }
 
+// 图书搜索接口
 interface BookSearchResponse {
   status: number;
   msg: string;
@@ -60,10 +61,20 @@ interface BookSearchResponse {
   };
 }
 
+// 配置
+const CONFIG = {
+  API_HOST: 'https://jisuisbn.market.alicloudapi.com',
+  ENDPOINTS: {
+    ISBN_QUERY: '/isbn/query',
+    BOOK_SEARCH: '/isbn/search'
+  }
+};
+
+// 获取环境变量
 function getAppCode(): string {
   const appCode = process.env.JISU_ALIYUN_APPCODE;
   if (!appCode) {
-    console.error("JISU_ALIYUN_APPCODE environment variable is not set");
+    console.error("JISU_ALIYUN_APPCODE 环境变量未设置");
     process.exit(1);
   }
   return appCode;
@@ -71,7 +82,72 @@ function getAppCode(): string {
 
 const JISU_APPCODE = getAppCode();
 
-// 工具定义修改部分
+// 通用API请求函数
+async function makeApiRequest<T>(url: string): Promise<ServerResult> {
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': 'APPCODE ' + JISU_APPCODE,
+        'Content-Type': 'application/json; charset=UTF-8'
+      },
+    });
+
+    if (!response.ok) {
+      return {
+        content: [{
+          type: "text",
+          text: `API请求失败: HTTP 状态 ${response.status}`
+        }],
+        isError: true
+      };
+    }
+
+    const content = await response.text();
+
+    try {
+      const data = JSON.parse(content) as T & { status: number; msg: string };
+
+      if (data.status !== 0) {
+        return {
+          content: [{
+            type: "text",
+            text: `操作失败: ${data.msg}`
+          }],
+          isError: true
+        };
+      }
+
+      return {
+        structuredContent: data,
+        content: [{
+          type: "text",
+          text: JSON.stringify(data, null, 2)
+        }],
+        isError: false
+      };
+    } catch (e) {
+      return {
+        content: [{
+          type: "text",
+          text: `解析响应失败: ${content}`
+        }],
+        isError: true
+      };
+    }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return {
+      content: [{
+        type: "text",
+        text: `请求出错: ${errorMessage}`
+      }],
+      isError: true
+    };
+  }
+}
+
+// 工具定义
 const ISBN_QUERY_TOOL: Tool = {
   name: "isbn_query",
   description: "通过ISBN查询图书信息",
@@ -179,156 +255,23 @@ const BOOK_SEARCH_TOOL: Tool = {
   }
 };
 
-
 const TOOLS = [ISBN_QUERY_TOOL, BOOK_SEARCH_TOOL] as const;
 
-// 创建自定义agent以忽略SSL验证
-const agent = new https.Agent({
-  rejectUnauthorized: false
-});
-async function handleIsbnQuery(isbn: string) {
-  const host = 'https://jisuisbn.market.alicloudapi.com';
-  const path = '/isbn/query';
-  const url = `${host}${path}?isbn=${isbn}`;
-
-  try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': 'APPCODE ' + JISU_APPCODE,
-        'Content-Type': 'application/json; charset=UTF-8'
-      },
-      agent: agent
-    });
-
-    if (!response.ok) {
-      return {
-        content: [{
-          type: "text",
-          text: `查询图书信息失败: HTTP 状态 ${response.status}`
-        }],
-        isError: true
-      };
-    }
-
-    const content = await response.text();
-
-    try {
-      const data = JSON.parse(content) as BookInfoResponse;
-
-      if (data.status !== 0) {
-        return {
-          content: [{
-            type: "text",
-            text: `查询失败: ${data.msg}`
-          }],
-          isError: true
-        };
-      }
-
-      // 修改返回格式
-      return {
-        structuredContent: data,
-        content: [{
-          type: "text",
-          text: JSON.stringify(data, null, 2)
-        }],
-        isError: false
-      };
-
-    } catch (e) {
-      return {
-        content: [{
-          type: "text",
-          text: `解析响应失败: ${content}`
-        }],
-        isError: true
-      };
-    }
-  } catch (error: any) {
-    return {
-      content: [{
-        type: "text",
-        text: `查询出错: ${error.message}`
-      }],
-      isError: true
-    };
-  }
+// ISBN查询处理函数
+async function handleIsbnQuery(isbn: string): Promise<ServerResult> {
+  const url = `${CONFIG.API_HOST}${CONFIG.ENDPOINTS.ISBN_QUERY}?isbn=${isbn}`;
+  return makeApiRequest<BookInfoResponse>(url);
 }
 
-
-async function handleBookSearch(title: string, pagenum: number = 1) {
-  const host = 'https://jisuisbn.market.alicloudapi.com';
-  const path = '/isbn/search';
-
+// 图书搜索处理函数
+async function handleBookSearch(title: string, pagenum: number = 1): Promise<ServerResult> {
   const encodedTitle = encodeURIComponent(title);
   const querys = `pagenum=${pagenum}&title=${encodedTitle}`;
-  const url = `${host}${path}?${querys}`;
-
-  try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': 'APPCODE ' + JISU_APPCODE,
-        'Content-Type': 'application/json; charset=UTF-8'
-      },
-      agent: agent
-    });
-
-    if (!response.ok) {
-      return {
-        content: [{
-          type: "text",
-          text: `搜索图书失败: HTTP 状态 ${response.status}`
-        }],
-        isError: true
-      };
-    }
-
-    const content = await response.text();
-
-    try {
-      const data = JSON.parse(content) as BookSearchResponse;
-
-      if (data.status !== 0) {
-        return {
-          content: [{
-            type: "text",
-            text: `搜索失败: ${data.msg}`
-          }],
-          isError: true
-        };
-      }
-
-      return {
-        structuredContent: data,
-        content: [{
-          type: "text",
-          text: JSON.stringify(data, null, 2)
-        }],
-        isError: false
-      };
-    } catch (e) {
-      return {
-        content: [{
-          type: "text",
-          text: `解析响应失败: ${content}`
-        }],
-        isError: true
-      };
-    }
-  } catch (error: any) {
-    return {
-      content: [{
-        type: "text",
-        text: `搜索出错: ${error.message}`
-      }],
-      isError: true
-    };
-  }
+  const url = `${CONFIG.API_HOST}${CONFIG.ENDPOINTS.BOOK_SEARCH}?${querys}`;
+  return makeApiRequest<BookSearchResponse>(url);
 }
 
-// 服务器设置
+// 创建服务器实例
 const server = new Server(
   {
     name: "book-info",
@@ -372,20 +315,27 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
     }
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return {
       content: [{
         type: "text",
-        text: `错误: ${error instanceof Error ? error.message : String(error)}`
+        text: `错误: ${errorMessage}`
       }],
       isError: true
     };
   }
 });
 
+// 启动服务器
 async function runServer() {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  console.error("图书信息查询 MCP 服务器正在通过 stdio 运行");
+  try {
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
+    console.error("图书信息查询 MCP 服务器正在通过 stdio 运行");
+  } catch (error) {
+    console.error("服务器启动失败:", error);
+    process.exit(1);
+  }
 }
 
 runServer().catch((error) => {

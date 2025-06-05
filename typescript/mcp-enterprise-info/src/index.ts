@@ -87,6 +87,253 @@ const ENTERPRISE_INFO_TOOL: Tool = {
       }
     },
     required: ["keyword"]
+  },
+  outputSchema: {
+    type: "object",
+    properties: {
+      code: {
+        type: "string",
+        description: "返回码"
+      },
+      msg: {
+        type: "string",
+        description: "返回消息"
+      },
+      isFee: {
+        type: "number",
+        description: "是否收费"
+      },
+      seqNo: {
+        type: "string",
+        description: "序列号"
+      },
+      data: {
+        type: "object",
+        properties: {
+          result: {
+            type: "number",
+            description: "结果标识"
+          },
+          info: {
+            type: "object",
+            properties: {
+              companyName: {
+                type: "string",
+                description: "公司名称"
+              },
+              creditCode: {
+                type: "string",
+                description: "统一社会信用代码"
+              },
+              orgNumber: {
+                type: "string",
+                description: "组织机构代码"
+              },
+              companyType: {
+                type: "string",
+                description: "企业类型"
+              },
+              keyPersonName: {
+                type: "string",
+                description: "法人"
+              },
+              keyPersonType: {
+                type: "string",
+                description: "法人类型"
+              },
+              regCapital: {
+                type: "string",
+                description: "注册资本"
+              },
+              actualCapital: {
+                type: "any",
+                description: "实缴资本"
+              },
+              province: {
+                type: "string",
+                description: "省份"
+              },
+              provinceCode: {
+                type: "string",
+                description: "省份编码"
+              },
+              city: {
+                type: "string",
+                description: "城市"
+              },
+              cityCode: {
+                type: "string",
+                description: "城市编号"
+              },
+              district: {
+                type: "string",
+                description: "区县"
+              },
+              districtCode: {
+                type: "string",
+                description: "区县编号"
+              },
+              regNumber: {
+                type: "string",
+                description: "注册号"
+              },
+              authority: {
+                type: "string",
+                description: "登记机关"
+              },
+              regLocation: {
+                type: "string",
+                description: "注册地址"
+              },
+              regStatus: {
+                type: "string",
+                description: "运营状态"
+              },
+              businessScope: {
+                type: "string",
+                description: "经营范围"
+              },
+              establishTime: {
+                type: "string",
+                description: "成立时间"
+              },
+              approvedTime: {
+                type: "string",
+                description: "核准日期"
+              },
+              termStart: {
+                type: "string",
+                description: "运营时间从"
+              },
+              termEnd: {
+                type: "string",
+                description: "运营时间至"
+              },
+              lastUpdatedTime: {
+                type: "string",
+                description: "更新时间"
+              },
+              historyNames: {
+                type: "string",
+                description: "历史曾用名"
+              },
+              industry: {
+                type: "object",
+                description: "行业信息",
+                properties: {
+                  industry: {
+                    type: "string",
+                    description: "行业门类描述"
+                  },
+                  industryCode: {
+                    type: "string",
+                    description: "行业描述code"
+                  },
+                  subIndustry: {
+                    type: "string",
+                    description: "行业大类描述"
+                  },
+                  subIndustryCode: {
+                    type: "string",
+                    description: "行业大类code"
+                  },
+                  middleCategory: {
+                    type: "string",
+                    description: "行业中类描述"
+                  },
+                  middleCategoryCode: {
+                    type: "string",
+                    description: "行业中类code"
+                  },
+                  smallCategory: {
+                    type: "string",
+                    description: "行业小类描述"
+                  },
+                  smallCategoryCode: {
+                    type: "string",
+                    description: "行业小类code"
+                  }
+                }
+              },
+              contacts: {
+                type: "object",
+                description: "联系信息",
+                properties: {
+                  address: {
+                    type: "array",
+                    description: "注册地址",
+                    items: {
+                      type: "object",
+                      properties: {
+                        note: {
+                          type: "string",
+                          description: "备注"
+                        },
+                        value: {
+                          type: "string",
+                          description: "地址值"
+                        }
+                      }
+                    }
+                  },
+                  phoneNumber: {
+                    type: "array",
+                    description: "电话号码",
+                    items: {
+                      type: "object",
+                      properties: {
+                        note: {
+                          type: "string",
+                          description: "备注"
+                        },
+                        value: {
+                          type: "string",
+                          description: "电话号码值"
+                        }
+                      }
+                    }
+                  },
+                  email: {
+                    type: "array",
+                    description: "邮箱",
+                    items: {
+                      type: "object",
+                      properties: {
+                        note: {
+                          type: "string",
+                          description: "备注"
+                        },
+                        value: {
+                          type: "string",
+                          description: "邮箱值"
+                        }
+                      }
+                    }
+                  },
+                  website: {
+                    type: "array",
+                    description: "官网",
+                    items: {
+                      type: "object",
+                      properties: {
+                        note: {
+                          type: "string",
+                          description: "备注"
+                        },
+                        value: {
+                          type: "string",
+                          description: "网址值"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 };
 
@@ -102,7 +349,7 @@ async function handleEnterpriseInfoQuery(keyword: string){
   const querys = `keyword=${encodedKeyword}`;
   const url = `${host}${path}?${querys}`;
 
-  // 设置请求头，与Python代码保持一致
+
   const headers = {
     "Authorization": `APPCODE ${ENTERPRISE_INFO_API_KEY}`
   };
@@ -128,6 +375,7 @@ async function handleEnterpriseInfoQuery(keyword: string){
     const data = await response.json();
 
     return {
+      structuredContent: data,
       content: [{
         type: "text",
         text: JSON.stringify(data, null, 2)
