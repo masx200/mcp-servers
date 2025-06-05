@@ -34,6 +34,32 @@ const MOVIE_TOOLS: Tool[] = [
         date: { type: "string", description: "日期，格式：YYYY-MM-DD" }
       },
       required: ["city"]
+    },
+    outputSchema: {
+      type: "object",
+      properties: {
+        status: { type: "any", description: "状态码，0表示成功" },
+        msg: { type: "string", description: "状态信息" },
+        result: {
+          type: "object",
+          properties: {
+            city: { type: "string", description: "城市名称" },
+            cityid: { type: "string", description: "城市ID" },
+            date: { type: "string", description: "日期" },
+            list: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  movieid: { type: "string", description: "电影ID" },
+                  moviename: { type: "string", description: "电影名称" },
+                  pic: { type: "string", description: "电影海报图片URL" }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   {
@@ -48,6 +74,34 @@ const MOVIE_TOOLS: Tool[] = [
         date: { type: "string", description: "日期，格式：YYYY-MM-DD" }
       },
       required: ["city", "movieid"]
+    },
+    outputSchema: {
+      type: "object",
+      properties: {
+        status: { type: "any", description: "状态码，0表示成功" },
+        msg: { type: "string", description: "状态信息" },
+        result: {
+          type: "object",
+          properties: {
+            city: { type: "string", description: "城市名称" },
+            cityid: { type: "string", description: "城市ID" },
+            date: { type: "string", description: "日期" },
+            movieid: { type: "string", description: "电影ID" },
+            moviename: { type: "string", description: "电影名称" },
+            list: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  theaterid: { type: "string", description: "电影院ID" },
+                  theatername: { type: "string", description: "电影院名称" },
+                  address: { type: "string", description: "电影院地址" }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   {
@@ -60,6 +114,33 @@ const MOVIE_TOOLS: Tool[] = [
         date: { type: "string", description: "日期，格式：YYYY-MM-DD" }
       },
       required: ["theaterid"]
+    },
+    outputSchema: {
+      type: "object",
+      properties: {
+        status: { type: "any", description: "状态码，0表示成功" },
+        msg: { type: "string", description: "状态信息" },
+        result: {
+          type: "object",
+          properties: {
+            theaterid: { type: "string", description: "电影院ID" },
+            theatername: { type: "string", description: "电影院名称" },
+            address: { type: "string", description: "电影院地址" },
+            date: { type: "string", description: "日期" },
+            list: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  movieid: { type: "string", description: "电影ID" },
+                  moviename: { type: "string", description: "电影名称" },
+                  pic: { type: "string", description: "电影海报图片URL" }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   {
@@ -72,6 +153,30 @@ const MOVIE_TOOLS: Tool[] = [
         moviename: { type: "string", description: "电影名称" }
       },
       required: ["movieid"]
+    },
+    outputSchema: {
+      type: "object",
+      properties: {
+        status: { type: "any", description: "状态码，0表示成功" },
+        msg: { type: "string", description: "状态信息" },
+        result: {
+          type: "object",
+          properties: {
+            movieid: { type: "string", description: "电影ID" },
+            moviename: { type: "string", description: "电影名称" },
+            pic: { type: "string", description: "电影海报图片URL" },
+            director: { type: "string", description: "导演" },
+            actor: { type: "string", description: "演员" },
+            type: { type: "string", description: "电影类型" },
+            area: { type: "string", description: "地区" },
+            language: { type: "string", description: "语言" },
+            duration: { type: "string", description: "片长" },
+            score: { type: "string", description: "评分" },
+            releasedate: { type: "string", description: "上映日期" },
+            content: { type: "string", description: "电影简介" }
+          }
+        }
+      }
     }
   },
   {
@@ -85,6 +190,32 @@ const MOVIE_TOOLS: Tool[] = [
         keyword: { type: "string", description: "关键词" }
       },
       required: ["city"]
+    },
+    outputSchema: {
+      type: "object",
+      properties: {
+        status: { type: "any", description: "状态码，0表示成功" },
+        msg: { type: "string", description: "状态信息" },
+        result: {
+          type: "object",
+          properties: {
+            city: { type: "string", description: "城市名称" },
+            cityid: { type: "string", description: "城市ID" },
+            list: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  theaterid: { type: "string", description: "电影院ID" },
+                  theatername: { type: "string", description: "电影院名称" },
+                  address: { type: "string", description: "电影院地址" },
+                  tel: { type: "string", description: "电影院电话" }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   {
@@ -94,6 +225,27 @@ const MOVIE_TOOLS: Tool[] = [
       type: "object",
       properties: {
         parentid: { type: "string", description: "上级ID" }
+      }
+    },
+    outputSchema: {
+      type: "object",
+      properties: {
+        status: { type: "any", description: "状态码，0表示成功" },
+        msg: { type: "string", description: "状态信息" },
+        result: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              cityid: { type: "string", description: "城市ID" },
+              name: { type: "string", description: "城市名称" },
+              parentid: { type: "string", description: "上级ID" },
+              parentname: { type: "string", description: "上级名称" },
+              topname: { type: "string", description: "顶级名称" },
+              depth: { type: "string", description: "层级深度" }
+            }
+          }
+        }
       }
     }
   }
@@ -112,6 +264,7 @@ async function handleApiRequest(endpoint: string, params: any) {
     }
     const data = await response.json();
     return {
+      structuredContent: data,
       content: [{
         type: "text",
         text: JSON.stringify(data, null, 2)
