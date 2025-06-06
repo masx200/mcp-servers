@@ -8,7 +8,7 @@ import {
   ListToolsRequestSchema,
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
-import { promptUser, PromptParams } from './prompt.js';
+import { promptUser, PromptParams, confirmUser, ConfirmParams } from './prompt.js';
 
 class PromptServer {
   private server: Server;
@@ -42,7 +42,7 @@ class PromptServer {
       tools: [
         {
           name: 'prompt_user',
-          description: '显示对话框提示获取用户输入',
+          description: '显示prompt dialog，需要获得用户输入时，可以调用该工具',
           inputSchema: {
             type: 'object',
             properties: {
@@ -61,6 +61,36 @@ class PromptServer {
                 },
                 description: '可选的自定义按钮标签（最多3个）',
                 maxItems: 3
+              },
+              icon: {
+                type: 'string',
+                enum: ['note', 'stop', 'caution'],
+                description: '可选的显示图标'
+              }
+            },
+            required: ['message'],
+            additionalProperties: false,
+          },
+        },
+        {
+          name: 'confirm_user',
+          description: '显示确认对话框，用于需要用户确认操作时调用',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              message: {
+                type: 'string',
+                description: '在确认对话框中显示的文本',
+              },
+              confirmText: {
+                type: 'string',
+                description: '确认按钮的文本，默认为"确认"',
+                default: '确认'
+              },
+              cancelText: {
+                type: 'string', 
+                description: '取消按钮的文本，默认为"取消"',
+                default: '取消'
               },
               icon: {
                 type: 'string',
@@ -94,6 +124,27 @@ class PromptServer {
             };
 
             const result = await promptUser(params);
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify(result),
+                },
+              ],
+            };
+          }
+
+          case 'confirm_user': {
+            const { message, confirmText, cancelText, icon } = request.params.arguments as Record<string, unknown>;
+            
+            const params: ConfirmParams = {
+              message: message as string,
+              confirmText: typeof confirmText === 'string' ? confirmText : '确认',
+              cancelText: typeof cancelText === 'string' ? cancelText : '取消',
+              icon: ['note', 'stop', 'caution'].includes(icon as string) ? icon as 'note' | 'stop' | 'caution' : undefined
+            };
+
+            const result = await confirmUser(params);
             return {
               content: [
                 {

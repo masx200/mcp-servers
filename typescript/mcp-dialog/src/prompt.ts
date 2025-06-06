@@ -33,6 +33,24 @@ export interface PromptResult {
   buttonIndex: number;
 }
 
+export interface ConfirmParams {
+  /** Text to display in the confirmation dialog */
+  message: string;
+  /** Text for the confirm button */
+  confirmText?: string;
+  /** Text for the cancel button */
+  cancelText?: string;
+  /** Optional icon name to display (note, stop, caution) */
+  icon?: 'note' | 'stop' | 'caution';
+}
+
+export interface ConfirmResult {
+  /** Whether the user confirmed the action */
+  confirmed: boolean;
+  /** Text of the button clicked */
+  buttonText: string;
+}
+
 // 检测操作系统
 function getOS(): 'windows' | 'macos' | 'linux' {
   const currentPlatform = process.platform;
@@ -309,4 +327,35 @@ export async function promptUser(params: PromptParams): Promise<PromptResult> {
       );
     }
   }
-} 
+}
+
+/**
+ * Shows a confirmation dialog to the user
+ */
+export async function confirmUser(params: ConfirmParams): Promise<ConfirmResult> {
+  const confirmText = params.confirmText || '确认';
+  const cancelText = params.cancelText || '取消';
+  
+  const promptParams: PromptParams = {
+    message: params.message,
+    buttons: [cancelText, confirmText],
+    icon: params.icon
+  };
+  
+  try {
+    const result = await promptUser(promptParams);
+    const confirmed = result.buttonIndex === 1; // 确认按钮是第二个按钮
+    const buttonText = confirmed ? confirmText : cancelText;
+    
+    return {
+      confirmed,
+      buttonText
+    };
+  } catch (error) {
+    // 如果用户取消或出错，默认为未确认
+    return {
+      confirmed: false,
+      buttonText: cancelText
+    };
+  }
+}
