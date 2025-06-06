@@ -1,0 +1,40 @@
+{
+  "name": "prompt-mcp",
+  "version": "1.0.0",
+  "description": "用户提示对话框MCP服务器",
+  "packageManager": "pnpm@8.12.1",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "bin": {
+    "prompt-mcp": "./build/index.js"
+  },
+  "files": [
+    "build/**/*"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "mcp",
+    "prompt",
+    "dialog",
+    "用户输入",
+    "跨平台"
+  ],
+  "scripts": {
+    "build": "tsc && chmod +x build/index.js",
+    "start": "node build/index.js",
+    "dev": "tsc -w",
+    "clean": "rm -rf build",
+    "prepare": "pnpm clean && pnpm build"
+  },
+  "type": "module",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4"
+  }
+} 
