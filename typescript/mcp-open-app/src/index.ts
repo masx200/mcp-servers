@@ -18,6 +18,8 @@ const execAsync = promisify(exec);
 class AppMcpServer {
   private server: Server;
   private apps: AppInfo[] = [];
+  private appsLoading: Promise<void>;
+  
   constructor() {
     this.server = new Server({
       name: "app-open-server",
@@ -26,6 +28,17 @@ class AppMcpServer {
 
     this.setupToolHandlers();
     this.setupErrorHandling();
+    
+    // 异步加载应用列表，不阻塞构造函数
+    this.appsLoading = this.loadApps();
+  }
+  
+  private async loadApps(): Promise<void> {
+    try {
+      this.apps = await appSearch();
+    } catch (error) {
+      console.error("[MCP] 加载应用列表失败:", error);
+    }
   }
 
   private setupErrorHandling(): void {
@@ -117,11 +130,8 @@ class AppMcpServer {
 
   private async getAllApps() {
     try {
-      if (this.apps.length === 0) {
-        this.apps = await appSearch();
-      }else{
-      }
-  
+      // 等待应用列表加载完成
+      await this.appsLoading;
 
       return {
         content: [
@@ -145,9 +155,8 @@ class AppMcpServer {
     const query = args?.query || "";
     
     try {
-      if (this.apps.length === 0) {
-        this.apps = await appSearch();
-      }
+      // 等待应用列表加载完成
+      await this.appsLoading;
       
       let filteredApps = this.apps;
       if (query) {
@@ -191,9 +200,9 @@ class AppMcpServer {
     }
 
     try {
-      if (this.apps.length === 0) {
-        this.apps = await appSearch();
-      }
+      // 等待应用列表加载完成
+      await this.appsLoading;
+      
       const app = this.apps.find(app => 
         app.name.toLowerCase().includes(appName.toLowerCase()) ||
         app.keyWords.some(keyword => keyword.toLowerCase().includes(appName.toLowerCase()))
