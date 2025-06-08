@@ -1,0 +1,42 @@
+{
+  "name": "@mcp-servers/open-web",
+  "version": "1.0.0",
+  "description": "MCP server for opening web pages and searching",
+  "main": "dist/index.js",
+  "type": "module",
+  "bin": {
+    "mcp-open-web": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.0.0",
+    "open": "^10.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "files": [
+    "build"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/modelcontextprotocol/servers.git",
+    "directory": "src/open-web"
+  },
+  "keywords": [
+    "mcp",
+    "web",
+    "browser",
+    "search"
+  ],
+  "author": "Model Context Protocol",
+  "license": "MIT"
+} 
