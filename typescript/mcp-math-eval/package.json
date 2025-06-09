@@ -1,5 +1,5 @@
 {
-  "name": "mcp-math-eval",
+  "name": "@mcpcn/mcp-math-eval",
   "version": "1.0.1",
   "description": "MCP server for mathematical expression evaluation using mathjs",
   "main": "dist/index.js",

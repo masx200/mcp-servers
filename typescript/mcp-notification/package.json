@@ -1,6 +1,6 @@
 {
-  "name": "notification-mcp",
-  "version": "1.0.0",
+  "name": "@mcpcn/mcp-notification",
+  "version": "1.0.2",
   "description": "系统通知MCP服务器",
   "packageManager": "pnpm@8.12.1",
   "main": "dist/index.js",
@@ -36,4 +36,4 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4"
   }
-} 
+}
