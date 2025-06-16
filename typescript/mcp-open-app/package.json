@@ -1,6 +1,6 @@
 {
   "name": "@mcpcn/mcp-open-app",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "打开app 的 mcp服务",
   "main": "dist/index.js",
   "type": "module",

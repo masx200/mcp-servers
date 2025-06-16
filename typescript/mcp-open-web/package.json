@@ -21,7 +21,7 @@
     "typescript": "^5.0.0"
   },
   "files": [
-    "build"
+    "dist"
   ],
   "publishConfig": {
     "access": "public"
