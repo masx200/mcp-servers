@@ -1,10 +1,10 @@
 {
   "name": "@mcpcn/mcp-image-processor",
-  "version": "1.0.7",
+  "version": "1.0.10",
   "description": "MCP server for image processing",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && chmod +x dist/index.js",
     "start": "node dist/index.js",
     "dev": "ts-node index.ts",
     "serve": "node dist/index.js"
@@ -30,8 +30,8 @@
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.12.0",
-    "sharp": "^0.33.2",
-    "semver": "^7.6.0"
+    "sharp": "^0.33.5",
+    "semver": "^7.6.3"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
