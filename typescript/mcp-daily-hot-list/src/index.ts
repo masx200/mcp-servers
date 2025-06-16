@@ -157,16 +157,20 @@ const SITE_LIST: SiteInfo[] = [
   { "站点": "历史上的今天", "类别": "月-日", "调用名称": "history" }
 ];
 
-// 工具定义 - 合并为单个通用工具
+// 生成站点描述信息
+const generateSiteListDescription = () => {
+  return SITE_LIST.map(site => `- ${site.站点} '是'(${site.调用名称})`).join('\n');
+};
+
 const GET_HOT_DATA_TOOL: Tool = {
   name: "get_hot_data",
-  description: "获取指定站点的热门数据",
+  description: `获取指定站点的热门数据。`,
   inputSchema: {
     type: "object",
     properties: {
       site: {
         type: "string",
-        description: "站点名称或调用名称，例如'微博'或'weibo'。不传参数则返回支持的站点列表。"
+        description: `站点名称或调用名称，例如'微博'是'weibo'。不传参数则返回支持的站点列表。\n\n支持的站点列表：\n${generateSiteListDescription()}`
       }
     },
   },
