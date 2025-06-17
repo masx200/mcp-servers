@@ -24,25 +24,52 @@
 
 ## 📦 安装配置
 
-### 1. 安装依赖
+### 方式一：NPX 直接运行（推荐）
 ```bash
+# 如果遇到模块依赖问题，可以先本地安装
+npm install -g @mcpcn/mcp-bilibili
+
+# 然后直接运行
+mcp-bilibili
+```
+
+### 方式二：本地开发安装
+```bash
+# 克隆项目
+git clone https://github.com/mcpcn/mcp-servers
+cd mcp-servers/typescript/mcp-bilibili
+
+# 安装依赖
 npm install
-```
 
-### 2. 构建项目
-```bash
+# 构建项目
 npm run build
+
+# 运行
+npm start
 ```
 
-### 3. MCP 客户端配置
+### 方式三：MCP 客户端配置
 在你的 MCP 客户端配置文件中添加：
 
 ```json
 {
   "mcpServers": {
     "bilibili": {
-      "command": "node",
-      "args": ["path/to/mcp-bilibili/dist/index.js"]
+      "command": "npx",
+      "args": ["@mcpcn/mcp-bilibili"]
+    }
+  }
+}
+```
+
+或者使用本地安装：
+
+```json
+{
+  "mcpServers": {
+    "bilibili": {
+      "command": "mcp-bilibili"
     }
   }
 }
@@ -341,4 +368,33 @@ MIT License
 
 ---
 
-**注意**: 使用本工具需要遵守B站开放平台的使用条款和社区规范。 
+**注意**: 使用本工具需要遵守B站开放平台的使用条款和社区规范。
+
+## 🔧 故障排除
+
+### NPX 模块依赖错误
+如果使用 `npx @mcpcn/mcp-bilibili` 时遇到模块找不到的错误：
+
+1. **清理NPX缓存**：
+```bash
+npx clear-npx-cache
+```
+
+2. **全局安装**（推荐）：
+```bash
+npm install -g @mcpcn/mcp-bilibili
+mcp-bilibili
+```
+
+3. **本地开发安装**：
+```bash
+git clone https://github.com/mcpcn/mcp-servers
+cd mcp-servers/typescript/mcp-bilibili
+npm install && npm run build && npm start
+```
+
+### Node.js 版本要求
+确保您的 Node.js 版本 >= 18.0.0：
+```bash
+node --version
+``` 
