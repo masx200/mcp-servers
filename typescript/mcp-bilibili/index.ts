@@ -9,47 +9,55 @@ import {
     CallToolRequest,
     Tool,
 } from "@modelcontextprotocol/sdk/types.js";
-import { handleOAuthLogin, getBilibiliOAuthResult } from "./oauth.js";
-import { getUserInfo } from "./user.js";
-import { getVideoList } from "./video.js";
-
-const OAUTH_OUTPUT_SCHEMA = {
-    type: "object" as const,
-    properties: {
-        content: {
-            type: "array" as const,
-            description: "返回内容数组，包含access_token、refresh_token等信息",
-            items: {
-                type: "object" as const,
-                properties: {
-                    type: { type: "string", enum: ["text"], description: "内容类型，固定为text" },
-                    text: { type: "string", description: "JSON字符串，包含access_token、refresh_token、expires_in等" }
-                },
-                required: ["type", "text"]
-            }
-        },
-        isError: { type: "boolean", description: "是否为错误响应" }
-    },
-    required: ["content", "isError"],
-    additionalProperties: false
-};
+import {  generateBilibiliWebAuthorizeLink, pollCodeAndGetToken, checkLocalToken } from "./oauth.js";
+import { getUserInfo, getUserStat } from "./user.js";
+import { getVideoList, getVideoCategories, uploadVideoPreprocess, uploadVideoChunk, uploadCover, submitArchive, completeVideoUpload } from "./video.js";
 
 const USER_INFO_OUTPUT_SCHEMA = {
     type: "object" as const,
     properties: {
         content: {
-            type: "array" as const,
-            description: "返回内容数组，包含用户信息JSON字符串",
+            type: "array",
+            description: "用户信息数组，每项为单个用户信息对象",
             items: {
-                type: "object" as const,
+                type: "object",
                 properties: {
-                    type: { type: "string", enum: ["text"], description: "内容类型，固定为text" },
-                    text: { type: "string", description: "用户信息JSON字符串" }
+                    name: { type: "string", description: "用户昵称" },
+                    face: { type: "string", description: "用户头像" },
+                    openid: { type: "string", description: "用户openid" }
                 },
-                required: ["type", "text"]
-            }
+                required: ["name", "face", "openid"],
+                additionalProperties: false
+            },
+            minItems: 1,
+            maxItems: 1
         },
-        isError: { type: "boolean", description: "是否为错误响应" }
+        isError: { type: "boolean", description: "请求状态标识" }
+    },
+    required: ["content", "isError"],
+    additionalProperties: false
+};
+
+const USER_STAT_OUTPUT_SCHEMA = {
+    type: "object" as const,
+    properties: {
+        content: {
+            type: "array",
+            description: "用户维度数据数组，每项为单个用户维度对象",
+            items: {
+                type: "object",
+                properties: {
+                    following: { type: "integer", description: "关注数" },
+                    follower: { type: "integer", description: "粉丝数" },
+                    arc_passed_total: { type: "integer", description: "视频稿件投稿数（审核通过）" }
+                },
+                required: ["following", "follower", "arc_passed_total"],
+                additionalProperties: false
+            },
+            minItems: 1,
+            maxItems: 1
+        },
+        isError: { type: "boolean", description: "请求状态标识" }
     },
     required: ["content", "isError"],
     additionalProperties: false
@@ -59,71 +67,282 @@ const VIDEO_LIST_OUTPUT_SCHEMA = {
     type: "object" as const,
     properties: {
         content: {
-            type: "array" as const,
-            description: "返回内容数组，包含视频列表JSON字符串",
+            type: "array",
+            description: "视频稿件数组，每项为单个视频对象",
             items: {
-                type: "object" as const,
+                type: "object",
                 properties: {
-                    type: { type: "string", enum: ["text"], description: "内容类型，固定为text" },
-                    text: { type: "string", description: "视频列表JSON字符串" }
+                    resource_id: { type: "string", description: "稿件ID" },
+                    title: { type: "string", description: "稿件标题" },
+                    cover: { type: "string", description: "封面地址" },
+                    tid: { type: "integer", description: "分区id" },
+                    no_reprint: { type: "integer", description: "是否禁止转载" },
+                    desc: { type: "string", description: "视频描述" },
+                    tag: { type: "string", description: "标签" },
+                    copyright: { type: "integer", description: "1-原创，2-转载" },
+                    video_info: { type: "object", description: "视频信息" },
+                    addit_info: { type: "object", description: "审核信息" },
+                    ctime: { type: "integer", description: "创建时间" },
+                    ptime: { type: "integer", description: "发布时间" }
                 },
-                required: ["type", "text"]
-            }
+                required: ["resource_id", "title", "cover", "tid", "no_reprint", "desc", "tag", "copyright", "video_info", "addit_info", "ctime", "ptime"],
+                additionalProperties: false
+            },
+            minItems: 0,
+            maxItems: 20
         },
-        isError: { type: "boolean", description: "是否为错误响应" }
+        isError: { type: "boolean", description: "请求状态标识" }
     },
     required: ["content", "isError"],
     additionalProperties: false
 };
 
-const OAUTH_QRCODE_OUTPUT_SCHEMA = {
+const VIDEO_CATEGORIES_OUTPUT_SCHEMA = {
     type: "object" as const,
     properties: {
-        qrcode_key: { type: "string", description: "二维码唯一标识，后续查询授权结果用" },
-        qrcode_url: { type: "string", description: "二维码图片本地地址或可访问URL" },
-        expire_seconds: { type: "number", description: "二维码有效期（秒）" },
-        tips: { type: "string", description: "扫码提示信息" }
+        content: {
+            type: "array",
+            description: "视频分区数组",
+            items: {
+                type: "object",
+                properties: {
+                    id: { type: "integer", description: "分区ID" },
+                    parent: { type: "integer", description: "父分区ID" },
+                    name: { type: "string", description: "分区名称" },
+                    desc: { type: "string", description: "分区描述" }
+                },
+                additionalProperties: false
+            }
+        },
+        isError: { type: "boolean", description: "请求状态标识" }
     },
-    required: ["qrcode_key", "qrcode_url", "expire_seconds", "tips"],
+    required: ["content", "isError"],
     additionalProperties: false
 };
 
-const BILIBILI_OAUTH_TOOL: Tool = {
-    name: "bilibili_oauth_login",
-    description: `生成B站扫码授权二维码，返回本地二维码图片地址和qrcode_key，扫码后用qrcode_key查询授权结果。\nmode可选：'url'（返回二维码图片地址）、'terminal'（终端输出二维码并自动轮询结果）` ,
-    inputSchema: {
-        type: "object",
-        properties: {
-            mode: {
-                type: "string",
-                description: "二维码展示方式，可选'url'，默认'url'"
-            }
+const UPLOAD_PREPROCESS_OUTPUT_SCHEMA = {
+    type: "object" as const,
+    properties: {
+        content: {
+            type: "array",
+            description: "上传预处理结果",
+            items: {
+                type: "object",
+                properties: {
+                    upload_token: { type: "string", description: "上传令牌，用于后续文件上传和稿件提交" }
+                },
+                additionalProperties: false
+            },
+            minItems: 1,
+            maxItems: 1
         },
-        required: []
+        isError: { type: "boolean", description: "请求状态标识" }
     },
-    outputSchema: OAUTH_QRCODE_OUTPUT_SCHEMA
+    required: ["content", "isError"],
+    additionalProperties: false
 };
 
-const GET_BILIBILI_OAUTH_RESULT_TOOL: Tool = {
-    name: "get_bilibili_oauth_result",
-    description: `通过qrcode_key查询扫码授权结果。适用于二维码链接/图片模式，扫码后用此接口获取access_token。\n参数: { qrcode_key: string }\n返回: 授权结果JSON字符串。`,
+const UPLOAD_VIDEO_CHUNK_OUTPUT_SCHEMA = {
+    type: "object" as const,
+    properties: {
+        content: {
+            type: "array",
+            description: "视频分片上传结果",
+            items: {
+                type: "object",
+                properties: {
+                    success: { type: "boolean", description: "上传是否成功" },
+                    message: { type: "string", description: "上传结果信息" }
+                },
+                additionalProperties: false
+            },
+            minItems: 1,
+            maxItems: 1
+        },
+        isError: { type: "boolean", description: "请求状态标识" }
+    },
+    required: ["content", "isError"],
+    additionalProperties: false
+};
+
+const COMPLETE_VIDEO_UPLOAD_OUTPUT_SCHEMA = {
+    type: "object" as const,
+    properties: {
+        content: {
+            type: "array",
+            description: "视频分片合片结果",
+            items: {
+                type: "object",
+                properties: {
+                    success: { type: "boolean", description: "合片是否成功" },
+                    message: { type: "string", description: "合片结果信息" }
+                },
+                additionalProperties: false
+            },
+            minItems: 1,
+            maxItems: 1
+        },
+        isError: { type: "boolean", description: "请求状态标识" }
+    },
+    required: ["content", "isError"],
+    additionalProperties: false
+};
+
+const UPLOAD_COVER_OUTPUT_SCHEMA = {
+    type: "object" as const,
+    properties: {
+        content: {
+            type: "array",
+            description: "封面上传结果",
+            items: {
+                type: "object",
+                properties: {
+                    url: { type: "string", description: "封面URL地址" }
+                },
+                additionalProperties: false
+            },
+            minItems: 1,
+            maxItems: 1
+        },
+        isError: { type: "boolean", description: "请求状态标识" }
+    },
+    required: ["content", "isError"],
+    additionalProperties: false
+};
+
+const SUBMIT_ARCHIVE_OUTPUT_SCHEMA = {
+    type: "object" as const,
+    properties: {
+        content: {
+            type: "array",
+            description: "稿件提交结果",
+            items: {
+                type: "object",
+                properties: {
+                    resource_id: { type: "string", description: "稿件资源ID(BV号)" }
+                },
+                additionalProperties: false
+            },
+            minItems: 1,
+            maxItems: 1
+        },
+        isError: { type: "boolean", description: "请求状态标识" }
+    },
+    required: ["content", "isError"],
+    additionalProperties: false
+};
+
+const WEB_AUTHORIZE_LINK_OUTPUT_SCHEMA = {
+    type: "object" as const,
+    properties: {
+        content: {
+            type: "array",
+            items: {
+                type: "object",
+                properties: {
+                    state: { type: "string", description: "授权流程唯一标识" },
+                    authorize_url: { type: "string", description: "B站网页授权链接" },
+                    tips: { type: "string", description: "提示信息" }
+                },
+                required: ["state", "authorize_url", "tips"],
+                additionalProperties: false
+            },
+            minItems: 1,
+            maxItems: 1
+        },
+        isError: { type: "boolean" }
+    },
+    required: ["content", "isError"],
+    additionalProperties: false
+};
+
+const WEB_POLL_AND_TOKEN_OUTPUT_SCHEMA = {
+    type: "object" as const,
+    properties: {
+        content: {
+            type: "array",
+            items: {
+                type: "object",
+                properties: {
+                    access_token: { type: "string", description: "access_token" },
+                    refresh_token: { type: "string", description: "refresh_token" },
+                    expires_in: { type: "integer", description: "过期时间戳" }
+                },
+                required: ["access_token", "refresh_token", "expires_in"],
+                additionalProperties: false
+            },
+            minItems: 1,
+            maxItems: 1
+        },
+        isError: { type: "boolean" }
+    },
+    required: ["content", "isError"],
+    additionalProperties: false
+};
+
+const CHECK_LOCAL_TOKEN_OUTPUT_SCHEMA = {
+    type: "object" as const,
+    properties: {
+        content: {
+            type: "array",
+            items: {
+                type: "object",
+                properties: {
+                    hasValidToken: { type: "boolean", description: "是否有有效的token" },
+                    access_token: { type: "string", description: "access_token（如果有效）" },
+                    refresh_token: { type: "string", description: "refresh_token（如果有效）" },
+                    expires_at: { type: "integer", description: "过期时间戳（如果有效）" },
+                    message: { type: "string", description: "状态消息" }
+                },
+                required: ["hasValidToken", "message"],
+                additionalProperties: false
+            },
+            minItems: 1,
+            maxItems: 1
+        },
+        isError: { type: "boolean" }
+    },
+    required: ["content", "isError"],
+    additionalProperties: false
+};
+
+const BILIBILI_WEB_AUTHORIZE_LINK_TOOL: Tool = {
+    name: "bilibili_web_authorize_link",
+    description: `生成B站网页授权链接，自动打开浏览器进行扫码授权。授权时请确保勾选以下权限：
+📱 基础信息 - 获得您的公开信息（头像、昵称、openid），以授权绑定第三方应用
+📊 投稿效果管理 - 获取您的用户数据（关注数、粉丝数、投稿数），以进行投稿效果管理  
+🎬 UP主视频稿件管理 - 获得您授权的视频稿件管理能力，以帮助您编辑、发布、删除视频稿件
+📈 视频稿件数据管理 - 获取您发布的视频稿件数据（标题、发布时间、播放数、点赞数、评论数、硬币数、充电数、收藏数、弹幕数、分享数），以进行视频稿件数据管理与分析
+
+授权完成后请调用 bilibili_web_poll_and_token 获取访问令牌。`,
+    inputSchema: {
+        type: "object",
+        properties: {},
+        required: []
+    },
+    outputSchema: WEB_AUTHORIZE_LINK_OUTPUT_SCHEMA
+};
+
+const BILIBILI_WEB_POLL_AND_TOKEN_TOOL: Tool = {
+    name: "bilibili_web_poll_and_token",
+    description: "轮询获取code并自动换取access_token，需传state。",
     inputSchema: {
         type: "object",
         properties: {
-            qrcode_key: { type: "string", description: "二维码生成时返回的qrcode_key" }
+            state: { type: "string", description: "授权时生成的state" }
         },
-        required: ["qrcode_key"]
+        required: ["state"]
     },
-    outputSchema: OAUTH_OUTPUT_SCHEMA
+    outputSchema: WEB_POLL_AND_TOKEN_OUTPUT_SCHEMA
 };
 
 const BILIBILI_GET_USER_INFO_TOOL: Tool = {
     name: "bilibili_get_user_info",
-    description: `获取B站用户信息，需要access_token。\n\n参数: { access_token: string }\n返回: 用户信息JSON字符串。` ,
+    description: `获取B站用户信息。\n返回字段：\n- name: 用户昵称\n- face: 用户头像\n- openid: 用户openid` ,
     inputSchema: {
         type: "object",
         properties: {
-            access_token: { type: "string", description: "OAuth2授权后获得的access_token" }
+            access_token: { type: "string", description: "Access-Token" }
         },
         required: ["access_token"]
     },
@@ -132,22 +351,145 @@ const BILIBILI_GET_USER_INFO_TOOL: Tool = {
 
 const BILIBILI_GET_VIDEO_LIST_TOOL: Tool = {
     name: "bilibili_get_video_list",
-    description: `获取B站已投稿视频列表，需要access_token。\n\n参数: { access_token: string }\n返回: 视频列表JSON字符串。` ,
+    description: `获取B站已投稿视频列表。\n返回字段：\n- resource_id: 稿件ID\n- title: 稿件标题\n- cover: 封面地址\n- tid: 分区id\n- no_reprint: 是否禁止转载\n- desc: 视频描述\n- tag: 标签\n- copyright: 1-原创，2-转载\n- video_info: 视频信息\n- addit_info: 审核信息\n- ctime: 创建时间\n- ptime: 发布时间` ,
     inputSchema: {
         type: "object",
         properties: {
-            access_token: { type: "string", description: "OAuth2授权后获得的access_token" }
+            access_token: { type: "string", description: "Access-Token" }
         },
         required: ["access_token"]
     },
     outputSchema: VIDEO_LIST_OUTPUT_SCHEMA
 };
 
+const BILIBILI_GET_USER_STAT_TOOL: Tool = {
+    name: "bilibili_get_user_stat",
+    description: `获取B站用户维度数据，包括关注数、粉丝数、投稿数等。\n返回字段：\n- following: 关注数\n- follower: 粉丝数\n- arc_passed_total: 视频稿件投稿数（审核通过）` ,
+    inputSchema: {
+        type: "object",
+        properties: {
+            access_token: { type: "string", description: "Access-Token" }
+        },
+        required: ["access_token"]
+    },
+    outputSchema: USER_STAT_OUTPUT_SCHEMA
+};
+
+const BILIBILI_CHECK_LOCAL_TOKEN_TOOL: Tool = {
+    name: "bilibili_check_local_token",
+    description: "优先调用该方法检查access_token，检查本地是否有有效的B站access_token缓存。如果有有效token则直接返回，避免重新授权。token缓存在用户主目录的.bilibili_mcp_token.json文件中。",
+    inputSchema: {
+        type: "object",
+        properties: {},
+        required: []
+    },
+    outputSchema: CHECK_LOCAL_TOKEN_OUTPUT_SCHEMA
+};
+
+const BILIBILI_GET_VIDEO_CATEGORIES_TOOL: Tool = {
+    name: "bilibili_get_video_categories",
+    description: `获取B站视频分区列表。用于投稿时选择合适的分区。\n返回字段：\n- id: 分区ID\n- parent: 父分区ID\n- name: 分区名称\n- desc: 分区描述`,
+    inputSchema: {
+        type: "object",
+        properties: {
+            access_token: { type: "string", description: "Access-Token" }
+        },
+        required: ["access_token"]
+    },
+    outputSchema: VIDEO_CATEGORIES_OUTPUT_SCHEMA
+};
+
+const BILIBILI_UPLOAD_VIDEO_PREPROCESS_TOOL: Tool = {
+    name: "bilibili_upload_video_preprocess",
+    description: `视频上传预处理，获取上传令牌。在上传视频文件前必须先调用此接口。\n返回字段：\n- upload_token: 上传令牌，用于后续文件上传和稿件提交`,
+    inputSchema: {
+        type: "object",
+        properties: {
+            access_token: { type: "string", description: "Access-Token" },
+            filename: { type: "string", description: "视频文件名" }
+        },
+        required: ["access_token", "filename"]
+    },
+    outputSchema: UPLOAD_PREPROCESS_OUTPUT_SCHEMA
+};
+
+const BILIBILI_UPLOAD_VIDEO_CHUNK_TOOL: Tool = {
+    name: "bilibili_upload_video_chunk",
+    description: `上传视频文件分片。在获取upload_token后，需要调用此接口上传视频文件。\n返回字段：\n- success: 上传是否成功\n- message: 上传结果信息`,
+    inputSchema: {
+        type: "object",
+        properties: {
+            upload_token: { type: "string", description: "视频上传令牌（从预处理接口获取）" },
+            video_file_path: { type: "string", description: "本地视频文件路径，如: /path/to/video.mp4" },
+            part_number: { type: "integer", description: "分片编号，默认为1", "default": 1 }
+        },
+        required: ["upload_token", "video_file_path"]
+    },
+    outputSchema: UPLOAD_VIDEO_CHUNK_OUTPUT_SCHEMA
+};
+
+const BILIBILI_COMPLETE_VIDEO_UPLOAD_TOOL: Tool = {
+    name: "bilibili_complete_video_upload",
+    description: `完成视频分片合并。在所有视频分片上传完成后，调用此接口通知服务器将分片合并成完整视频文件。\n返回字段：\n- success: 合片是否成功\n- message: 合片结果信息`,
+    inputSchema: {
+        type: "object",
+        properties: {
+            upload_token: { type: "string", description: "视频上传令牌（从预处理接口获取）" }
+        },
+        required: ["upload_token"]
+    },
+    outputSchema: COMPLETE_VIDEO_UPLOAD_OUTPUT_SCHEMA
+};
+
+const BILIBILI_UPLOAD_COVER_TOOL: Tool = {
+    name: "bilibili_upload_cover",
+    description: `上传视频封面图片。支持JPEG、PNG等格式。\n返回字段：\n- url: 封面图片URL地址`,
+    inputSchema: {
+        type: "object",
+        properties: {
+            access_token: { type: "string", description: "Access-Token" },
+            cover_file_path: { type: "string", description: "本地图片文件路径，如: /path/to/cover.jpg" }
+        },
+        required: ["access_token", "cover_file_path"]
+    },
+    outputSchema: UPLOAD_COVER_OUTPUT_SCHEMA
+};
+
+const BILIBILI_SUBMIT_ARCHIVE_TOOL: Tool = {
+    name: "bilibili_submit_archive",
+    description: `提交视频稿件投稿。完成视频上传、合片和封面上传后，调用此接口提交稿件。\n返回字段：\n- resource_id: 稿件资源ID(BV号)`,
+    inputSchema: {
+        type: "object",
+        properties: {
+            access_token: { type: "string", description: "Access-Token" },
+            upload_token: { type: "string", description: "视频上传令牌（从预处理接口获取，完成上传和合片后使用）" },
+            title: { type: "string", description: "视频标题，长度小于80" },
+            desc: { type: "string", description: "视频描述，长度小于250（可选）" },
+            cover: { type: "string", description: "封面图片URL（可选，建议提供）" },
+            tag: { type: "string", description: "视频标签，多个标签用英文逗号分隔，总长度小于200" },
+            tid: { type: "integer", description: "分区ID，可通过bilibili_get_video_categories获取" },
+            copyright: { type: "integer", description: "版权类型：1-原创，2-转载", "default": 1 },
+            no_reprint: { type: "integer", description: "是否禁止转载：0-允许转载，1-禁止转载", "default": 0 },
+            source: { type: "string", description: "转载来源（copyright为2时必填）" }
+        },
+        required: ["access_token", "upload_token", "title", "tag", "tid"]
+    },
+    outputSchema: SUBMIT_ARCHIVE_OUTPUT_SCHEMA
+};
+
 const BILIBILI_TOOLS = [
-    BILIBILI_OAUTH_TOOL,
-    GET_BILIBILI_OAUTH_RESULT_TOOL,
+    BILIBILI_CHECK_LOCAL_TOKEN_TOOL,
+    BILIBILI_WEB_AUTHORIZE_LINK_TOOL,
+    BILIBILI_WEB_POLL_AND_TOKEN_TOOL,
     BILIBILI_GET_USER_INFO_TOOL,
-    BILIBILI_GET_VIDEO_LIST_TOOL
+    BILIBILI_GET_VIDEO_LIST_TOOL,
+    BILIBILI_GET_USER_STAT_TOOL,
+    BILIBILI_GET_VIDEO_CATEGORIES_TOOL,
+    BILIBILI_UPLOAD_VIDEO_PREPROCESS_TOOL,
+    BILIBILI_UPLOAD_VIDEO_CHUNK_TOOL,
+    BILIBILI_COMPLETE_VIDEO_UPLOAD_TOOL,
+    BILIBILI_UPLOAD_COVER_TOOL,
+    BILIBILI_SUBMIT_ARCHIVE_TOOL
 ] as const;
 
 const server = new Server(
@@ -172,10 +514,22 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
     const { name, arguments: args } = request.params;
     try {
         switch (name) {
-            case "bilibili_oauth_login":
-                return await handleOAuthLogin(args || {});
-            case "get_bilibili_oauth_result":
-                return await getBilibiliOAuthResult(args as { qrcode_key: string });
+            case "bilibili_check_local_token":
+                return checkLocalToken();
+            case "bilibili_web_authorize_link":
+                const result = generateBilibiliWebAuthorizeLink();
+                // 自动打开浏览器
+                const { authorize_url } = result.structuredContent.content[0];
+                await import("./oauth.js").then(mod => mod.openBrowser(authorize_url));
+                // 返回内容中说明已自动打开浏览器
+                result.structuredContent.content[0].tips = "已自动在本地浏览器打开授权链接，请扫码授权。⚠️重要：请务必勾选所有权限项目（基础信息、投稿效果管理、UP主视频稿件管理、视频稿件数据管理），否则部分功能将无法使用。";
+                result.content[0].text = JSON.stringify(result.structuredContent, null, 2);
+                return result;
+            case "bilibili_web_poll_and_token":
+                if (!args || typeof args.state !== "string") {
+                    throw new McpError(ErrorCode.InvalidParams, "state参数缺失或类型错误");
+                }
+                return await pollCodeAndGetToken({ state: args.state });
             case "bilibili_get_user_info":
                 if (!args || typeof args.access_token !== "string") {
                     throw new McpError(ErrorCode.InvalidParams, "access_token参数缺失或类型错误");
@@ -186,6 +540,53 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
                     throw new McpError(ErrorCode.InvalidParams, "access_token参数缺失或类型错误");
                 }
                 return await getVideoList(args as { access_token: string });
+            case "bilibili_get_user_stat":
+                if (!args || typeof args.access_token !== "string") {
+                    throw new McpError(ErrorCode.InvalidParams, "access_token参数缺失或类型错误");
+                }
+                return await getUserStat(args as { access_token: string });
+            case "bilibili_get_video_categories":
+                if (!args || typeof args.access_token !== "string") {
+                    throw new McpError(ErrorCode.InvalidParams, "access_token参数缺失或类型错误");
+                }
+                return await getVideoCategories(args as { access_token: string });
+            case "bilibili_upload_video_preprocess":
+                if (!args || typeof args.access_token !== "string" || typeof args.filename !== "string") {
+                    throw new McpError(ErrorCode.InvalidParams, "参数缺失或类型错误：需要access_token(string)、filename(string)");
+                }
+                return await uploadVideoPreprocess(args as { access_token: string, filename: string });
+            case "bilibili_upload_video_chunk":
+                if (!args || typeof args.upload_token !== "string" || typeof args.video_file_path !== "string") {
+                    throw new McpError(ErrorCode.InvalidParams, "参数缺失或类型错误：需要upload_token(string)、video_file_path(string)");
+                }
+                return await uploadVideoChunk(args as { upload_token: string, video_file_path: string, part_number?: number });
+            case "bilibili_complete_video_upload":
+                if (!args || typeof args.upload_token !== "string") {
+                    throw new McpError(ErrorCode.InvalidParams, "参数缺失或类型错误：需要upload_token(string)");
+                }
+                return await completeVideoUpload(args as { upload_token: string });
+            case "bilibili_upload_cover":
+                if (!args || typeof args.access_token !== "string" || typeof args.cover_file_path !== "string") {
+                    throw new McpError(ErrorCode.InvalidParams, "参数缺失或类型错误：需要access_token(string)、cover_file_path(string)");
+                }
+                return await uploadCover(args as { access_token: string, cover_file_path: string });
+            case "bilibili_submit_archive":
+                if (!args || typeof args.access_token !== "string" || typeof args.upload_token !== "string" || 
+                    typeof args.title !== "string" || typeof args.tag !== "string" || typeof args.tid !== "number") {
+                    throw new McpError(ErrorCode.InvalidParams, "参数缺失或类型错误：需要access_token、upload_token、title、tag、tid");
+                }
+                return await submitArchive(args as { 
+                    access_token: string,
+                    upload_token: string,
+                    title: string, 
+                    desc?: string, 
+                    cover?: string, 
+                    tag: string, 
+                    tid: number,
+                    copyright?: number,
+                    no_reprint?: number,
+                    source?: string
+                });
             default:
                 throw new McpError(
                     ErrorCode.MethodNotFound,
