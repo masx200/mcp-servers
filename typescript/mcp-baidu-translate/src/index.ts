@@ -108,7 +108,7 @@ const TRANSLATE_TEXT_TOOL: Tool = {
         description: "目标语言代码，例如：'zh'表示中文，'en'表示英语",
       },
     },
-    required: ["text", "to_lang"],
+    required: ["text", "from_lang", "to_lang"],
   },
   outputSchema: {
     type: "object" as const,
