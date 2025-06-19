@@ -1,0 +1,36 @@
+{
+  "name": "@mcpcn/mcp-split-screen",
+  "version": "1.1.0",
+  "description": "窗口分屏工具",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mcp",
+    "window",
+    "split-screen"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bin": {
+    "mcp-split-screen": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.10.0",
+    "node-mac-permissions": "^2.5.0",
+    "node-window-manager": "^2.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
