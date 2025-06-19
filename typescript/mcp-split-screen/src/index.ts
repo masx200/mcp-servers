@@ -83,37 +83,7 @@ const fullscreenWindow: Tool = {
   outputSchema,
 };
 
-const setAllWindowsLeftHalf: Tool = {
-  name: "set_all_windows_left_half",
-  description: "将当前应用的所有窗口都置于屏幕左半边。",
-  inputSchema: {
-    type: "object" as const,
-    properties: {
-      cascade: {
-        type: "boolean",
-        description: "是否层叠显示窗口（稍微偏移），默认为 false（重叠显示）",
-        default: false
-      }
-    }
-  },
-  outputSchema,
-};
 
-const setAllWindowsRightHalf: Tool = {
-  name: "set_all_windows_right_half",
-  description: "将当前应用的所有窗口都置于屏幕右半边。",
-  inputSchema: {
-    type: "object" as const,
-    properties: {
-      cascade: {
-        type: "boolean",
-        description: "是否层叠显示窗口",
-        default: false
-      }
-    }
-  },
-  outputSchema,
-};
 
 const TOOLS: readonly Tool[] = [
   setWindowLeftHalf,
@@ -123,8 +93,6 @@ const TOOLS: readonly Tool[] = [
   maximizeWindow,
   minimizeWindow,
   fullscreenWindow,
-  setAllWindowsLeftHalf,
-  setAllWindowsRightHalf,
 ];
 
 // --- Universal Window Control ---
@@ -1045,94 +1013,7 @@ async function handleWindowAction(action: string) {
   }
 }
 
-// 批量窗口操作
-async function handleAllWindowsAction(action: string, cascade = false) {
-  try {
-    // 获取屏幕尺寸
-    const getScreenDimScript = `tell application "Finder" to get bounds of window of desktop`;
-    const { stdout: screenBounds } = await execAsync(`osascript -e '${getScreenDimScript}'`);
-    const [,, screenWidth, screenHeight] = screenBounds.trim().split(", ").map(Number);
-    const halfWidth = Math.floor(screenWidth / 2);
-    const menuBarHeight = 25;
 
-    // 获取当前应用程序
-    const currentApp = await universalController.getCurrentApplication();
-    console.error(`批量操作当前应用程序: ${currentApp}`);
-
-    // 获取窗口数量
-    let windowCount = 0;
-    try {
-      const getWindowCountScript = `tell application "${currentApp}" to return count of windows`;
-      const { stdout: windowCountStr } = await execAsync(`osascript -e '${getWindowCountScript}'`);
-      windowCount = parseInt(windowCountStr.trim());
-    } catch (error) {
-      // 如果应用程序不支持直接获取窗口数量，回退到 System Events
-      const getWindowCountScript = `tell application "System Events"
-        tell (first process whose frontmost is true)
-          return count of windows
-        end tell
-      end tell`;
-      const { stdout: windowCountStr } = await execAsync(`osascript -e '${getWindowCountScript}'`);
-      windowCount = parseInt(windowCountStr.trim());
-    }
-
-    if (windowCount === 0) {
-      return {
-        structuredContent: { status: "success", message: "当前应用没有可操作的窗口" },
-        content: [{ type: "text", text: JSON.stringify({ status: "success", message: "当前应用没有可操作的窗口" }) }],
-        isError: false,
-      };
-    }
-
-    // 逐个操作每个窗口
-    let successCount = 0;
-    for (let i = 1; i <= windowCount; i++) {
-      try {
-        const xPos = action.includes('left') ?
-          (cascade ? 20 * (i - 1) : 0) :
-          (cascade ? halfWidth + 20 * (i - 1) : halfWidth);
-
-        const yPos = cascade ? menuBarHeight + 20 * (i - 1) : menuBarHeight;
-        const width = cascade ? halfWidth - 40 : halfWidth;
-        const height = cascade ? screenHeight - menuBarHeight - 40 : screenHeight - menuBarHeight;
-
-        // 使用应用程序特定的窗口控制脚本
-        const windowScript = `tell application "${currentApp}"
-          try
-            set bounds of window ${i} to {${xPos}, ${yPos}, ${xPos + width}, ${yPos + height}}
-          on error
-            try
-              set position of window ${i} to {${xPos}, ${yPos}}
-              set size of window ${i} to {${width}, ${height}}
-            end try
-          end try
-        end tell`;
-
-        await execAsync(`osascript -e '${windowScript}'`);
-        successCount++;
-      } catch (error) {
-        console.error(`操作窗口 ${i} 失败:`, error);
-        // 继续处理下一个窗口
-      }
-    }
-
-    const successMessage = `${successCount}/${windowCount}个窗口已成功移动到${action.includes('left') ? '左' : '右'}半边${cascade ? '（层叠显示）' : ''}`;
-    return {
-      structuredContent: { status: "success", message: successMessage },
-      content: [{ type: "text", text: JSON.stringify({ status: "success", message: successMessage }) }],
-      isError: false,
-    };
-
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`批量窗口操作失败:`, errorMessage);
-    return {
-      content: [{ type: "text", text: JSON.stringify({ status: "error", message: errorMessage }) }],
-      isError: true,
-      errorMessage: `执行批量窗口操作失败: ${errorMessage}`,
-    };
-  }
-}
 
 // --- Windows Support ---
 const isWin = os.platform() === 'win32';
@@ -1358,20 +1239,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
            fullscreenWindow.name].includes(toolName)) {
         return handleWindowsWindowAction(toolName);
       }
-      // Windows 暂不支持批量窗口操作
-      if ([setAllWindowsLeftHalf.name, setAllWindowsRightHalf.name].includes(toolName)) {
-        return {
-          content: [{
-            type: "text",
-            text: JSON.stringify({
-              status: "error",
-              message: "Windows 平台暂不支持批量窗口操作"
-            })
-          }],
-          isError: true,
-          errorMessage: "Windows 平台暂不支持批量窗口操作",
-        };
-      }
     }
 
     // 使用新的通用控制器处理窗口操作
@@ -1397,10 +1264,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case fullscreenWindow.name:
         // 特殊操作使用通用控制器
         return controlWindowUniversal(toolName, { x: 0, y: 0, width: 0, height: 0 });
-      case setAllWindowsLeftHalf.name:
-        return handleAllWindowsAction(toolName, (input as any)?.cascade);
-      case setAllWindowsRightHalf.name:
-        return handleAllWindowsAction(toolName, (input as any)?.cascade);
       default:
         throw new Error(`未知工具: ${toolName}`);
     }
