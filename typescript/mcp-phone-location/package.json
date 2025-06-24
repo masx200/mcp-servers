@@ -10,9 +10,6 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "mcp",
-    "daily",
-    "hot-list"
   ],
   "author": "",
   "license": "ISC",

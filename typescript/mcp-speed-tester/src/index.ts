@@ -136,7 +136,7 @@ async function handleSpeedTest(
 // 服务器设置
 const server = new Server(
   {
-    name: "mcp-server/speed",
+    name: "mcp-speed-tester",
     version: "1.0.0",
   },
   {
@@ -162,7 +162,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
         return await handleSpeedTest(downloadTestUrl, uploadTestUrl, durationMs);
       }
-      
       default:
         return {
           content: [{
