@@ -6,6 +6,8 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
   Tool,
+  McpError,
+  ErrorCode
 } from "@modelcontextprotocol/sdk/types.js";
 import * as sharp from 'sharp';
 import * as fs from 'fs';
@@ -111,8 +113,11 @@ async function convertFormat(
   targetFormat: string,
   outputPath?: string
 ): Promise<string[]> {
+  if (!inputPaths || inputPaths.length === 0) {
+    throw new McpError(ErrorCode.InvalidParams, "inputPaths cannot be empty");
+  }
   if (!SUPPORTED_FORMATS.includes(targetFormat.toLowerCase())) {
-    throw new Error(`Unsupported format: ${targetFormat}`);
+    throw new McpError(ErrorCode.InvalidParams, `Unsupported format: ${targetFormat}`);
   }
 
   const images = processInputPaths(inputPaths);
@@ -144,6 +149,9 @@ async function compressToSize(
   overwrite: boolean = false,
   outputPath?: string
 ): Promise<string[]> {
+  if (!inputPaths || inputPaths.length === 0) {
+    throw new McpError(ErrorCode.InvalidParams, "inputPaths cannot be empty");
+  }
   const targetBytes = parseSize(targetSize);
   const images = processInputPaths(inputPaths);
   const results: string[] = [];
@@ -210,6 +218,9 @@ async function compressToPercent(
   overwrite: boolean = false,
   outputPath?: string
 ): Promise<string[]> {
+  if (!inputPaths || inputPaths.length === 0) {
+    throw new McpError(ErrorCode.InvalidParams, "inputPaths cannot be empty");
+  }
   const targetPercent = parsePercent(percent);
   const images = processInputPaths(inputPaths);
   const results: string[] = [];
@@ -271,6 +282,9 @@ async function resize(
   overwrite: boolean = false,
   outputPath?: string
 ): Promise<string[]> {
+  if (!inputPaths || inputPaths.length === 0) {
+    throw new McpError(ErrorCode.InvalidParams, "inputPaths cannot be empty");
+  }
   if (!width && !height) {
     throw new Error('At least one of width or height must be specified');
   }
@@ -327,6 +341,9 @@ async function resize(
 async function getMetadata(
   inputPaths: string[]
 ): Promise<Record<string, sharp.Metadata>> {
+  if (!inputPaths || inputPaths.length === 0) {
+    throw new McpError(ErrorCode.InvalidParams, "inputPaths cannot be empty");
+  }
   const images = processInputPaths(inputPaths);
   const results: Record<string, sharp.Metadata> = {};
   
@@ -356,6 +373,9 @@ async function rotate(
   overwrite: boolean = false,
   outputPath?: string
 ): Promise<string[]> {
+  if (!inputPaths || inputPaths.length === 0) {
+    throw new McpError(ErrorCode.InvalidParams, "inputPaths cannot be empty");
+  }
   const images = processInputPaths(inputPaths);
   const results: string[] = [];
   
@@ -390,6 +410,9 @@ async function flip(
   overwrite: boolean = false,
   outputPath?: string
 ): Promise<string[]> {
+  if (!inputPaths || inputPaths.length === 0) {
+    throw new McpError(ErrorCode.InvalidParams, "inputPaths cannot be empty");
+  }
   const images = processInputPaths(inputPaths);
   const results: string[] = [];
   
@@ -433,6 +456,9 @@ async function addTextWatermark(
   outputPath?: string,
   fontSize?: number
 ): Promise<string[]> {
+  if (!inputPaths || inputPaths.length === 0) {
+    throw new McpError(ErrorCode.InvalidParams, "inputPaths cannot be empty");
+  }
   const images = processInputPaths(inputPaths);
   const results: string[] = [];
   
@@ -819,13 +845,7 @@ async function handleConvertFormat(inputPaths: string[], targetFormat: string, o
       isError: false
     };
   } catch (error) {
-    return {
-      content: [{
-        type: "text",
-        text: `转换格式失败: ${error instanceof Error ? error.message : String(error)}`
-      }],
-      isError: true
-    };
+    throw new McpError(ErrorCode.InternalError, error instanceof Error ? error.message : String(error));
   }
 }
 
@@ -850,13 +870,7 @@ async function handleCompressToSize(
       isError: false
     };
   } catch (error) {
-    return {
-      content: [{
-        type: "text",
-        text: `压缩到目标大小失败: ${error instanceof Error ? error.message : String(error)}`
-      }],
-      isError: true
-    };
+    throw new McpError(ErrorCode.InternalError, error instanceof Error ? error.message : String(error));
   }
 }
 
@@ -881,13 +895,7 @@ async function handleCompressToPercent(
       isError: false
     };
   } catch (error) {
-    return {
-      content: [{
-        type: "text",
-        text: `压缩到百分比失败: ${error instanceof Error ? error.message : String(error)}`
-      }],
-      isError: true
-    };
+    throw new McpError(ErrorCode.InternalError, error instanceof Error ? error.message : String(error));
   }
 }
 
@@ -913,13 +921,7 @@ async function handleResize(
       isError: false
     };
   } catch (error) {
-    return {
-      content: [{
-        type: "text",
-        text: `调整尺寸失败: ${error instanceof Error ? error.message : String(error)}`
-      }],
-      isError: true
-    };
+    throw new McpError(ErrorCode.InternalError, error instanceof Error ? error.message : String(error));
   }
 }
 
@@ -939,13 +941,7 @@ async function handleMetadata(inputPaths: string[]) {
       isError: false
     };
   } catch (error) {
-    return {
-      content: [{
-        type: "text",
-        text: `读取元数据失败: ${error instanceof Error ? error.message : String(error)}`
-      }],
-      isError: true
-    };
+    throw new McpError(ErrorCode.InternalError, error instanceof Error ? error.message : String(error));
   }
 }
 
@@ -970,13 +966,7 @@ async function handleRotate(
       isError: false
     };
   } catch (error) {
-    return {
-      content: [{
-        type: "text",
-        text: `旋转图像失败: ${error instanceof Error ? error.message : String(error)}`
-      }],
-      isError: true
-    };
+    throw new McpError(ErrorCode.InternalError, error instanceof Error ? error.message : String(error));
   }
 }
 
@@ -1001,13 +991,7 @@ async function handleFlip(
       isError: false
     };
   } catch (error) {
-    return {
-      content: [{
-        type: "text",
-        text: `翻转图像失败: ${error instanceof Error ? error.message : String(error)}`
-      }],
-      isError: true
-    };
+    throw new McpError(ErrorCode.InternalError, error instanceof Error ? error.message : String(error));
   }
 }
 
@@ -1057,13 +1041,7 @@ async function handleWatermark(
       isError: false
     };
   } catch (error) {
-    return {
-      content: [{
-        type: "text",
-        text: `添加水印失败: ${error instanceof Error ? error.message : String(error)}`
-      }],
-      isError: true
-    };
+    throw new McpError(ErrorCode.InternalError, error instanceof Error ? error.message : String(error));
   }
 }
 
