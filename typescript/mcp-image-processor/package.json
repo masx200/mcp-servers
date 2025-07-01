@@ -1,6 +1,6 @@
 {
   "name": "@mcpcn/mcp-image-processor",
-  "version": "1.0.10",
+  "version": "1.0.12",
   "description": "MCP server for image processing",
   "main": "dist/index.js",
   "scripts": {

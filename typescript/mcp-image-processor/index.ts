@@ -40,21 +40,21 @@ function getImagesFromDirectory(dirPath: string): string[] {
 
 // 工具函数：处理输入路径数组
 function processInputPaths(inputPaths: string[]): string[] {
+  if (!inputPaths || inputPaths.length === 0) {
+    throw new McpError(ErrorCode.InvalidParams, "inputPaths cannot be empty");
+  }
   const result: string[] = [];
-  
   for (const inputPath of inputPaths) {
-    try {
-      const stat = fs.statSync(inputPath);
-      if (stat.isDirectory()) {
-        result.push(...getImagesFromDirectory(inputPath));
-      } else if (stat.isFile() && isImage(inputPath)) {
-        result.push(inputPath);
-      }
-    } catch (error) {
-      console.error(`Error processing path ${inputPath}:`, error);
+    if (!fs.existsSync(inputPath)) {
+      throw new McpError(ErrorCode.InvalidParams, `inputPath not found: ${inputPath}`);
+    }
+    const stat = fs.statSync(inputPath);
+    if (stat.isDirectory()) {
+      result.push(...getImagesFromDirectory(inputPath));
+    } else if (stat.isFile() && isImage(inputPath)) {
+      result.push(inputPath);
     }
   }
-  
   return result;
 }
 
@@ -113,13 +113,9 @@ async function convertFormat(
   targetFormat: string,
   outputPath?: string
 ): Promise<string[]> {
-  if (!inputPaths || inputPaths.length === 0) {
-    throw new McpError(ErrorCode.InvalidParams, "inputPaths cannot be empty");
-  }
   if (!SUPPORTED_FORMATS.includes(targetFormat.toLowerCase())) {
     throw new McpError(ErrorCode.InvalidParams, `Unsupported format: ${targetFormat}`);
   }
-
   const images = processInputPaths(inputPaths);
   const results: string[] = [];
   
@@ -149,11 +145,8 @@ async function compressToSize(
   overwrite: boolean = false,
   outputPath?: string
 ): Promise<string[]> {
-  if (!inputPaths || inputPaths.length === 0) {
-    throw new McpError(ErrorCode.InvalidParams, "inputPaths cannot be empty");
-  }
-  const targetBytes = parseSize(targetSize);
   const images = processInputPaths(inputPaths);
+  const targetBytes = parseSize(targetSize);
   const results: string[] = [];
   
   for (const imagePath of images) {
@@ -218,11 +211,8 @@ async function compressToPercent(
   overwrite: boolean = false,
   outputPath?: string
 ): Promise<string[]> {
-  if (!inputPaths || inputPaths.length === 0) {
-    throw new McpError(ErrorCode.InvalidParams, "inputPaths cannot be empty");
-  }
-  const targetPercent = parsePercent(percent);
   const images = processInputPaths(inputPaths);
+  const targetPercent = parsePercent(percent);
   const results: string[] = [];
   
   for (const imagePath of images) {
@@ -282,13 +272,9 @@ async function resize(
   overwrite: boolean = false,
   outputPath?: string
 ): Promise<string[]> {
-  if (!inputPaths || inputPaths.length === 0) {
-    throw new McpError(ErrorCode.InvalidParams, "inputPaths cannot be empty");
-  }
   if (!width && !height) {
-    throw new Error('At least one of width or height must be specified');
+    throw new McpError(ErrorCode.InvalidParams, 'At least one of width or height must be specified');
   }
-
   const images = processInputPaths(inputPaths);
   const results: string[] = [];
   
@@ -341,9 +327,6 @@ async function resize(
 async function getMetadata(
   inputPaths: string[]
 ): Promise<Record<string, sharp.Metadata>> {
-  if (!inputPaths || inputPaths.length === 0) {
-    throw new McpError(ErrorCode.InvalidParams, "inputPaths cannot be empty");
-  }
   const images = processInputPaths(inputPaths);
   const results: Record<string, sharp.Metadata> = {};
   
@@ -373,9 +356,6 @@ async function rotate(
   overwrite: boolean = false,
   outputPath?: string
 ): Promise<string[]> {
-  if (!inputPaths || inputPaths.length === 0) {
-    throw new McpError(ErrorCode.InvalidParams, "inputPaths cannot be empty");
-  }
   const images = processInputPaths(inputPaths);
   const results: string[] = [];
   
@@ -410,9 +390,6 @@ async function flip(
   overwrite: boolean = false,
   outputPath?: string
 ): Promise<string[]> {
-  if (!inputPaths || inputPaths.length === 0) {
-    throw new McpError(ErrorCode.InvalidParams, "inputPaths cannot be empty");
-  }
   const images = processInputPaths(inputPaths);
   const results: string[] = [];
   
@@ -456,9 +433,6 @@ async function addTextWatermark(
   outputPath?: string,
   fontSize?: number
 ): Promise<string[]> {
-  if (!inputPaths || inputPaths.length === 0) {
-    throw new McpError(ErrorCode.InvalidParams, "inputPaths cannot be empty");
-  }
   const images = processInputPaths(inputPaths);
   const results: string[] = [];
   
