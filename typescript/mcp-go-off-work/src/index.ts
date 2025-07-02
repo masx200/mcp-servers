@@ -26,11 +26,10 @@ type ToolResult = {
 
 const SHUTDOWN_SYSTEM_TOOL: Tool = {
     name: "shutdown_system",
-    description: "关机或重启系统",
+    description: "关闭系统",
     inputSchema: {
         type: "object",
         properties: {
-            restart: { type: "boolean", description: "重启为 true，关机为 false" },
             delay: { type: "number", description: "关机前的延迟（秒）" },
             force: { type: "boolean", description: "强制关机，无需确认" }
         }
@@ -70,6 +69,18 @@ const LOCK_SCREEN_TOOL: Tool = {
     }
 };
 
+const RESTART_SYSTEM_TOOL: Tool = {
+    name: "restart_system",
+    description: "重启系统",
+    inputSchema: {
+        type: "object",
+        properties: {
+            delay: { type: "number", description: "重启前的延迟（秒，默认 0）" },
+            force: { type: "boolean", description: "强制重启，无需确认" }
+        }
+    }
+};
+
 const TURN_OFF_DISPLAY_TOOL: Tool = {
     name: "turn_off_display",
     description: "关闭显示器",
@@ -87,6 +98,7 @@ const TOOLS: readonly Tool[] = [
     SLEEP_SYSTEM_TOOL,
     HIBERNATE_SYSTEM_TOOL,
     LOCK_SCREEN_TOOL,
+    RESTART_SYSTEM_TOOL,
     TURN_OFF_DISPLAY_TOOL,
 ];
 
@@ -117,26 +129,21 @@ async function executeWithDelay(cmd: string, delay: number = 0): Promise<ToolRes
     });
 }
 
-async function handleShutdownSystem({ restart = false, delay = 0, force = false }: {restart?: boolean, delay?: number, force?: boolean}): Promise<ToolResult> {
+async function handleShutdownSystem({ delay = 0, force = false }: {delay?: number, force?: boolean}): Promise<ToolResult> {
     const platform = os.platform();
     let cmd = '';
-    logMessage(`关机命令: ${restart ? '重启' : '关机'}, 延迟: ${delay}s, 强制: ${force}`, "INFO");
+    logMessage(`关机命令: 延迟: ${delay}s, 强制: ${force}`, "INFO");
     
     if (platform === 'win32') {
-        cmd = 'shutdown';
-        cmd += restart ? ' /r' : ' /s';
-        if (force) cmd += ' /f';
-        cmd += ` /t ${delay}`;
+        cmd = `shutdown /s${force ? ' /f' : ''} /t ${delay}`;
     } else if (platform === 'darwin') {
-        const action = restart ? 'restart' : 'shut down';
         const forceFlag = force ? ' with force' : '';
-        cmd = `osascript -e 'tell app "System Events" to ${action}${forceFlag}'`;
+        cmd = `osascript -e 'tell app "System Events" to shut down${forceFlag}'`;
         if (delay > 0) {
             await new Promise(resolve => setTimeout(resolve, delay * 1000));
         }
     } else {
-        cmd = restart ? `shutdown -r +${Math.floor(delay / 60)}` : `shutdown -h +${Math.floor(delay / 60)}`;
-        if (force) cmd += ' now';
+        cmd = `shutdown -h +${Math.floor(delay / 60)}${force ? ' now' : ''}`;
     }
 
     return executeWithDelay(cmd, 0);
@@ -164,7 +171,7 @@ async function handleHibernateSystem({ delay = 0 }: {delay?: number}): Promise<T
     if (platform === 'win32') {
         cmd = 'shutdown /h';
     } else if (platform === 'darwin') {
-        cmd = 'osascript -e "tell application \\"System Events\\" to sleep"';
+        cmd = `osascript -e 'tell application "System Events" to sleep'`;
     } else {
         cmd = 'systemctl hibernate';
     }
@@ -179,8 +186,7 @@ async function handleLockScreen({ delay = 0 }: {delay?: number}): Promise<ToolRe
     if (platform === 'win32') {
         cmd = 'rundll32.exe user32.dll,LockWorkStation';
     } else if (platform === 'darwin') {
-        // 使用 pmset 作为主要方案，AppleScript 作为备选
-        cmd = 'pmset displaysleepnow || osascript -e \'tell application "System Events" to keystroke "q" using {control down, command down}\'';
+        cmd = `osascript -e 'tell application "System Events" to keystroke "q" using {control down, command down}'`;
     } else {
         cmd = 'xdg-screensaver lock || gnome-screensaver-command -l || xscreensaver-command -lock';
     }
@@ -188,13 +194,32 @@ async function handleLockScreen({ delay = 0 }: {delay?: number}): Promise<ToolRe
     return executeWithDelay(cmd, delay);
 }
 
+async function handleRestartSystem({ delay = 0, force = false }: {delay?: number, force?: boolean}): Promise<ToolResult> {
+    const platform = os.platform();
+    let cmd = '';
+    logMessage(`重启命令: 延迟: ${delay}s, 强制: ${force}`, "INFO");
+    
+    if (platform === 'win32') {
+        cmd = `shutdown /r${force ? ' /f' : ''} /t ${delay}`;
+    } else if (platform === 'darwin') {
+        const forceFlag = force ? ' with force' : '';
+        cmd = `osascript -e 'tell app "System Events" to restart${forceFlag}'`;
+        if (delay > 0) {
+            await new Promise(resolve => setTimeout(resolve, delay * 1000));
+        }
+    } else {
+        cmd = `shutdown -r +${Math.floor(delay / 60)}${force ? ' now' : ''}`;
+    }
+
+    return executeWithDelay(cmd, 0);
+}
 
 async function handleTurnOffDisplay({ delay = 0 }: {delay?: number}): Promise<ToolResult> {
     const platform = os.platform();
     let cmd = '';
     
     if (platform === 'win32') {
-        cmd = 'powershell -Command "Add-Type -TypeDefinition \'using System;using System.Runtime.InteropServices;public class Win32{[DllImport(\\\"user32.dll\\\")]public static extern int SendMessage(int hWnd, int hMsg, int wParam, int lParam);}\'; [Win32]::SendMessage(-1, 0x0112, 0xF170, 2)"';
+        cmd = `powershell -Command "Add-Type -TypeDefinition 'using System;using System.Runtime.InteropServices;public class Win32{[DllImport(\\"user32.dll\\")]public static extern int SendMessage(int hWnd, int hMsg, int wParam, int lParam);}'; [Win32]::SendMessage(-1, 0x0112, 0xF170, 2)"`;
     } else if (platform === 'darwin') {
         cmd = 'pmset displaysleepnow';
     } else {
@@ -208,8 +233,8 @@ async function handleTurnOffDisplay({ delay = 0 }: {delay?: number}): Promise<To
 
 const server = new Server(
   {
-    name: "mcp-get-off-work",
-    version: "0.1.0",
+    name: "mcp-go-off-work",
+    version: "1.0.0",
     description: "一个方便的 MCP 服务器，用于处理下班后的例行程序。可用操作：关机、睡眠、休眠、锁定屏幕、重启、关闭显示器、静音通知、将状态设置为离开、启动放松应用以及运行系统清理。"
   },
   {
@@ -239,6 +264,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             return await handleHibernateSystem(toolInput as any);
         case "lock_screen":
             return await handleLockScreen(toolInput as any);
+        case "restart_system":
+            return await handleRestartSystem(toolInput as any);
         case "turn_off_display":
             return await handleTurnOffDisplay(toolInput as any);
         default:
