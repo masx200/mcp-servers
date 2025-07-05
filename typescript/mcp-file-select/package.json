@@ -1,6 +1,6 @@
 {
   "name": "@mcpcn/mcp-file-select",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "文件选择对话框MCP服务器",
   "packageManager": "pnpm@8.12.1",
   "main": "dist/index.js",

@@ -564,14 +564,6 @@ const server = new Server(
   },
 );
 
-// 重定向控制台输出到 stderr，避免干扰 MCP 协议
-console.log = (...args) => {
-  const message = args.map(arg =>
-    typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-  ).join(' ');
-  process.stderr.write(`[INFO] ${message}\n`);
-};
-
 console.error = (...args) => {
   const message = args.map(arg =>
     typeof arg === 'object' ? JSON.stringify(arg) : String(arg)

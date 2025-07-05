@@ -132,14 +132,12 @@ async function ensureZenityInstalled(): Promise<void> {
     // 检查 zenity 是否已安装
     await execAsync('which zenity || zenity --version').catch(() => {});
   } catch {
-    // 未安装时自动安装
-    console.log('检测到系统未安装 zenity，正在自动安装...');
     try {
       // 根据发行版选择包管理器
       const { stdout: distro } = await execAsync('grep ^ID= /etc/os-release | cut -d= -f2');
       const pkgManager = distro.trim() === 'debian' || distro.trim() === 'ubuntu' ? 'apt' : 'dnf';
       await execAsync(`sudo ${pkgManager} install -y zenity`);
-      console.log('zenity 安装成功！');
+      console.error('zenity 安装成功！');
     } catch (installError) {
       throw new Error(
         `自动安装 zenity 失败，请手动运行以下命令安装：\n` +

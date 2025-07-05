@@ -271,7 +271,7 @@ class AppMcpServer {
   async run(): Promise<void> {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    console.log('mcp-open-app server started');
+    console.error('mcp-open-app server started');
   }
 }
 
