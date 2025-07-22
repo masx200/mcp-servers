@@ -26,7 +26,7 @@ if (!fs.existsSync(packageJsonPath)) {
 console.log(`正在发布包: ${packageName} (路径: ${packagePath})`);
 
 const commands = [
-  'npm install',
+  'yarn install',
   'npm run build',
   'npm version patch',
   'npm publish --access public'

@@ -5,12 +5,13 @@ import logging
 import matplotlib.pyplot as plt
 from typing import List, Dict, Optional, Annotated, Literal
 from mcp.server.fastmcp import FastMCP
-from ashare import get_price
-from mytt import *
+from .ashare import get_price
+from .mytt import *
+from .recommend import recommend_stocks, filter_and_rank_stocks
 import requests
 import re
 import sys
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import (
@@ -129,7 +130,7 @@ async def recommend_a_shares(
     Returns:
         Dict: 包含推荐股票列表和推荐原因的字典
     """
-    from recommend import recommend_stocks, filter_and_rank_stocks
+
 
     criteria = {
         'min_price': min_price,
@@ -432,8 +433,32 @@ class RecommendASharesParams(BaseModel):
 class GetStockDataParams(BaseModel):
     code: Annotated[str, Field(description="股票代码或中文名称（如'贵州茅台'或'sh600519'）")]
     frequency: Annotated[str, Field(default='1d', description="数据频率，支持'1d'、'1w'、'1m'")]
-    count: Annotated[int, Field(default=5, description="获取的数据条数")]
+    count: Annotated[int, Field(default=5, description="获取的数据条数", gt=0, le=1000)]
     end_date: Annotated[Optional[str], Field(default=None, description="数据结束日期，格式为'YYYY-MM-DD'")]
+
+    @field_validator('count', mode='before')
+    @classmethod
+    def validate_count(cls, v):
+        """验证count参数，处理空字符串情况"""
+        if v == '' or v is None:
+            return 5  # 返回默认值
+        try:
+            count_val = int(v)
+            if count_val <= 0:
+                raise ValueError("count必须大于0")
+            if count_val > 1000:
+                raise ValueError("count不能超过1000")
+            return count_val
+        except (ValueError, TypeError):
+            raise ValueError(f"count参数无效: {v}，必须是1-1000之间的整数")
+
+    @field_validator('frequency')
+    @classmethod
+    def validate_frequency(cls, v):
+        """验证frequency参数"""
+        if v not in ['1d', '1w', '1m']:
+            raise ValueError(f"不支持的数据频率: {v}，支持的频率: 1d, 1w, 1m")
+        return v
 
 class CalculateTechnicalIndicatorsParams(BaseModel):
     data: Annotated[List[Dict], Field(description="历史K线数据列表，每项包含open/high/low/close等字段")]
@@ -456,7 +481,7 @@ async def serve() -> None:
     @server.list_tools()
     async def list_tools() -> list[Tool]:
         return [
-            Tool(name="recommend_a_shares", description="推荐A股精选股票", inputSchema=RecommendASharesParams.model_json_schema(),outputSchema=RecommendASharesParams.model_json_schema()),
+            Tool(name="recommend_a_shares", description="推荐A股精选股票", inputSchema=RecommendASharesParams.model_json_schema()),
             Tool(name="get_stock_data", description="获取股票历史K线数据", inputSchema=GetStockDataParams.model_json_schema()),
             Tool(name="calculate_technical_indicators", description="计算技术指标", inputSchema=CalculateTechnicalIndicatorsParams.model_json_schema()),
             Tool(name="plot_kline", description="绘制K线图", inputSchema=PlotKlineParams.model_json_schema()),
@@ -480,6 +505,8 @@ async def serve() -> None:
                 return [TextContent(type="text", text=str(result))]
             elif name == "get_stock_data":
                 args = GetStockDataParams(**arguments)
+                if 'count' in arguments and arguments['count'] == '':
+                    arguments['count'] = 10
                 result = await get_stock_data(
                     code=args.code,
                     frequency=args.frequency,
