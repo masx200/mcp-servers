@@ -1,0 +1,41 @@
+{
+  "name": "@mcpcn/mcp-image-upload",
+  "version": "1.0.1",
+  "description": "图片上传MCP服务器",
+  "packageManager": "pnpm@8.12.1",
+  "main": "dist/index.js",
+  "bin": {
+    "image-upload-mcp": "./dist/index.js"
+  },
+  "files": [
+    "dist/**/*"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "mcp",
+    "image",
+    "upload",
+    "图片上传",
+    "文件上传"
+  ],
+  "scripts": {
+    "build": "tsc && chmod +x dist/index.js",
+    "start": "node dist/index.js",
+    "dev": "tsc -w",
+    "clean": "rm -rf dist",
+    "prepare": "pnpm clean && pnpm build"
+  },
+  "type": "module",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "form-data": "^4.0.0",
+    "node-fetch": "^3.3.2"
+  }
+}

@@ -1,9 +1,34 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "mcp-system-cleaner"
-version = "0.1.0"
-description = "为 AI Agent 提供跨平台系统垃圾清理服务，支持 Windows、macOS 和 Linux 系统文件清理和优化"
+name = "mcp-ashare-quant"
+version = "0.1.7"
+description = "MCP协议的A股量化分析工具，为AI Agent提供股票推荐、行情分析、K线图绘制等功能"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+authors = [
+    {name = "fengjinchao", email = "your.email@example.com"}
+]
+maintainers = [
+    {name = "fengjinchao", email = "your.email@example.com"}
+]
+keywords = ["mcp", "stock", "quant", "a-share", "finance", "ai-agent"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
 dependencies = [
     "httpx>=0.28.1",
     "matplotlib>=3.10.1",
@@ -13,5 +38,22 @@ dependencies = [
     "requests>=2.32.3",
 ]
 
+[project.urls]
+Homepage = "https://github.com/fengjinchao/mcp-ashare-quant"
+Repository = "https://github.com/fengjinchao/mcp-ashare-quant"
+Documentation = "https://github.com/fengjinchao/mcp-ashare-quant#readme"
+"Bug Tracker" = "https://github.com/fengjinchao/mcp-ashare-quant/issues"
+
+[project.scripts]
+mcp-ashare-quant = "mcp_ashare_quant.server:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["mcp_ashare_quant*"]
+
+[tool.setuptools.package-data]
+mcp_ashare_quant = ["*.json"]
+
 [tool.uv.workspace]
-members = ["mcp-system-cleaner"]
+members = ["mcp-ashare-quant"]
+

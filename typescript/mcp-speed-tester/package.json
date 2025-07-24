@@ -1,7 +1,7 @@
 {
   "name": "@mcpcn/mcp-speed-tester",
-  "version": "1.0.7",
-  "description": "MCP service for network speed testing",
+  "version": "1.0.9",
+  "description": "MCP service for network speed testing with built-in test servers",
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
@@ -10,13 +10,20 @@
     "dev": "ts-node src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "license": "ISC",
+  "license": "MIT",
   "bin": {
     "mcp-speed-tester": "dist/index.js"
   },
   "files": [
     "dist",
     "README.md"
+  ],
+  "keywords": [
+    "mcp",
+    "network",
+    "speed",
+    "test",
+    "bandwidth"
   ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",

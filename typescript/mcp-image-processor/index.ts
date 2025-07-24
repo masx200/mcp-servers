@@ -750,46 +750,46 @@ const FLIP_TOOL: Tool = {
   }
 };
 
-const WATERMARK_TOOL: Tool = {
-  name: "image_watermark",
-  description: "添加文字水印",
-  inputSchema: {
-    type: "object",
-    properties: {
-      inputPaths: {
-        type: "array",
-        items: { type: "string" },
-        description: "待处理图片路径数组，支持图片文件和目录"
-      },
-      text: {
-        type: "string",
-        description: "水印内容（文字）"
-      },
-      position: {
-        type: "string",
-        enum: ["top-left", "top-right", "bottom-left", "bottom-right", "center", "tile"],
-        description: "水印添加方式（左上、右上、左下、右下、中央、铺满）"
-      },
-      density: {
-        type: "number",
-        description: "满铺密度（可选参数，在水印添加方式为铺满时有效，取值范围为1-10的整形，1最稀疏，10最密）"
-      },
-      fontSize: {
-        type: "number",
-        description: "文字尺寸（可选参数，不传则根据图片尺寸自动计算）"
-      },
-      overwrite: {
-        type: "boolean",
-        description: "是否覆盖原图（可选，默认为false）"
-      },
-      outputPath: {
-        type: "string",
-        description: "存储路径（可选，不覆盖原图时如果没传则为原图所在目录）"
-      }
-    },
-    required: ["inputPaths", "text", "position"]
-  }
-};
+// const WATERMARK_TOOL: Tool = {
+//   name: "image_watermark",
+//   description: "添加文字水印",
+//   inputSchema: {
+//     type: "object",
+//     properties: {
+//       inputPaths: {
+//         type: "array",
+//         items: { type: "string" },
+//         description: "待处理图片路径数组，支持图片文件和目录"
+//       },
+//       text: {
+//         type: "string",
+//         description: "水印内容（文字）"
+//       },
+//       position: {
+//         type: "string",
+//         enum: ["top-left", "top-right", "bottom-left", "bottom-right", "center", "tile"],
+//         description: "水印添加方式（左上、右上、左下、右下、中央、铺满）"
+//       },
+//       density: {
+//         type: "number",
+//         description: "满铺密度（可选参数，在水印添加方式为铺满时有效，取值范围为1-10的整形，1最稀疏，10最密）"
+//       },
+//       fontSize: {
+//         type: "number",
+//         description: "文字尺寸（可选参数，不传则根据图片尺寸自动计算）"
+//       },
+//       overwrite: {
+//         type: "boolean",
+//         description: "是否覆盖原图（可选，默认为false）"
+//       },
+//       outputPath: {
+//         type: "string",
+//         description: "存储路径（可选，不覆盖原图时如果没传则为原图所在目录）"
+//       }
+//     },
+//     required: ["inputPaths", "text", "position"]
+//   }
+// };
 
 const IMAGE_TOOLS = [
   CONVERT_FORMAT_TOOL,
@@ -799,7 +799,7 @@ const IMAGE_TOOLS = [
   METADATA_TOOL,
   ROTATE_TOOL,
   FLIP_TOOL,
-  WATERMARK_TOOL
+  // WATERMARK_TOOL
 ] as const;
 
 // 处理工具调用的函数
@@ -1107,18 +1107,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return await handleFlip(inputPaths, flipType, overwrite, outputPath);
       }
       
-      case "image_watermark": {
-        const { inputPaths, text, position, density, overwrite, outputPath, fontSize } = request.params.arguments as {
-          inputPaths: string[];
-          text: string;
-          position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center' | 'tile';
-          density?: number;
-          overwrite?: boolean;
-          outputPath?: string;
-          fontSize?: number;
-        };
-        return await handleWatermark(inputPaths, text, position, density, overwrite, outputPath, fontSize);
-      }
+      // case "image_watermark": {
+      //   const { inputPaths, text, position, density, overwrite, outputPath, fontSize } = request.params.arguments as {
+      //     inputPaths: string[];
+      //     text: string;
+      //     position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center' | 'tile';
+      //     density?: number;
+      //     overwrite?: boolean;
+      //     outputPath?: string;
+      //     fontSize?: number;
+      //   };
+      //   return await handleWatermark(inputPaths, text, position, density, overwrite, outputPath, fontSize);
+      // }
       
       default:
         return {
