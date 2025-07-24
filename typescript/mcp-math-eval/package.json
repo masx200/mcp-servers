@@ -14,6 +14,9 @@
     "algebrite": "^1.4.0",
     "mathjs": "^12.4.0"
   },
+  "bin": {
+    "mcp-math-eval": "dist/index.js"
+  },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "tsx": "^4.0.0",

@@ -13,7 +13,7 @@
   "author": "",
   "license": "ISC",
   "bin": {
-    "mcp-ip-query": "dist/index.js"
+    "mcp-movie-info": "dist/index.js"
   },
   "files": [
     "dist",

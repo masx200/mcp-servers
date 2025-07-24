@@ -34,7 +34,9 @@ function getSystemInfo() {
       const content = fs.readFileSync('/etc/os-release', 'utf-8');
       const match = content.match(/^PRETTY_NAME="([^"]+)"/m);
       if (match) distro = match[1];
-    } catch {}
+    } catch (error) {
+      // 忽略文件读取错误，distro 保持为空字符串
+    }
   }
   return {
     platform,
@@ -93,12 +95,16 @@ function getCommonDirs() {
     dirs.pictures = path.join(home, '图片');
     dirs.videos = path.join(home, '视频');
     // 兼容英文目录
-    if (!fs.existsSync(dirs.desktop)) dirs.desktop = path.join(home, 'Desktop');
-    if (!fs.existsSync(dirs.documents)) dirs.documents = path.join(home, 'Documents');
-    if (!fs.existsSync(dirs.downloads)) dirs.downloads = path.join(home, 'Downloads');
-    if (!fs.existsSync(dirs.music)) dirs.music = path.join(home, 'Music');
-    if (!fs.existsSync(dirs.pictures)) dirs.pictures = path.join(home, 'Pictures');
-    if (!fs.existsSync(dirs.videos)) dirs.videos = path.join(home, 'Videos');
+    try {
+      if (!fs.existsSync(dirs.desktop)) dirs.desktop = path.join(home, 'Desktop');
+      if (!fs.existsSync(dirs.documents)) dirs.documents = path.join(home, 'Documents');
+      if (!fs.existsSync(dirs.downloads)) dirs.downloads = path.join(home, 'Downloads');
+      if (!fs.existsSync(dirs.music)) dirs.music = path.join(home, 'Music');
+      if (!fs.existsSync(dirs.pictures)) dirs.pictures = path.join(home, 'Pictures');
+      if (!fs.existsSync(dirs.videos)) dirs.videos = path.join(home, 'Videos');
+    } catch (error) {
+      // 忽略文件系统检查错误，使用默认值
+    }
     dirs.appData = process.env.XDG_CONFIG_HOME || path.join(home, '.config');
   }
   return dirs;
@@ -118,45 +124,53 @@ function getNetworkInfo() {
 
 // 获取磁盘分区信息（跨平台）
 async function getDiskInfo() {
-  const platform = os.platform();
-  if (platform === 'win32') {
-    // Windows: 使用wmic
-    const { stdout } = await execAsync('wmic logicaldisk get Caption,FileSystem,Size,FreeSpace');
-    const lines = stdout.trim().split(/\r?\n/).filter(Boolean);
-    const header = lines.shift();
-    return lines.map(line => {
-      const parts = line.trim().split(/\s+/);
-      const [Caption, FileSystem, Size, FreeSpace] = parts;
-      const total = parseInt(Size, 10) || 0;
-      const free = parseInt(FreeSpace, 10) || 0;
-      return {
-        filesystem: Caption,
-        mount: Caption + '\\',
-        type: FileSystem,
-        total,
-        used: total - free,
-        available: free
-      };
-    });
-  } else {
-    // macOS/Linux: 使用df -kP
-    const { stdout } = await execAsync('df -kP');
-    const lines = stdout.trim().split(/\n/).filter(Boolean);
-    lines.shift(); // 去掉表头
-    return lines.map(line => {
-      const parts = line.replace(/\s+/g, ' ').split(' ');
-      // Filesystem 1024-blocks Used Available Capacity Mounted on
-      const [filesystem, blocks, used, available, capacity, ...mountArr] = parts;
-      const mount = mountArr.join(' ');
-      return {
-        filesystem,
-        mount,
-        type: '', // 跨平台简化，详细类型可用mount命令补充
-        total: parseInt(blocks, 10) * 1024,
-        used: parseInt(used, 10) * 1024,
-        available: parseInt(available, 10) * 1024
-      };
-    });
+  try {
+    const platform = os.platform();
+    if (platform === 'win32') {
+      // Windows: 使用wmic
+      const { stdout } = await execAsync('wmic logicaldisk get Caption,FileSystem,Size,FreeSpace');
+      const lines = stdout.trim().split(/\r?\n/).filter(Boolean);
+      const header = lines.shift();
+      return lines.map(line => {
+        const parts = line.trim().split(/\s+/);
+        const [Caption, FileSystem, Size, FreeSpace] = parts;
+        const total = parseInt(Size, 10) || 0;
+        const free = parseInt(FreeSpace, 10) || 0;
+        return {
+          filesystem: Caption,
+          mount: Caption + '\\',
+          type: FileSystem,
+          total,
+          used: total - free,
+          available: free
+        };
+      });
+    } else {
+      // macOS/Linux: 使用df -kP
+      const { stdout } = await execAsync('df -kP');
+      const lines = stdout.trim().split(/\n/).filter(Boolean);
+      lines.shift(); // 去掉表头
+      return lines.map(line => {
+        const parts = line.replace(/\s+/g, ' ').split(' ');
+        // Filesystem 1024-blocks Used Available Capacity Mounted on
+        const [filesystem, blocks, used, available, capacity, ...mountArr] = parts;
+        const mount = mountArr.join(' ');
+        return {
+          filesystem,
+          mount,
+          type: '', // 跨平台简化，详细类型可用mount命令补充
+          total: parseInt(blocks, 10) * 1024,
+          used: parseInt(used, 10) * 1024,
+          available: parseInt(available, 10) * 1024
+        };
+      });
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new McpError(
+      ErrorCode.InternalError,
+      `获取磁盘信息失败: ${errorMessage}`
+    );
   }
 }
 
@@ -215,31 +229,63 @@ class ComputerEnvServer {
     }));
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
+      const { name, arguments: args } = request.params;
+
       try {
-        switch (request.params.name) {
+        switch (name) {
           case 'get_system_info':
-            return { content: [{ type: 'text', text: JSON.stringify(getSystemInfo()) }] };
+            return { 
+              content: [{ type: 'text', text: JSON.stringify(getSystemInfo()) }],
+              isError: false
+            };
           case 'get_common_dirs':
-            return { content: [{ type: 'text', text: JSON.stringify(getCommonDirs()) }] };
+            return { 
+              content: [{ type: 'text', text: JSON.stringify(getCommonDirs()) }],
+              isError: false
+            };
           case 'get_memory_info':
-            return { content: [{ type: 'text', text: JSON.stringify(getMemoryInfo()) }] };
+            return { 
+              content: [{ type: 'text', text: JSON.stringify(getMemoryInfo()) }],
+              isError: false
+            };
           case 'get_network_info':
-            return { content: [{ type: 'text', text: JSON.stringify(getNetworkInfo()) }] };
+            return { 
+              content: [{ type: 'text', text: JSON.stringify(getNetworkInfo()) }],
+              isError: false
+            };
           case 'get_disk_info':
-            return { content: [{ type: 'text', text: JSON.stringify(await getDiskInfo()) }] };
+            return { 
+              content: [{ type: 'text', text: JSON.stringify(await getDiskInfo()) }],
+              isError: false
+            };
           default:
-            throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${request.params.name}`);
+            throw new McpError(
+              ErrorCode.MethodNotFound,
+              `未知工具: ${name}`
+            );
         }
       } catch (error) {
-        throw error;
+        if (error instanceof McpError) {
+          throw error;
+        }
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        throw new McpError(
+          ErrorCode.InternalError,
+          `执行工具 ${name} 时发生错误: ${errorMessage}`
+        );
       }
     });
   }
 
   async run() {
-    const transport = new StdioServerTransport();
-    await this.server.connect(transport);
-    console.error('Computer Env MCP server running on stdio');
+    try {
+      const transport = new StdioServerTransport();
+      await this.server.connect(transport);
+      console.error('Computer Env MCP server running on stdio');
+    } catch (error) {
+      console.error('Failed to start server:', error);
+      process.exit(1);
+    }
   }
 }
 

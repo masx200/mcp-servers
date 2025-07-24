@@ -571,7 +571,7 @@ class PromptServer {
   async run() {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    console.error('Prompt MCP server running on stdio');
+    console.error('System Dialog MCP server running on stdio');
   }
 }
 

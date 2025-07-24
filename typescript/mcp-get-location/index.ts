@@ -230,6 +230,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
 async function runServer() {
     const transport = new StdioServerTransport();
     await server.connect(transport);
+    console.error("Get Location MCP Server running on stdio");
 }
 
 runServer().catch((error) => {

@@ -4,7 +4,9 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   CallToolRequestSchema,
+  ErrorCode,
   ListToolsRequestSchema,
+  McpError,
   Tool,
   ServerResult,
 } from "@modelcontextprotocol/sdk/types.js";
@@ -94,13 +96,10 @@ async function makeApiRequest<T>(url: string): Promise<ServerResult> {
     });
 
     if (!response.ok) {
-      return {
-        content: [{
-          type: "text",
-          text: `API请求失败: HTTP 状态 ${response.status}`
-        }],
-        isError: true
-      };
+      throw new McpError(
+        ErrorCode.InternalError,
+        `API请求失败: HTTP 状态 ${response.status}`
+      );
     }
 
     const content = await response.text();
@@ -109,13 +108,10 @@ async function makeApiRequest<T>(url: string): Promise<ServerResult> {
       const data = JSON.parse(content) as T & { status: number; msg: string };
 
       if (data.status !== 0) {
-        return {
-          content: [{
-            type: "text",
-            text: `操作失败: ${data.msg}`
-          }],
-          isError: true
-        };
+        throw new McpError(
+          ErrorCode.InternalError,
+          `操作失败: ${data.msg}`
+        );
       }
 
       return {
@@ -127,23 +123,23 @@ async function makeApiRequest<T>(url: string): Promise<ServerResult> {
         isError: false
       };
     } catch (e) {
-      return {
-        content: [{
-          type: "text",
-          text: `解析响应失败: ${content}`
-        }],
-        isError: true
-      };
+      if (e instanceof McpError) {
+        throw e;
+      }
+      throw new McpError(
+        ErrorCode.InternalError,
+        `解析响应失败: ${content}`
+      );
     }
   } catch (error: unknown) {
+    if (error instanceof McpError) {
+      throw error;
+    }
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return {
-      content: [{
-        type: "text",
-        text: `请求出错: ${errorMessage}`
-      }],
-      isError: true
-    };
+    throw new McpError(
+      ErrorCode.InternalError,
+      `请求出错: ${errorMessage}`
+    );
   }
 }
 
@@ -284,45 +280,57 @@ const server = new Server(
   },
 );
 
+// 设置错误处理
+server.onerror = (error) => console.error("[MCP Error]", error);
+process.on("SIGINT", async () => {
+  await server.close();
+  process.exit(0);
+});
+
 // 设置请求处理程序
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: TOOLS,
 }));
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
+
   try {
-    switch (request.params.name) {
+    switch (name) {
       case "isbn_query": {
-        const { isbn } = request.params.arguments as { isbn: string };
+        const { isbn } = args as { isbn: string };
+        if (!isbn) {
+          throw new McpError(ErrorCode.InvalidParams, "必须提供ISBN号码");
+        }
         return await handleIsbnQuery(isbn);
       }
 
       case "book_search": {
-        const { title, pagenum = 1 } = request.params.arguments as {
+        const { title, pagenum = 1 } = args as {
           title: string;
           pagenum?: number;
         };
+        if (!title) {
+          throw new McpError(ErrorCode.InvalidParams, "必须提供图书标题");
+        }
         return await handleBookSearch(title, pagenum);
       }
 
       default:
-        return {
-          content: [{
-            type: "text",
-            text: `未知工具: ${request.params.name}`
-          }],
-          isError: true
-        };
+        throw new McpError(
+          ErrorCode.MethodNotFound,
+          `未知工具: ${name}`
+        );
     }
   } catch (error) {
+    if (error instanceof McpError) {
+      throw error;
+    }
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return {
-      content: [{
-        type: "text",
-        text: `错误: ${errorMessage}`
-      }],
-      isError: true
-    };
+    throw new McpError(
+      ErrorCode.InternalError,
+      `执行工具 ${name} 时发生错误: ${errorMessage}`
+    );
   }
 });
 
@@ -333,12 +341,9 @@ async function runServer() {
     await server.connect(transport);
     console.error("图书信息查询 MCP 服务器正在通过 stdio 运行");
   } catch (error) {
-    console.error("服务器启动失败:", error);
+    console.error("Failed to start server:", error);
     process.exit(1);
   }
 }
 
-runServer().catch((error) => {
-  console.error("运行服务器时发生致命错误:", error);
-  process.exit(1);
-});
+runServer().catch(console.error);

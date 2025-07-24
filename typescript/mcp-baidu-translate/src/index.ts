@@ -4,7 +4,9 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   CallToolRequestSchema,
+  ErrorCode,
   ListToolsRequestSchema,
+  McpError,
   Tool,
 } from "@modelcontextprotocol/sdk/types.js";
 import fetch from "node-fetch";
@@ -178,29 +180,20 @@ const TOOLS: readonly Tool[] = [TRANSLATE_TEXT_TOOL, GET_SUPPORTED_LANGUAGES_TOO
 // 处理文本翻译请求
 async function handleTranslateText(input: any) {
   if (!input || typeof input !== 'object') {
-    return {
-      content: [],
-      isError: true,
-      errorMessage: "输入参数格式错误，预期为包含text和to_lang字段的对象。",
-    };
+    throw new McpError(
+      ErrorCode.InvalidParams,
+      "输入参数格式错误，预期为包含text和to_lang字段的对象。"
+    );
   }
 
   const { text, from_lang, to_lang } = input;
 
   if (!text) {
-    return {
-      content: [],
-      isError: true,
-      errorMessage: "翻译文本不能为空",
-    };
+    throw new McpError(ErrorCode.InvalidParams, "翻译文本不能为空");
   }
 
   if (!to_lang) {
-    return {
-      content: [],
-      isError: true,
-      errorMessage: "目标语言不能为空",
-    };
+    throw new McpError(ErrorCode.InvalidParams, "目标语言不能为空");
   }
 
   try {
@@ -222,22 +215,20 @@ async function handleTranslateText(input: any) {
     const response = await fetch(`${API_ENDPOINT}?${params.toString()}`);
 
     if (!response.ok) {
-      return {
-        content: [],
-        isError: true,
-        errorMessage: `API请求失败，HTTP状态码: ${response.status}`,
-      };
+      throw new McpError(
+        ErrorCode.InternalError,
+        `API请求失败，HTTP状态码: ${response.status}`
+      );
     }
 
     const data = await response.json() as BaiduTranslateResponse;
 
     // 检查是否是错误响应
     if ('error_code' in data) {
-      return {
-        content: [],
-        isError: true,
-        errorMessage: `翻译API错误：${data.error_code} - ${data.error_msg}`,
-      };
+      throw new McpError(
+        ErrorCode.InternalError,
+        `翻译API错误：${data.error_code} - ${data.error_msg}`
+      );
     }
 
     // 正常响应
@@ -251,12 +242,14 @@ async function handleTranslateText(input: any) {
       errorMessage: "",
     };
   } catch (error) {
+    if (error instanceof McpError) {
+      throw error;
+    }
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return {
-      content: [],
-      isError: true,
-      errorMessage: `系统错误: ${errorMessage}`,
-    };
+    throw new McpError(
+      ErrorCode.InternalError,
+      `系统错误: ${errorMessage}`
+    );
   }
 }
 
@@ -276,11 +269,10 @@ function handleGetSupportedLanguages() {
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return {
-      content: [],
-      isError: true,
-      errorMessage: `获取支持语言列表时发生错误: ${errorMessage}`,
-    };
+    throw new McpError(
+      ErrorCode.InternalError,
+      `获取支持语言列表时发生错误: ${errorMessage}`
+    );
   }
 }
 
@@ -297,34 +289,42 @@ const server = new Server(
   }
 );
 
+// 设置错误处理
+server.onerror = (error) => console.error("[MCP Error]", error);
+process.on("SIGINT", async () => {
+  await server.close();
+  process.exit(0);
+});
+
 // 注册请求处理器
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return { tools: TOOLS };
 });
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
+
   try {
-    const toolName = request.params.name;
-    const toolInput = request.params.arguments;
-
-    if (toolName === TRANSLATE_TEXT_TOOL.name) {
-      return await handleTranslateText(toolInput);
-    } else if (toolName === GET_SUPPORTED_LANGUAGES_TOOL.name) {
-      return handleGetSupportedLanguages();
+    switch (name) {
+      case "translate_text":
+        return await handleTranslateText(args);
+      case "get_supported_languages":
+        return handleGetSupportedLanguages();
+      default:
+        throw new McpError(
+          ErrorCode.MethodNotFound,
+          `未知工具: ${name}`
+        );
     }
-
-    return {
-      content: [],
-      isError: true,
-      errorMessage: `未找到名为 '${toolName}' 的工具。`,
-    };
   } catch (error) {
+    if (error instanceof McpError) {
+      throw error;
+    }
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return {
-      content: [],
-      isError: true,
-      errorMessage: `处理请求时发生系统内部错误: ${errorMessage}`,
-    };
+    throw new McpError(
+      ErrorCode.InternalError,
+      `执行工具 ${name} 时发生错误: ${errorMessage}`
+    );
   }
 });
 
@@ -333,9 +333,11 @@ async function runServer() {
   try {
     const transport = new StdioServerTransport();
     await server.connect(transport);
+    console.error("Baidu Translate MCP Server running on stdio");
   } catch (error) {
+    console.error("Failed to start server:", error);
     process.exit(1);
   }
 }
 
-runServer(); 
+runServer().catch(console.error); 

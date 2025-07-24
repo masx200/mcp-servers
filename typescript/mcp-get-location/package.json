@@ -1,6 +1,6 @@
 {
   "name": "@mcpcn/mcp-get-location",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Location MCP Server - Get precise user location information through browser authorization",
   "main": "dist/index.js",
   "files": [

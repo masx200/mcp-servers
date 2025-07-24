@@ -504,6 +504,13 @@ const server = new Server(
     }
 );
 
+// 设置错误处理
+server.onerror = (error) => console.error("[MCP Error]", error);
+process.on("SIGINT", async () => {
+    await server.close();
+    process.exit(0);
+});
+
 server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
         tools: BILIBILI_TOOLS,
@@ -594,19 +601,26 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
                 );
         }
     } catch (error) {
+        if (error instanceof McpError) {
+            throw error;
+        }
+        const errorMessage = error instanceof Error ? error.message : String(error);
         throw new McpError(
             ErrorCode.InternalError,
-            `Tool execution error: ${error instanceof Error ? error.message : String(error)}`
+            `执行工具 ${name} 时发生错误: ${errorMessage}`
         );
     }
 });
 
 async function runServer() {
-    const transport = new StdioServerTransport();
-    await server.connect(transport);
+    try {
+        const transport = new StdioServerTransport();
+        await server.connect(transport);
+        console.error("BiliBili MCP Server running on stdio");
+    } catch (error) {
+        console.error("Failed to start server:", error);
+        process.exit(1);
+    }
 }
 
-runServer().catch((error) => {
-    console.error("Server startup failed:", error);
-    process.exit(1);
-}); 
+runServer().catch(console.error); 

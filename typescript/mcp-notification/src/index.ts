@@ -475,17 +475,17 @@ class NotificationServer {
       tools: [
         {
           name: 'send_notification',
-          description: '发送系统通知',
+          description: '发送系统通知或提醒',
           inputSchema: {
             type: 'object',
             properties: {
               title: {
                 type: 'string',
-                description: '通知标题',
+                description: '通知或提醒的标题',
               },
               message: {
                 type: 'string',
-                description: '通知内容',
+                description: '通知或提醒的内容',
               },
               subtitle: {
                 type: 'string',
@@ -493,7 +493,7 @@ class NotificationServer {
               },
               sound: {
                 type: 'boolean',
-                description: '是否播放默认通知声音',
+                description: '是否播放默认提示音',
                 default: true,
               },
               delay: {
@@ -501,14 +501,14 @@ class NotificationServer {
                   { type: 'number' },
                   { type: 'string' }
                 ],
-                description: '延迟发送通知（毫秒或时间字符串如"10s", "1m", "1h"）',
+                description: '延迟发送通知或提醒（毫秒或时间字符串如"10s", "1m", "1h"）',
               },
               repeat: {
                 oneOf: [
                   { type: 'number' },
                   { type: 'string' }
                 ],
-                description: '重复通知间隔（毫秒或时间字符串如"10s", "1m", "1h"）',
+                description: '重复通知或提醒的间隔（毫秒或时间字符串如"10s", "1m", "1h"）',
               },
               repeatCount: {
                 type: 'number',
@@ -522,14 +522,14 @@ class NotificationServer {
         },
         {
           name: 'notification_task_management',
-          description: '管理计划的通知任务',
+          description: '管理计划的通知或提醒任务',
           inputSchema: {
             type: 'object',
             properties: {
               action: {
                 type: 'string',
                 enum: ['stop_repeat_task', 'stop_all_repeat_tasks', 'get_active_repeat_tasks', 'get_repeat_task_info'],
-                description: 'stop_repeat_task: 停止指定的重复通知任务. stop_all_repeat_tasks: 停止所有重复通知任务. get_active_repeat_tasks: 获取所有活跃的重复通知任务. get_repeat_task_info: 获取指定重复通知任务的信息.'
+                description: 'stop_repeat_task: 停止指定的重复通知或提醒任务. stop_all_repeat_tasks: 停止所有重复通知或提醒任务. get_active_repeat_tasks: 获取所有活跃的重复通知或提醒任务. get_repeat_task_info: 获取指定重复通知或提醒任务的信息.'
               },
               taskId: {
                 type: 'string',

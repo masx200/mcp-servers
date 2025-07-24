@@ -4,7 +4,9 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   CallToolRequestSchema,
+  ErrorCode,
   ListToolsRequestSchema,
+  McpError,
   Tool,
 } from "@modelcontextprotocol/sdk/types.js";
 import fetch from "node-fetch";
@@ -189,27 +191,7 @@ const LIST_NEWS_SOURCES_TOOL: Tool = {
 
 const TOOLS: readonly Tool[] = [GET_HOT_DATA_TOOL, LIST_NEWS_SOURCES_TOOL];
 
-// 错误处理 - 返回符合MCP标准的JSON格式
-function handleError(message: string, isError: boolean = true) {
-  const errorResult = {
-    content: [
-      {
-        itemDisplayTitle: "处理错误",
-        itemTitle: message
-      }
-    ],
-    isError
-  };
-
-  return {
-    content: [
-      {
-        type: "text",
-        text: JSON.stringify(errorResult, null, 2)
-      }
-    ]
-  };
-}
+// 错误处理函数已移除，改用 McpError 抛出异常
 
 // 格式化热度值
 function formatHotValue(hot: number): string {
@@ -270,25 +252,25 @@ async function handleGetSiteData(siteParam: string) {
     }
 
     if (!targetSite) {
-      throw new Error(`未找到站点: ${siteParam}`);
+      throw new McpError(ErrorCode.InvalidParams, `未找到站点: ${siteParam}`);
     }
 
     const apiUrl = `${API_BASE_URL}/${targetSite.调用名称}`;
     const response = await fetch(apiUrl);
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new McpError(ErrorCode.InternalError, `HTTP error! status: ${response.status}`);
     }
 
     const apiResponse = (await response.json()) as ApiResponse;
 
     if (!apiResponse?.data || !Array.isArray(apiResponse.data)) {
-      throw new Error("Invalid API response format");
+      throw new McpError(ErrorCode.InternalError, "Invalid API response format");
     }
 
     // 检查API返回的数据是否为空
     if (apiResponse.data.length === 0) {
-      throw new Error(`API for ${targetSite.站点} returned no data items. This site might have no hot content currently.`);
+      throw new McpError(ErrorCode.InternalError, `API for ${targetSite.站点} returned no data items. This site might have no hot content currently.`);
     }
 
     // 构建符合schema的JSON数据
@@ -333,8 +315,14 @@ async function handleGetSiteData(siteParam: string) {
       ]
     };
   } catch (error) {
+    if (error instanceof McpError) {
+      throw error;
+    }
     console.error("获取站点数据失败:", error);
-    return handleError(`获取 ${siteParam} 数据失败: ${error instanceof Error ? error.message : String(error)}`);
+    throw new McpError(
+      ErrorCode.InternalError,
+      `获取 ${siteParam} 数据失败: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 }
 
@@ -362,19 +350,10 @@ async function handleListNewsSources() {
     };
   } catch (error) {
     console.error("列出新闻源失败:", error);
-    const errorPayload = {
-      sites: [],
-      isError: true,
-      errorMessage: `列出新闻源失败: ${error instanceof Error ? error.message : String(error)}`
-    };
-    return {
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify(errorPayload, null, 2)
-        }
-      ]
-    };
+    throw new McpError(
+      ErrorCode.InternalError,
+      `列出新闻源失败: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 }
 
@@ -392,36 +371,52 @@ const server = new Server(
   }
 );
 
+// 设置错误处理
+server.onerror = (error) => console.error("[MCP Error]", error);
+process.on("SIGINT", async () => {
+  await server.close();
+  process.exit(0);
+});
+
 // 请求处理
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return { tools: TOOLS };
 });
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
+
   try {
-    const toolName = request.params.name;
+    switch (name) {
+      case "get_hot_data":
+        // 获取站点参数
+        const site = args?.site as string | undefined;
 
-    if (toolName === "get_hot_data") {
-      // 获取站点参数
-      const site = request.params.arguments?.site as string | undefined;
+        // 如果没有提供站点参数，则返回站点列表
+        if (!site) {
+          return await handleGetSiteList();
+        }
 
-      // 如果没有提供站点参数，则返回站点列表
-      if (!site) {
-        return await handleGetSiteList();
-      }
+        // 否则处理特定站点的数据
+        return await handleGetSiteData(site);
 
-      // 否则处理特定站点的数据
-      return await handleGetSiteData(site);
+      case "list_news_sources":
+        return await handleListNewsSources();
+
+      default:
+        throw new McpError(
+          ErrorCode.MethodNotFound,
+          `未知工具: ${name}`
+        );
     }
-    else if (toolName === "list_news_sources") {
-      return await handleListNewsSources();
-    }
-
-    return handleError(`未知工具: ${toolName}`);
   } catch (error) {
+    if (error instanceof McpError) {
+      throw error;
+    }
     console.error("处理请求时发生错误:", error);
-    return handleError(
-      `系统错误: ${error instanceof Error ? error.message : String(error)}`
+    throw new McpError(
+      ErrorCode.InternalError,
+      `执行工具 ${name} 时发生错误: ${error instanceof Error ? error.message : String(error)}`
     );
   }
 });
@@ -431,10 +426,11 @@ async function runServer() {
   try {
     const transport = new StdioServerTransport();
     await server.connect(transport);
+    console.error("Daily Hot MCP Server running on stdio");
   } catch (error) {
-    console.error("服务器启动失败:", error);
+    console.error("Failed to start server:", error);
     process.exit(1);
   }
 }
 
-runServer();
+runServer().catch(console.error);
