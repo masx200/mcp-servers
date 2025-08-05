@@ -14,7 +14,9 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.1",
+    "@types/express": "^5.0.3",
     "algebrite": "^1.4.0",
+    "express": "^5.1.0",
     "mathjs": "^12.4.0"
   },
   "devDependencies": {
