@@ -21,7 +21,7 @@ interface ApiRawData {
 
 interface ApiResponse {
   code: number;
-  data: ApiRawData | null; 
+  data: ApiRawData | null;
 }
 
 const QUERY_PHONE_LOCATION_OUTPUT_SCHEMA = {
@@ -41,7 +41,10 @@ const QUERY_PHONE_LOCATION_OUTPUT_SCHEMA = {
       },
     },
     isError: { type: "boolean", description: "请求是否发生错误" },
-    errorMessage: { type: "string", description: "错误信息（如果 isError 为 true 时提供）" },
+    errorMessage: {
+      type: "string",
+      description: "错误信息（如果 isError 为 true 时提供）",
+    },
   },
 };
 
@@ -55,7 +58,7 @@ const QUERY_PHONE_LOCATION_TOOL: Tool = {
       phone_number: {
         type: "string",
         description: "需要查询的11位手机号码。",
-        pattern: "^\\d{11}$" // 启用手机号格式校验
+        pattern: "^\\d{11}$", // 启用手机号格式校验
       },
     },
     required: ["phone_number"],
@@ -68,7 +71,7 @@ const TOOLS: readonly Tool[] = [QUERY_PHONE_LOCATION_TOOL];
 // 处理手机号查询逻辑
 async function handleQueryPhoneLocation(input: any) {
   // 验证输入是否为对象类型
-  if (!input || typeof input !== 'object') {
+  if (!input || typeof input !== "object") {
     return {
       content: [],
       isError: true,
@@ -121,7 +124,7 @@ async function handleQueryPhoneLocation(input: any) {
     }
 
     const { province = "", city = "", sp = "" } = apiResponse.data;
-    
+
     // 检查必要的字段是否为空
     if (!province && !city && !sp) {
       return {
@@ -131,20 +134,24 @@ async function handleQueryPhoneLocation(input: any) {
       };
     }
 
-    const locationInfo = { "号码": phoneNumber, "省份": province, "城市": city, "运营商": sp };
+    const locationInfo = {
+      "号码": phoneNumber,
+      "省份": province,
+      "城市": city,
+      "运营商": sp,
+    };
 
     return {
       structuredContent: locationInfo,
       content: [
         {
           type: "text",
-          text: JSON.stringify([locationInfo], null, 2)
+          text: JSON.stringify([locationInfo], null, 2),
         },
       ],
       isError: false,
       errorMessage: "",
     };
-
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("处理手机号归属地查询时发生严重错误:", errorMessage);
@@ -169,7 +176,7 @@ const server = new Server(
         return acc;
       }, {} as Record<string, Tool>),
     },
-  }
+  },
 );
 
 // 注册请求处理器
@@ -182,7 +189,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const toolName = request.params.name;
     const toolInput = request.params.arguments;
 
-    console.error(`收到工具调用请求: ${toolName}, 输入: ${JSON.stringify(toolInput)}`);
+    console.error(
+      `收到工具调用请求: ${toolName}, 输入: ${JSON.stringify(toolInput)}`,
+    );
 
     if (toolName === QUERY_PHONE_LOCATION_TOOL.name) {
       return await handleQueryPhoneLocation(toolInput);
@@ -211,7 +220,9 @@ async function runServer() {
     const transport = new StdioServerTransport();
     await server.connect(transport);
     console.error("MCP 手机号码归属地查询服务已启动");
-    console.error(`已注册 ${TOOLS.length} 个工具: ${TOOLS.map((t) => t.name).join(", ")}`);
+    console.error(
+      `已注册 ${TOOLS.length} 个工具: ${TOOLS.map((t) => t.name).join(", ")}`,
+    );
   } catch (error) {
     console.error("MCP 服务启动失败:", error);
     process.exit(1);

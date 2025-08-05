@@ -1,6 +1,7 @@
 # 企业信息查询工具
 
-这是一个基于 Model Context Protocol (MCP) 的企业信息查询工具,允许 AI 模型查询企业的基本信息。
+这是一个基于 Model Context Protocol (MCP) 的企业信息查询工具,允许 AI
+模型查询企业的基本信息。
 
 ## 功能特点
 
@@ -46,14 +47,17 @@
 ### 企业信息查询示例
 
 输入:
+
 ```json
 {
   "keyword": "阿里巴巴"
 }
 ```
+
 ## 支持的查询方式
 
 该工具支持以下方式查询企业信息:
+
 - 企业名称inputSchema
 - 统一社会信用代码
 - 注册号
@@ -70,5 +74,6 @@
 - 企业信息数据可能存在更新延迟,不适用于需要实时精确数据的场景
 
 ## 许可证
+
 - 接口地址为：https://market.aliyun.com/apimarket/detail/cmapi00064569#sku=yuncode5856900001
-[MIT](LICENSE)
+  [MIT](LICENSE)

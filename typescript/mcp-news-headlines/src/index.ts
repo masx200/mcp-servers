@@ -36,7 +36,7 @@ const NEWS_CATEGORIES = [
   "星座",
   "女性",
   "健康",
-  "育儿"
+  "育儿",
 ];
 
 // 工具定义
@@ -48,42 +48,42 @@ const GET_NEWS_BY_CATEGORY_TOOL: Tool = {
     properties: {
       channel: {
         type: "string",
-        description: `新闻分类，可选值：${NEWS_CATEGORIES.join(", ")}`
+        description: `新闻分类，可选值：${NEWS_CATEGORIES.join(", ")}`,
       },
       num: {
         type: "integer",
         description: "返回新闻数量，默认10，最大40",
-        default: 10
+        default: 10,
       },
       start: {
         type: "integer",
         description: "起始位置，默认0",
-        default: 0
-      }
+        default: 0,
+      },
     },
-    required: ["channel"]
+    required: ["channel"],
   },
   outputSchema: {
     type: "object",
     properties: {
       status: {
         type: "any",
-        description: "返回状态码，0表示成功"
+        description: "返回状态码，0表示成功",
       },
       msg: {
         type: "string",
-        description: "返回状态信息"
+        description: "返回状态信息",
       },
       result: {
         type: "object",
         properties: {
           channel: {
             type: "string",
-            description: "新闻分类"
+            description: "新闻分类",
           },
           num: {
             type: "string",
-            description: "返回新闻数量"
+            description: "返回新闻数量",
           },
           list: {
             type: "array",
@@ -93,43 +93,43 @@ const GET_NEWS_BY_CATEGORY_TOOL: Tool = {
               properties: {
                 title: {
                   type: "string",
-                  description: "新闻标题"
+                  description: "新闻标题",
                 },
                 time: {
                   type: "string",
-                  description: "发布时间"
+                  description: "发布时间",
                 },
                 src: {
                   type: "string",
-                  description: "新闻来源"
+                  description: "新闻来源",
                 },
                 category: {
                   type: "string",
-                  description: "新闻分类"
+                  description: "新闻分类",
                 },
                 pic: {
                   type: "string",
-                  description: "图片URL"
+                  description: "图片URL",
                 },
                 content: {
                   type: "string",
-                  description: "新闻内容"
+                  description: "新闻内容",
                 },
                 url: {
                   type: "string",
-                  description: "移动端URL"
+                  description: "移动端URL",
                 },
                 weburl: {
                   type: "string",
-                  description: "网页端URL"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+                  description: "网页端URL",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
 };
 
 const SEARCH_NEWS_TOOL: Tool = {
@@ -140,32 +140,32 @@ const SEARCH_NEWS_TOOL: Tool = {
     properties: {
       keyword: {
         type: "string",
-        description: "搜索关键词"
-      }
+        description: "搜索关键词",
+      },
     },
-    required: ["keyword"]
+    required: ["keyword"],
   },
   outputSchema: {
     type: "object",
     properties: {
       status: {
         type: "any",
-        description: "返回状态码，0表示成功"
+        description: "返回状态码，0表示成功",
       },
       msg: {
         type: "string",
-        description: "返回状态信息"
+        description: "返回状态信息",
       },
       result: {
         type: "object",
         properties: {
           keyword: {
             type: "string",
-            description: "搜索关键词"
+            description: "搜索关键词",
           },
           num: {
             type: "string",
-            description: "返回新闻数量"
+            description: "返回新闻数量",
           },
           list: {
             type: "array",
@@ -175,79 +175,84 @@ const SEARCH_NEWS_TOOL: Tool = {
               properties: {
                 title: {
                   type: "string",
-                  description: "新闻标题"
+                  description: "新闻标题",
                 },
                 time: {
                   type: "string",
-                  description: "发布时间"
+                  description: "发布时间",
                 },
                 src: {
                   type: "string",
-                  description: "新闻来源"
+                  description: "新闻来源",
                 },
                 category: {
                   type: "string",
-                  description: "新闻分类"
+                  description: "新闻分类",
                 },
                 pic: {
                   type: "string",
-                  description: "图片URL"
+                  description: "图片URL",
                 },
                 content: {
                   type: "string",
-                  description: "新闻内容"
+                  description: "新闻内容",
                 },
                 url: {
                   type: "string",
-                  description: "移动端URL"
+                  description: "移动端URL",
                 },
                 weburl: {
                   type: "string",
-                  description: "网页端URL"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+                  description: "网页端URL",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
 };
 
 const TOOLS = [GET_NEWS_BY_CATEGORY_TOOL, SEARCH_NEWS_TOOL] as const;
 
 // 处理根据分类获取新闻的请求
-async function handleGetNewsByCategory(channel: string, num: number = 10, start: number = 0) {
+async function handleGetNewsByCategory(
+  channel: string,
+  num: number = 10,
+  start: number = 0,
+) {
   // 验证分类是否有效
   if (!NEWS_CATEGORIES.includes(channel)) {
     return {
       content: [{
         type: "text",
-        text: `无效的新闻分类: ${channel}。有效分类为: ${NEWS_CATEGORIES.join(", ")}`
+        text: `无效的新闻分类: ${channel}。有效分类为: ${
+          NEWS_CATEGORIES.join(", ")
+        }`,
       }],
-      isError: true
+      isError: true,
     };
   }
 
-  const host = 'https://jisunews.market.alicloudapi.com';
-  const path = '/news/get';
+  const host = "https://jisunews.market.alicloudapi.com";
+  const path = "/news/get";
 
   // 构建查询参数
   const encodedChannel = encodeURIComponent(channel);
   const querys = `channel=${encodedChannel}&num=${num}&start=${start}`;
   const url = `${host}${path}?${querys}`;
 
-
   // 设置请求头
   const headers = {
     "Authorization": `APPCODE ${NEWS_API_KEY}`,
-    "Content-Type": "application/json; charset=UTF-8"
+    "Content-Type": "application/json; charset=UTF-8",
   };
 
   try {
     const response = await fetch(url, {
-      method: 'GET',
-      headers: headers
+      method: "GET",
+      headers: headers,
     });
 
     // 检查响应状态
@@ -256,9 +261,9 @@ async function handleGetNewsByCategory(channel: string, num: number = 10, start:
       return {
         content: [{
           type: "text",
-          text: `获取新闻失败: HTTP 状态 ${response.status}`
+          text: `获取新闻失败: HTTP 状态 ${response.status}`,
         }],
-        isError: true
+        isError: true,
       };
     }
 
@@ -269,59 +274,57 @@ async function handleGetNewsByCategory(channel: string, num: number = 10, start:
 
     // 直接返回API的原始数据，符合outputSchema格式
     if (data.status === 0) {
-      
       return {
         structuredContent: data,
         content: [{
           type: "text",
-          text: JSON.stringify(data, null, 2)
+          text: JSON.stringify(data, null, 2),
         }],
         data: data, // 返回原始API数据，符合outputSchema
-        isError: false
+        isError: false,
       };
     } else {
       return {
         content: [{
           type: "text",
-          text: `获取新闻失败: ${data.msg || "未知错误"}`
+          text: `获取新闻失败: ${data.msg || "未知错误"}`,
         }],
         data: data, // 即使出错也返回原始数据
-        isError: true
+        isError: true,
       };
     }
-  } catch (error:any) {
+  } catch (error: any) {
     console.error("请求出错:", error);
     return {
       content: [{
         type: "text",
-        text: `查询出错: ${error.message}`
+        text: `查询出错: ${error.message}`,
       }],
-      isError: true
+      isError: true,
     };
   }
 }
 
 // 处理根据关键词搜索新闻的请求
 async function handleSearchNewsByKeyword(keyword: string) {
-  const host = 'https://jisunews.market.alicloudapi.com';
-  const path = '/news/search';
+  const host = "https://jisunews.market.alicloudapi.com";
+  const path = "/news/search";
 
   // 构建查询参数
   const encodedKeyword = encodeURIComponent(keyword);
   const querys = `keyword=${encodedKeyword}`;
   const url = `${host}${path}?${querys}`;
 
-
   // 设置请求头
   const headers = {
     "Authorization": `APPCODE ${NEWS_API_KEY}`,
-    "Content-Type": "application/json; charset=UTF-8"
+    "Content-Type": "application/json; charset=UTF-8",
   };
 
   try {
     const response = await fetch(url, {
-      method: 'GET',
-      headers: headers
+      method: "GET",
+      headers: headers,
     });
 
     // 检查响应状态
@@ -330,15 +333,14 @@ async function handleSearchNewsByKeyword(keyword: string) {
       return {
         content: [{
           type: "text",
-          text: `搜索新闻失败: HTTP 状态 ${response.status}`
+          text: `搜索新闻失败: HTTP 状态 ${response.status}`,
         }],
-        isError: true
+        isError: true,
       };
     }
 
     // 获取响应文本并解析为JSON
     const responseText = await response.text();
-
 
     // 解析JSON响应
     const data = JSON.parse(responseText);
@@ -349,29 +351,29 @@ async function handleSearchNewsByKeyword(keyword: string) {
         structuredContent: data,
         content: [{
           type: "text",
-          text: JSON.stringify(data, null, 2)
+          text: JSON.stringify(data, null, 2),
         }],
         data: data, // 返回原始API数据，符合outputSchema
-        isError: false
+        isError: false,
       };
     } else {
       return {
         content: [{
           type: "text",
-          text: `搜索新闻失败: ${data.msg || "未知错误"}`
+          text: `搜索新闻失败: ${data.msg || "未知错误"}`,
         }],
         data: data, // 即使出错也返回原始数据
-        isError: true
+        isError: true,
       };
     }
-  } catch (error:any) {
+  } catch (error: any) {
     console.error("请求出错:", error);
     return {
       content: [{
         type: "text",
-        text: `搜索出错: ${error.message}`
+        text: `搜索出错: ${error.message}`,
       }],
-      isError: true
+      isError: true,
     };
   }
 }
@@ -415,18 +417,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return {
           content: [{
             type: "text",
-            text: `未知工具: ${request.params.name}`
+            text: `未知工具: ${request.params.name}`,
           }],
-          isError: true
+          isError: true,
         };
     }
   } catch (error) {
     return {
       content: [{
         type: "text",
-        text: `错误: ${error instanceof Error ? error.message : String(error)}`
+        text: `错误: ${error instanceof Error ? error.message : String(error)}`,
       }],
-      isError: true
+      isError: true,
     };
   }
 });

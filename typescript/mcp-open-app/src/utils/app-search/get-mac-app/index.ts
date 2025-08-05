@@ -1,4 +1,4 @@
-import getApps from './getApps.js';
+import getApps from "./getApps.js";
 
 export default {
   getApps: () => {

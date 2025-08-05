@@ -8,8 +8,15 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { exec } from "child_process";
 import { promisify } from "util";
-import * as os from 'os';
-import { UniversalAppController, ControlMethod, WindowBounds, ControlResult, PermissionStatus, AppController } from './controllers/UniversalAppController.js';
+import * as os from "os";
+import {
+  AppController,
+  ControlMethod,
+  ControlResult,
+  PermissionStatus,
+  UniversalAppController,
+  WindowBounds,
+} from "./controllers/UniversalAppController.js";
 
 const execAsync = promisify(exec);
 
@@ -83,8 +90,6 @@ const fullscreenWindow: Tool = {
   outputSchema,
 };
 
-
-
 const TOOLS: readonly Tool[] = [
   setWindowLeftHalf,
   setWindowRightHalf,
@@ -105,14 +110,16 @@ const APP_CONTROLLERS: AppController[] = [
     supportsDirectControl: true,
     getWindowScript: (action: string, bounds: WindowBounds) => {
       const { x, y, width, height } = bounds;
-      return `tell application "Google Chrome" to set bounds of front window to {${x}, ${y}, ${x + width}, ${y + height}}`;
+      return `tell application "Google Chrome" to set bounds of front window to {${x}, ${y}, ${
+        x + width
+      }, ${y + height}}`;
     },
     getKeyboardShortcut: (action: string) => {
-      if (action.includes('left') || action.includes('right')) {
+      if (action.includes("left") || action.includes("right")) {
         return `tell application "System Events" to keystroke "left" using {control down, option down}`;
       }
       return null;
-    }
+    },
   },
   {
     name: "Safari",
@@ -120,8 +127,10 @@ const APP_CONTROLLERS: AppController[] = [
     supportsDirectControl: true,
     getWindowScript: (action: string, bounds: WindowBounds) => {
       const { x, y, width, height } = bounds;
-      return `tell application "Safari" to set bounds of front window to {${x}, ${y}, ${x + width}, ${y + height}}`;
-    }
+      return `tell application "Safari" to set bounds of front window to {${x}, ${y}, ${
+        x + width
+      }, ${y + height}}`;
+    },
   },
   {
     name: "Firefox",
@@ -129,8 +138,10 @@ const APP_CONTROLLERS: AppController[] = [
     supportsDirectControl: true,
     getWindowScript: (action: string, bounds: WindowBounds) => {
       const { x, y, width, height } = bounds;
-      return `tell application "Firefox" to set bounds of front window to {${x}, ${y}, ${x + width}, ${y + height}}`;
-    }
+      return `tell application "Firefox" to set bounds of front window to {${x}, ${y}, ${
+        x + width
+      }, ${y + height}}`;
+    },
   },
   {
     name: "Visual Studio Code",
@@ -138,8 +149,10 @@ const APP_CONTROLLERS: AppController[] = [
     supportsDirectControl: true,
     getWindowScript: (action: string, bounds: WindowBounds) => {
       const { x, y, width, height } = bounds;
-      return `tell application "Visual Studio Code" to set bounds of front window to {${x}, ${y}, ${x + width}, ${y + height}}`;
-    }
+      return `tell application "Visual Studio Code" to set bounds of front window to {${x}, ${y}, ${
+        x + width
+      }, ${y + height}}`;
+    },
   },
   {
     name: "Terminal",
@@ -147,8 +160,10 @@ const APP_CONTROLLERS: AppController[] = [
     supportsDirectControl: true,
     getWindowScript: (action: string, bounds: WindowBounds) => {
       const { x, y, width, height } = bounds;
-      return `tell application "Terminal" to set bounds of front window to {${x}, ${y}, ${x + width}, ${y + height}}`;
-    }
+      return `tell application "Terminal" to set bounds of front window to {${x}, ${y}, ${
+        x + width
+      }, ${y + height}}`;
+    },
   },
   {
     name: "iTerm2",
@@ -156,8 +171,10 @@ const APP_CONTROLLERS: AppController[] = [
     supportsDirectControl: true,
     getWindowScript: (action: string, bounds: WindowBounds) => {
       const { x, y, width, height } = bounds;
-      return `tell application "iTerm2" to set bounds of front window to {${x}, ${y}, ${x + width}, ${y + height}}`;
-    }
+      return `tell application "iTerm2" to set bounds of front window to {${x}, ${y}, ${
+        x + width
+      }, ${y + height}}`;
+    },
   },
   {
     name: "Finder",
@@ -165,8 +182,10 @@ const APP_CONTROLLERS: AppController[] = [
     supportsDirectControl: true,
     getWindowScript: (action: string, bounds: WindowBounds) => {
       const { x, y, width, height } = bounds;
-      return `tell application "Finder" to set bounds of front window to {${x}, ${y}, ${x + width}, ${y + height}}`;
-    }
+      return `tell application "Finder" to set bounds of front window to {${x}, ${y}, ${
+        x + width
+      }, ${y + height}}`;
+    },
   },
   {
     name: "PyCharm",
@@ -174,8 +193,10 @@ const APP_CONTROLLERS: AppController[] = [
     supportsDirectControl: true,
     getWindowScript: (action: string, bounds: WindowBounds) => {
       const { x, y, width, height } = bounds;
-      return `tell application "PyCharm" to set bounds of front window to {${x}, ${y}, ${x + width}, ${y + height}}`;
-    }
+      return `tell application "PyCharm" to set bounds of front window to {${x}, ${y}, ${
+        x + width
+      }, ${y + height}}`;
+    },
   },
   {
     name: "IntelliJ IDEA",
@@ -183,8 +204,10 @@ const APP_CONTROLLERS: AppController[] = [
     supportsDirectControl: true,
     getWindowScript: (action: string, bounds: WindowBounds) => {
       const { x, y, width, height } = bounds;
-      return `tell application "IntelliJ IDEA" to set bounds of front window to {${x}, ${y}, ${x + width}, ${y + height}}`;
-    }
+      return `tell application "IntelliJ IDEA" to set bounds of front window to {${x}, ${y}, ${
+        x + width
+      }, ${y + height}}`;
+    },
   },
   {
     name: "WebStorm",
@@ -192,8 +215,10 @@ const APP_CONTROLLERS: AppController[] = [
     supportsDirectControl: true,
     getWindowScript: (action: string, bounds: WindowBounds) => {
       const { x, y, width, height } = bounds;
-      return `tell application "WebStorm" to set bounds of front window to {${x}, ${y}, ${x + width}, ${y + height}}`;
-    }
+      return `tell application "WebStorm" to set bounds of front window to {${x}, ${y}, ${
+        x + width
+      }, ${y + height}}`;
+    },
   },
   {
     name: "Xcode",
@@ -201,8 +226,10 @@ const APP_CONTROLLERS: AppController[] = [
     supportsDirectControl: true,
     getWindowScript: (action: string, bounds: WindowBounds) => {
       const { x, y, width, height } = bounds;
-      return `tell application "Xcode" to set bounds of front window to {${x}, ${y}, ${x + width}, ${y + height}}`;
-    }
+      return `tell application "Xcode" to set bounds of front window to {${x}, ${y}, ${
+        x + width
+      }, ${y + height}}`;
+    },
   },
   {
     name: "Sublime Text",
@@ -210,8 +237,10 @@ const APP_CONTROLLERS: AppController[] = [
     supportsDirectControl: true,
     getWindowScript: (action: string, bounds: WindowBounds) => {
       const { x, y, width, height } = bounds;
-      return `tell application "Sublime Text" to set bounds of front window to {${x}, ${y}, ${x + width}, ${y + height}}`;
-    }
+      return `tell application "Sublime Text" to set bounds of front window to {${x}, ${y}, ${
+        x + width
+      }, ${y + height}}`;
+    },
   },
   {
     name: "Atom",
@@ -219,8 +248,10 @@ const APP_CONTROLLERS: AppController[] = [
     supportsDirectControl: true,
     getWindowScript: (action: string, bounds: WindowBounds) => {
       const { x, y, width, height } = bounds;
-      return `tell application "Atom" to set bounds of front window to {${x}, ${y}, ${x + width}, ${y + height}}`;
-    }
+      return `tell application "Atom" to set bounds of front window to {${x}, ${y}, ${
+        x + width
+      }, ${y + height}}`;
+    },
   },
   {
     name: "WPS Office",
@@ -232,7 +263,9 @@ const APP_CONTROLLERS: AppController[] = [
       return `tell application "System Events"
         tell (first process whose name is "wpsoffice")
           try
-            set bounds of front window to {${x}, ${y}, ${x + width}, ${y + height}}
+            set bounds of front window to {${x}, ${y}, ${x + width}, ${
+        y + height
+      }}
           on error
             try
               set position of front window to {${x}, ${y}}
@@ -245,14 +278,14 @@ const APP_CONTROLLERS: AppController[] = [
     },
     getKeyboardShortcut: (action: string) => {
       // WPS Office 支持标准的窗口管理快捷键
-      if (action.includes('left')) {
+      if (action.includes("left")) {
         return `tell application "System Events" to keystroke "left" using {control down, option down}`;
-      } else if (action.includes('right')) {
+      } else if (action.includes("right")) {
         return `tell application "System Events" to keystroke "right" using {control down, option down}`;
       }
       return null;
-    }
-  }
+    },
+  },
 ];
 
 // 初始化通用应用程序控制器
@@ -261,25 +294,33 @@ const universalController = new UniversalAppController(APP_CONTROLLERS);
 // 检查应用程序是否需要特殊处理
 function needsAppSpecificHandling(appName: string): boolean {
   const lowerAppName = appName.toLowerCase();
-  return APP_CONTROLLERS.some(controller =>
-    controller.aliases.some(alias => lowerAppName.includes(alias.toLowerCase()))
+  return APP_CONTROLLERS.some((controller) =>
+    controller.aliases.some((alias) =>
+      lowerAppName.includes(alias.toLowerCase())
+    )
   );
 }
 
 // 获取应用程序控制器
 function getAppController(appName: string): AppController | null {
   const lowerAppName = appName.toLowerCase();
-  return APP_CONTROLLERS.find(controller =>
-    controller.aliases.some(alias => lowerAppName.includes(alias.toLowerCase()))
+  return APP_CONTROLLERS.find((controller) =>
+    controller.aliases.some((alias) =>
+      lowerAppName.includes(alias.toLowerCase())
+    )
   ) || null;
 }
 
 // 键盘快捷键备用方案
 const KEYBOARD_SHORTCUTS: Record<string, string> = {
-  'set-window-left-half': 'tell application "System Events" to keystroke "left" using {control down, option down}',
-  'set-window-right-half': 'tell application "System Events" to keystroke "right" using {control down, option down}',
-  'maximize-window': 'tell application "System Events" to keystroke "f" using {control down, command down}',
-  'minimize-window': 'tell application "System Events" to keystroke "m" using {command down}',
+  "set-window-left-half":
+    'tell application "System Events" to keystroke "left" using {control down, option down}',
+  "set-window-right-half":
+    'tell application "System Events" to keystroke "right" using {control down, option down}',
+  "maximize-window":
+    'tell application "System Events" to keystroke "f" using {control down, command down}',
+  "minimize-window":
+    'tell application "System Events" to keystroke "m" using {command down}',
 };
 
 // 无权限替代方案 - 使用 Dock 和菜单栏
@@ -296,15 +337,15 @@ async function useAlternativeMethod(action: string): Promise<any> {
       return {
         structuredContent: {
           status: "success",
-          message: `使用键盘快捷键成功执行: ${action}`
+          message: `使用键盘快捷键成功执行: ${action}`,
         },
         content: [{
           type: "text",
           text: JSON.stringify({
             status: "success",
             message: `使用键盘快捷键成功执行: ${action}`,
-            method: "keyboard_shortcut"
-          })
+            method: "keyboard_shortcut",
+          }),
         }],
         isError: false,
       };
@@ -315,19 +356,18 @@ async function useAlternativeMethod(action: string): Promise<any> {
     return {
       structuredContent: {
         status: "manual_required",
-        message: instructions
+        message: instructions,
       },
       content: [{
         type: "text",
         text: JSON.stringify({
           status: "manual_required",
           message: instructions,
-          method: "manual_instruction"
-        })
+          method: "manual_instruction",
+        }),
       }],
       isError: false,
     };
-
   } catch (error) {
     console.error("替代方案也失败了:", error);
     throw error;
@@ -337,20 +377,27 @@ async function useAlternativeMethod(action: string): Promise<any> {
 // 获取手动操作指导
 function getManualInstructions(action: string): string {
   const instructions: Record<string, string> = {
-    'set-window-left-half': '请手动操作：按住 Control + Option + 左箭头键，或拖拽窗口到屏幕左边缘',
-    'set-window-right-half': '请手动操作：按住 Control + Option + 右箭头键，或拖拽窗口到屏幕右边缘',
-    'set-window-top-half': '请手动操作：拖拽窗口到屏幕上边缘',
-    'set-window-bottom-half': '请手动操作：拖拽窗口到屏幕下边缘',
-    'maximize-window': '请手动操作：按住 Control + Command + F，或点击窗口左上角的绿色按钮',
-    'minimize-window': '请手动操作：按 Command + M，或点击窗口左上角的黄色按钮',
-    'fullscreen-window': '请手动操作：按 Control + Command + F，或点击窗口左上角的绿色按钮'
+    "set-window-left-half":
+      "请手动操作：按住 Control + Option + 左箭头键，或拖拽窗口到屏幕左边缘",
+    "set-window-right-half":
+      "请手动操作：按住 Control + Option + 右箭头键，或拖拽窗口到屏幕右边缘",
+    "set-window-top-half": "请手动操作：拖拽窗口到屏幕上边缘",
+    "set-window-bottom-half": "请手动操作：拖拽窗口到屏幕下边缘",
+    "maximize-window":
+      "请手动操作：按住 Control + Command + F，或点击窗口左上角的绿色按钮",
+    "minimize-window": "请手动操作：按 Command + M，或点击窗口左上角的黄色按钮",
+    "fullscreen-window":
+      "请手动操作：按 Control + Command + F，或点击窗口左上角的绿色按钮",
   };
 
   return instructions[action] || `请手动执行窗口操作: ${action}`;
 }
 
 // 新的通用窗口操作函数 - 使用通用控制器
-async function controlWindowUniversal(action: string, bounds: WindowBounds): Promise<any> {
+async function controlWindowUniversal(
+  action: string,
+  bounds: WindowBounds,
+): Promise<any> {
   try {
     const result = await universalController.controlWindow(action, bounds);
 
@@ -358,15 +405,15 @@ async function controlWindowUniversal(action: string, bounds: WindowBounds): Pro
       return {
         structuredContent: {
           status: "success",
-          message: result.message
+          message: result.message,
         },
         content: [{
           type: "text",
           text: JSON.stringify({
             status: "success",
             message: result.message,
-            method: result.method
-          })
+            method: result.method,
+          }),
         }],
         isError: false,
       };
@@ -374,7 +421,7 @@ async function controlWindowUniversal(action: string, bounds: WindowBounds): Pro
       return {
         structuredContent: {
           status: "error",
-          message: result.message
+          message: result.message,
         },
         content: [{
           type: "text",
@@ -382,8 +429,8 @@ async function controlWindowUniversal(action: string, bounds: WindowBounds): Pro
             status: "error",
             message: result.message,
             method: result.method,
-            error: result.error
-          })
+            error: result.error,
+          }),
         }],
         isError: true,
         errorMessage: result.message,
@@ -396,8 +443,8 @@ async function controlWindowUniversal(action: string, bounds: WindowBounds): Pro
         type: "text",
         text: JSON.stringify({
           status: "error",
-          message: `窗口控制失败: ${errorMessage}`
-        })
+          message: `窗口控制失败: ${errorMessage}`,
+        }),
       }],
       isError: true,
       errorMessage: `窗口控制失败: ${errorMessage}`,
@@ -406,7 +453,10 @@ async function controlWindowUniversal(action: string, bounds: WindowBounds): Pro
 }
 
 // 改进的窗口操作函数 - 使用新的应用程序控制器系统 (保留向后兼容)
-async function moveAndResizeWindow(bounds: WindowBounds, action: string = ""): Promise<any> {
+async function moveAndResizeWindow(
+  bounds: WindowBounds,
+  action: string = "",
+): Promise<any> {
   const { x, y, width, height } = bounds;
   let currentApp = "";
 
@@ -438,15 +488,15 @@ async function moveAndResizeWindow(bounds: WindowBounds, action: string = ""): P
         return {
           structuredContent: {
             status: "success",
-            message: `窗口位置调整成功（专用控制器: ${controller.name}）`
+            message: `窗口位置调整成功（专用控制器: ${controller.name}）`,
           },
           content: [{
             type: "text",
             text: JSON.stringify({
               status: "success",
               message: `窗口位置调整成功（专用控制器: ${controller.name}）`,
-              method: "app_specific_controller"
-            })
+              method: "app_specific_controller",
+            }),
           }],
           isError: false,
         };
@@ -467,15 +517,15 @@ async function moveAndResizeWindow(bounds: WindowBounds, action: string = ""): P
           return {
             structuredContent: {
               status: "success",
-              message: `使用键盘快捷键成功（${controller.name}）`
+              message: `使用键盘快捷键成功（${controller.name}）`,
             },
             content: [{
               type: "text",
               text: JSON.stringify({
                 status: "success",
                 message: `使用键盘快捷键成功（${controller.name}）`,
-                method: "app_specific_keyboard"
-              })
+                method: "app_specific_keyboard",
+              }),
             }],
             isError: false,
           };
@@ -494,12 +544,14 @@ async function moveAndResizeWindow(bounds: WindowBounds, action: string = ""): P
       name: `${currentApp} 通用 bounds 设置`,
       script: `tell application "${currentApp}"
                  try
-                   set bounds of front window to {${x}, ${y}, ${x + width}, ${y + height}}
+                   set bounds of front window to {${x}, ${y}, ${x + width}, ${
+        y + height
+      }}
                    return "success"
                  on error errorMsg
                    return "error: " & errorMsg
                  end try
-               end tell`
+               end tell`,
     },
     {
       name: `${currentApp} 通用分步设置`,
@@ -512,29 +564,31 @@ async function moveAndResizeWindow(bounds: WindowBounds, action: string = ""): P
                  on error errorMsg
                    return "error: " & errorMsg
                  end try
-               end tell`
-    }
+               end tell`,
+    },
   ];
 
   for (let i = 0; i < genericMethods.length; i++) {
     try {
       console.error(`尝试 ${genericMethods[i].name}`);
-      const { stdout } = await execAsync(`osascript -e '${genericMethods[i].script}'`);
+      const { stdout } = await execAsync(
+        `osascript -e '${genericMethods[i].script}'`,
+      );
 
       if (stdout.includes("success")) {
         console.error(`✅ ${genericMethods[i].name} 成功`);
         return {
           structuredContent: {
             status: "success",
-            message: `窗口位置调整成功（${genericMethods[i].name}）`
+            message: `窗口位置调整成功（${genericMethods[i].name}）`,
           },
           content: [{
             type: "text",
             text: JSON.stringify({
               status: "success",
               message: `窗口位置调整成功（${genericMethods[i].name}）`,
-              method: "generic_applescript"
-            })
+              method: "generic_applescript",
+            }),
           }],
           isError: false,
         };
@@ -562,7 +616,7 @@ async function moveAndResizeWindow(bounds: WindowBounds, action: string = ""): P
                      return "error: " & errorMsg
                    end try
                  end tell
-               end tell`
+               end tell`,
     },
     {
       name: "System Events 分步操作",
@@ -577,42 +631,46 @@ async function moveAndResizeWindow(bounds: WindowBounds, action: string = ""): P
                      return "error: " & errorMsg
                    end try
                  end tell
-               end tell`
+               end tell`,
     },
     {
       name: "System Events bounds 操作",
       script: `tell application "System Events"
                  tell (first process whose frontmost is true)
                    try
-                     set bounds of front window to {${x}, ${y}, ${x + width}, ${y + height}}
+                     set bounds of front window to {${x}, ${y}, ${x + width}, ${
+        y + height
+      }}
                      return "success"
                    on error errorMsg
                      return "error: " & errorMsg
                    end try
                  end tell
-               end tell`
-    }
+               end tell`,
+    },
   ];
 
   for (let i = 0; i < systemEventsMethods.length; i++) {
     try {
       console.error(`尝试 ${systemEventsMethods[i].name}`);
-      const { stdout } = await execAsync(`osascript -e '${systemEventsMethods[i].script}'`);
+      const { stdout } = await execAsync(
+        `osascript -e '${systemEventsMethods[i].script}'`,
+      );
 
       if (stdout.includes("success")) {
         console.error(`✅ ${systemEventsMethods[i].name} 成功`);
         return {
           structuredContent: {
             status: "success",
-            message: `窗口位置调整成功（${systemEventsMethods[i].name}）`
+            message: `窗口位置调整成功（${systemEventsMethods[i].name}）`,
           },
           content: [{
             type: "text",
             text: JSON.stringify({
               status: "success",
               message: `窗口位置调整成功（${systemEventsMethods[i].name}）`,
-              method: "system_events"
-            })
+              method: "system_events",
+            }),
           }],
           isError: false,
         };
@@ -624,7 +682,10 @@ async function moveAndResizeWindow(bounds: WindowBounds, action: string = ""): P
 
       // 检查是否是权限问题
       const errorMsg = error instanceof Error ? error.message : String(error);
-      if (errorMsg.includes('-1719') || errorMsg.includes('不允许辅助访问') || errorMsg.includes('not allowed assistive access')) {
+      if (
+        errorMsg.includes("-1719") || errorMsg.includes("不允许辅助访问") ||
+        errorMsg.includes("not allowed assistive access")
+      ) {
         console.error("检测到权限问题，尝试替代方案");
         return await useAlternativeMethod(action);
       }
@@ -637,22 +698,41 @@ async function moveAndResizeWindow(bounds: WindowBounds, action: string = ""): P
 }
 
 // 计算窗口边界
-function calculateMacOSWindowBounds(action: string, screenWidth: number, screenHeight: number): WindowBounds {
+function calculateMacOSWindowBounds(
+  action: string,
+  screenWidth: number,
+  screenHeight: number,
+): WindowBounds {
   const halfWidth = Math.floor(screenWidth / 2);
   const halfHeight = Math.floor(screenHeight / 2);
   const menuBarHeight = 25;
 
   switch (action) {
     case setWindowLeftHalf.name:
-      return { x: 0, y: menuBarHeight, width: halfWidth, height: screenHeight - menuBarHeight };
+      return {
+        x: 0,
+        y: menuBarHeight,
+        width: halfWidth,
+        height: screenHeight - menuBarHeight,
+      };
     case setWindowRightHalf.name:
-      return { x: halfWidth, y: menuBarHeight, width: halfWidth, height: screenHeight - menuBarHeight };
+      return {
+        x: halfWidth,
+        y: menuBarHeight,
+        width: halfWidth,
+        height: screenHeight - menuBarHeight,
+      };
     case setWindowTopHalf.name:
       return { x: 0, y: menuBarHeight, width: screenWidth, height: halfHeight };
     case setWindowBottomHalf.name:
       return { x: 0, y: halfHeight, width: screenWidth, height: halfHeight };
     case maximizeWindow.name:
-      return { x: 0, y: menuBarHeight, width: screenWidth, height: screenHeight - menuBarHeight };
+      return {
+        x: 0,
+        y: menuBarHeight,
+        width: screenWidth,
+        height: screenHeight - menuBarHeight,
+      };
     default:
       throw new Error(`未知操作: ${action}`);
   }
@@ -666,7 +746,10 @@ async function checkAccessibilityPermission(): Promise<boolean> {
     return true;
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    if (errorMsg.includes('-1719') || errorMsg.includes('不允许辅助访问') || errorMsg.includes('not allowed assistive access')) {
+    if (
+      errorMsg.includes("-1719") || errorMsg.includes("不允许辅助访问") ||
+      errorMsg.includes("not allowed assistive access")
+    ) {
       return false;
     }
     return true; // 其他错误认为有权限
@@ -677,7 +760,8 @@ async function checkAccessibilityPermission(): Promise<boolean> {
 async function checkAppWindowControlSupport(appName: string): Promise<boolean> {
   try {
     // 测试是否能获取窗口信息
-    const testScript = `tell application "${appName}" to return count of windows`;
+    const testScript =
+      `tell application "${appName}" to return count of windows`;
     await execAsync(`osascript -e '${testScript}'`);
     return true;
   } catch (error) {
@@ -695,11 +779,14 @@ async function getPermissionStatus(): Promise<{
   controllerType: string;
   suggestions: string[];
 }> {
-  const currentApp = await universalController.getCurrentApplication().catch(() => "未知应用");
+  const currentApp = await universalController.getCurrentApplication().catch(
+    () => "未知应用",
+  );
   const hasAccessibility = await checkAccessibilityPermission();
   const controller = getAppController(currentApp);
   const hasAppController = controller !== null;
-  const canControlCurrentApp = hasAppController || (hasAccessibility && await checkAppWindowControlSupport(currentApp));
+  const canControlCurrentApp = hasAppController ||
+    (hasAccessibility && await checkAppWindowControlSupport(currentApp));
 
   const suggestions: string[] = [];
   let controllerType = "none";
@@ -712,17 +799,25 @@ async function getPermissionStatus(): Promise<{
     suggestions.push(`✅ 有辅助功能权限，可以使用 System Events 控制窗口`);
   } else {
     controllerType = "alternative";
-    suggestions.push("⚠️ 没有辅助功能权限，将使用替代方案（键盘快捷键或手动指导）");
-    suggestions.push("💡 要获得最佳体验，请在 系统设置 > 隐私与安全性 > 辅助功能 中为您的终端应用授权");
+    suggestions.push(
+      "⚠️ 没有辅助功能权限，将使用替代方案（键盘快捷键或手动指导）",
+    );
+    suggestions.push(
+      "💡 要获得最佳体验，请在 系统设置 > 隐私与安全性 > 辅助功能 中为您的终端应用授权",
+    );
   }
 
   if (!hasAppController && hasAccessibility && !canControlCurrentApp) {
-    suggestions.push(`⚠️ 当前应用 "${currentApp}" 可能不支持窗口控制，将尝试替代方案`);
+    suggestions.push(
+      `⚠️ 当前应用 "${currentApp}" 可能不支持窗口控制，将尝试替代方案`,
+    );
   }
 
   // 添加应用程序特定的建议
   if (!hasAppController) {
-    suggestions.push("💡 支持专用控制器的应用程序：Chrome, Safari, Firefox, VS Code, Terminal, iTerm2, Finder, PyCharm, IntelliJ IDEA, WebStorm");
+    suggestions.push(
+      "💡 支持专用控制器的应用程序：Chrome, Safari, Firefox, VS Code, Terminal, iTerm2, Finder, PyCharm, IntelliJ IDEA, WebStorm",
+    );
     suggestions.push("💡 切换到这些应用程序可获得更好的窗口控制体验");
   }
 
@@ -732,21 +827,23 @@ async function getPermissionStatus(): Promise<{
     currentApp,
     hasAppController,
     controllerType,
-    suggestions
+    suggestions,
   };
 }
 
 // 引导用户开启辅助功能权限
 async function promptForAccessibilityPermission() {
   console.error("权限不足，正在尝试打开系统设置...");
-  const script = 'open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"';
+  const script =
+    'open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"';
   try {
     await execAsync(script);
     console.error("成功发送打开系统设置的命令。");
   } catch (e) {
     console.error("打开新版系统设置失败，尝试旧版方法...", e);
     // Fallback for older macOS versions
-    const fallbackScript = 'tell application "System Preferences" to activate & reveal anchor "Privacy_Accessibility" of pane id "com.apple.preference.security"';
+    const fallbackScript =
+      'tell application "System Preferences" to activate & reveal anchor "Privacy_Accessibility" of pane id "com.apple.preference.security"';
     try {
       await execAsync(`osascript -e '${fallbackScript}'`);
       console.error("成功发送打开旧版系统设置的命令。");
@@ -761,7 +858,7 @@ async function useKeyboardShortcuts(action: string): Promise<any> {
   console.error(`尝试使用键盘快捷键执行: ${action}`);
 
   try {
-    let shortcutScript = '';
+    let shortcutScript = "";
 
     switch (action) {
       case setWindowLeftHalf.name:
@@ -799,18 +896,19 @@ async function useKeyboardShortcuts(action: string): Promise<any> {
     return {
       structuredContent: {
         status: "success",
-        message: `已尝试使用键盘快捷键执行 ${action}。如果没有效果，请安装 Rectangle 或 Magnet 等窗口管理工具。`
+        message:
+          `已尝试使用键盘快捷键执行 ${action}。如果没有效果，请安装 Rectangle 或 Magnet 等窗口管理工具。`,
       },
       content: [{
         type: "text",
         text: JSON.stringify({
           status: "success",
-          message: `已尝试使用键盘快捷键执行 ${action}。如果没有效果，请安装 Rectangle 或 Magnet 等窗口管理工具。`
-        })
+          message:
+            `已尝试使用键盘快捷键执行 ${action}。如果没有效果，请安装 Rectangle 或 Magnet 等窗口管理工具。`,
+        }),
       }],
       isError: false,
     };
-
   } catch (error) {
     console.error("键盘快捷键方法也失败了:", error);
     throw error;
@@ -832,13 +930,13 @@ async function handleSpecialWindowAction(action: string) {
                      tell (first process whose frontmost is true)
                        set miniaturized of front window to true
                      end tell
-                   end tell`
+                   end tell`,
         },
         {
           name: "键盘快捷键 Command+M",
           script: `tell application "System Events"
                      keystroke "m" using {command down}
-                   end tell`
+                   end tell`,
         },
         {
           name: "应用程序特定最小化",
@@ -846,18 +944,26 @@ async function handleSpecialWindowAction(action: string) {
                      try
                        set miniaturized of front window to true
                      end try
-                   end tell`
-        }
+                   end tell`,
+        },
       ];
 
       for (let i = 0; i < minimizeMethods.length; i++) {
         try {
           console.error(`尝试最小化方法 ${i + 1}: ${minimizeMethods[i].name}`);
           await execAsync(`osascript -e '${minimizeMethods[i].script}'`);
-          const successMessage = `窗口已成功最小化（${minimizeMethods[i].name}）`;
+          const successMessage = `窗口已成功最小化（${
+            minimizeMethods[i].name
+          }）`;
           return {
             structuredContent: { status: "success", message: successMessage },
-            content: [{ type: "text", text: JSON.stringify({ status: "success", message: successMessage }) }],
+            content: [{
+              type: "text",
+              text: JSON.stringify({
+                status: "success",
+                message: successMessage,
+              }),
+            }],
             isError: false,
           };
         } catch (error) {
@@ -871,7 +977,7 @@ async function handleSpecialWindowAction(action: string) {
           name: "Control+Command+F 快捷键",
           script: `tell application "System Events"
                      keystroke "f" using {control down, command down}
-                   end tell`
+                   end tell`,
         },
         {
           name: "点击全屏按钮",
@@ -879,18 +985,26 @@ async function handleSpecialWindowAction(action: string) {
                      tell (first process whose frontmost is true)
                        click button 3 of front window
                      end tell
-                   end tell`
-        }
+                   end tell`,
+        },
       ];
 
       for (let i = 0; i < fullscreenMethods.length; i++) {
         try {
           console.error(`尝试全屏方法 ${i + 1}: ${fullscreenMethods[i].name}`);
           await execAsync(`osascript -e '${fullscreenMethods[i].script}'`);
-          const successMessage = `窗口已成功全屏（${fullscreenMethods[i].name}）`;
+          const successMessage = `窗口已成功全屏（${
+            fullscreenMethods[i].name
+          }）`;
           return {
             structuredContent: { status: "success", message: successMessage },
-            content: [{ type: "text", text: JSON.stringify({ status: "success", message: successMessage }) }],
+            content: [{
+              type: "text",
+              text: JSON.stringify({
+                status: "success",
+                message: successMessage,
+              }),
+            }],
             isError: false,
           };
         } catch (error) {
@@ -908,8 +1022,8 @@ async function handleSpecialWindowAction(action: string) {
         type: "text",
         text: JSON.stringify({
           status: "error",
-          message: `特殊窗口操作失败: ${errorMessage}`
-        })
+          message: `特殊窗口操作失败: ${errorMessage}`,
+        }),
       }],
       isError: true,
       errorMessage: `执行特殊窗口操作失败: ${errorMessage}`,
@@ -942,8 +1056,10 @@ async function handleWindowAction(action: string) {
             type: "text",
             text: JSON.stringify({
               status: "error",
-              message: `权限不足且备用方法失败。建议：\n${permissionStatus.suggestions.join('\n')}\n\n或者安装 Rectangle、Magnet 等窗口管理工具并使用其快捷键。`
-            })
+              message: `权限不足且备用方法失败。建议：\n${
+                permissionStatus.suggestions.join("\n")
+              }\n\n或者安装 Rectangle、Magnet 等窗口管理工具并使用其快捷键。`,
+            }),
           }],
           isError: true,
           errorMessage: "权限不足且备用方法失败",
@@ -953,7 +1069,9 @@ async function handleWindowAction(action: string) {
 
     // 如果有权限但当前应用不支持，给出更具体的建议
     if (!permissionStatus.canControlCurrentApp) {
-      console.error(`当前应用 ${permissionStatus.currentApp} 不支持窗口控制，尝试备用方法...`);
+      console.error(
+        `当前应用 ${permissionStatus.currentApp} 不支持窗口控制，尝试备用方法...`,
+      );
       try {
         return await useKeyboardShortcuts(action);
       } catch (shortcutError) {
@@ -962,8 +1080,11 @@ async function handleWindowAction(action: string) {
             type: "text",
             text: JSON.stringify({
               status: "error",
-              message: `当前应用 "${permissionStatus.currentApp}" 不支持窗口控制。建议：\n${permissionStatus.suggestions.join('\n')}`
-            })
+              message:
+                `当前应用 "${permissionStatus.currentApp}" 不支持窗口控制。建议：\n${
+                  permissionStatus.suggestions.join("\n")
+                }`,
+            }),
           }],
           isError: true,
           errorMessage: `应用 ${permissionStatus.currentApp} 不支持窗口控制`,
@@ -972,9 +1093,14 @@ async function handleWindowAction(action: string) {
     }
 
     // 获取屏幕尺寸
-    const getScreenDimScript = `tell application "Finder" to get bounds of window of desktop`;
-    const { stdout: screenBounds } = await execAsync(`osascript -e '${getScreenDimScript}'`);
-    const [,, screenWidth, screenHeight] = screenBounds.trim().split(", ").map(Number);
+    const getScreenDimScript =
+      `tell application "Finder" to get bounds of window of desktop`;
+    const { stdout: screenBounds } = await execAsync(
+      `osascript -e '${getScreenDimScript}'`,
+    );
+    const [, , screenWidth, screenHeight] = screenBounds.trim().split(", ").map(
+      Number,
+    );
 
     // 处理特殊操作
     if ([minimizeWindow.name, fullscreenWindow.name].includes(action)) {
@@ -982,11 +1108,14 @@ async function handleWindowAction(action: string) {
     }
 
     // 计算窗口边界
-    const bounds = calculateMacOSWindowBounds(action, screenWidth, screenHeight);
+    const bounds = calculateMacOSWindowBounds(
+      action,
+      screenWidth,
+      screenHeight,
+    );
 
     // 使用窗口操作函数
     return await moveAndResizeWindow(bounds, action);
-
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`执行窗口操作 '${action}' 失败:`, errorMessage);
@@ -1002,7 +1131,8 @@ async function handleWindowAction(action: string) {
             type: "text",
             text: JSON.stringify({
               status: "error",
-              message: `所有方法都失败了: ${errorMessage}\n\n建议：\n1. 检查系统设置 > 隐私与安全性 > 辅助功能\n2. 安装 Rectangle 或 Magnet 等窗口管理工具\n3. 尝试切换到其他应用程序`
+              message:
+                `所有方法都失败了: ${errorMessage}\n\n建议：\n1. 检查系统设置 > 隐私与安全性 > 辅助功能\n2. 安装 Rectangle 或 Magnet 等窗口管理工具\n3. 尝试切换到其他应用程序`,
             }),
           },
         ],
@@ -1013,14 +1143,12 @@ async function handleWindowAction(action: string) {
   }
 }
 
-
-
 // --- Windows Support ---
-const isWin = os.platform() === 'win32';
+const isWin = os.platform() === "win32";
 
 async function handleWindowsWindowAction(action: string) {
   try {
-    let powershellScript = '';
+    let powershellScript = "";
 
     switch (action) {
       case setWindowLeftHalf.name:
@@ -1161,24 +1289,31 @@ Write-Output "success"`;
         throw new Error(`Windows 平台暂不支持操作: ${action}`);
     }
 
-    const { stdout } = await execAsync(`powershell -Command "${powershellScript}"`);
+    const { stdout } = await execAsync(
+      `powershell -Command "${powershellScript}"`,
+    );
 
     if (stdout.includes("success")) {
       const successMessage = `Windows 窗口操作成功: ${action}`;
       return {
         structuredContent: { status: "success", message: successMessage },
-        content: [{ type: "text", text: JSON.stringify({ status: "success", message: successMessage }) }],
+        content: [{
+          type: "text",
+          text: JSON.stringify({ status: "success", message: successMessage }),
+        }],
         isError: false,
       };
     } else {
       throw new Error("PowerShell 脚本执行失败");
     }
-
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`Windows 窗口操作失败:`, errorMessage);
     return {
-      content: [{ type: "text", text: JSON.stringify({ status: "error", message: errorMessage }) }],
+      content: [{
+        type: "text",
+        text: JSON.stringify({ status: "error", message: errorMessage }),
+      }],
       isError: true,
       errorMessage: `Windows 窗口操作失败: ${errorMessage}`,
     };
@@ -1195,7 +1330,7 @@ const server = new Server(
     capabilities: {
       tools: {},
     },
-  }
+  },
 );
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
@@ -1234,9 +1369,17 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
     if (isWin) {
       // Windows 平台处理所有基本窗口操作
-      if ([setWindowLeftHalf.name, setWindowRightHalf.name, setWindowTopHalf.name,
-           setWindowBottomHalf.name, maximizeWindow.name, minimizeWindow.name,
-           fullscreenWindow.name].includes(toolName)) {
+      if (
+        [
+          setWindowLeftHalf.name,
+          setWindowRightHalf.name,
+          setWindowTopHalf.name,
+          setWindowBottomHalf.name,
+          maximizeWindow.name,
+          minimizeWindow.name,
+          fullscreenWindow.name,
+        ].includes(toolName)
+      ) {
         return handleWindowsWindowAction(toolName);
       }
     }
@@ -1251,19 +1394,38 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         // 获取屏幕尺寸并计算窗口边界
         if (isWin) {
           // Windows 使用通用控制器
-          return controlWindowUniversal(toolName, { x: 0, y: 0, width: 0, height: 0 }); // Windows 会自动计算
+          return controlWindowUniversal(toolName, {
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+          }); // Windows 会自动计算
         } else {
           // macOS 需要计算具体边界
-          const getScreenDimScript = `tell application "Finder" to get bounds of window of desktop`;
-          const { stdout: screenBounds } = await execAsync(`osascript -e '${getScreenDimScript}'`);
-          const [,, screenWidth, screenHeight] = screenBounds.trim().split(", ").map(Number);
-          const bounds = calculateMacOSWindowBounds(toolName, screenWidth, screenHeight);
+          const getScreenDimScript =
+            `tell application "Finder" to get bounds of window of desktop`;
+          const { stdout: screenBounds } = await execAsync(
+            `osascript -e '${getScreenDimScript}'`,
+          );
+          const [, , screenWidth, screenHeight] = screenBounds.trim().split(
+            ", ",
+          ).map(Number);
+          const bounds = calculateMacOSWindowBounds(
+            toolName,
+            screenWidth,
+            screenHeight,
+          );
           return controlWindowUniversal(toolName, bounds);
         }
       case minimizeWindow.name:
       case fullscreenWindow.name:
         // 特殊操作使用通用控制器
-        return controlWindowUniversal(toolName, { x: 0, y: 0, width: 0, height: 0 });
+        return controlWindowUniversal(toolName, {
+          x: 0,
+          y: 0,
+          width: 0,
+          height: 0,
+        });
       default:
         throw new Error(`未知工具: ${toolName}`);
     }
@@ -1287,7 +1449,7 @@ async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error("MCP Split Screen Server 已启动");
-  console.error(`平台: ${isWin ? 'Windows' : 'macOS'}`);
+  console.error(`平台: ${isWin ? "Windows" : "macOS"}`);
 }
 
 main().catch((error) => {

@@ -7,8 +7,8 @@ import {
   ErrorCode,
   ListToolsRequestSchema,
   McpError,
-  Tool,
   ServerResult,
+  Tool,
 } from "@modelcontextprotocol/sdk/types.js";
 import fetch from "node-fetch";
 
@@ -65,11 +65,11 @@ interface BookSearchResponse {
 
 // 配置
 const CONFIG = {
-  API_HOST: 'https://jisuisbn.market.alicloudapi.com',
+  API_HOST: "https://jisuisbn.market.alicloudapi.com",
   ENDPOINTS: {
-    ISBN_QUERY: '/isbn/query',
-    BOOK_SEARCH: '/isbn/search'
-  }
+    ISBN_QUERY: "/isbn/query",
+    BOOK_SEARCH: "/isbn/search",
+  },
 };
 
 // 获取环境变量
@@ -88,17 +88,17 @@ const JISU_APPCODE = getAppCode();
 async function makeApiRequest<T>(url: string): Promise<ServerResult> {
   try {
     const response = await fetch(url, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': 'APPCODE ' + JISU_APPCODE,
-        'Content-Type': 'application/json; charset=UTF-8'
+        "Authorization": "APPCODE " + JISU_APPCODE,
+        "Content-Type": "application/json; charset=UTF-8",
       },
     });
 
     if (!response.ok) {
       throw new McpError(
         ErrorCode.InternalError,
-        `API请求失败: HTTP 状态 ${response.status}`
+        `API请求失败: HTTP 状态 ${response.status}`,
       );
     }
 
@@ -110,7 +110,7 @@ async function makeApiRequest<T>(url: string): Promise<ServerResult> {
       if (data.status !== 0) {
         throw new McpError(
           ErrorCode.InternalError,
-          `操作失败: ${data.msg}`
+          `操作失败: ${data.msg}`,
         );
       }
 
@@ -118,9 +118,9 @@ async function makeApiRequest<T>(url: string): Promise<ServerResult> {
         structuredContent: data,
         content: [{
           type: "text",
-          text: JSON.stringify(data, null, 2)
+          text: JSON.stringify(data, null, 2),
         }],
-        isError: false
+        isError: false,
       };
     } catch (e) {
       if (e instanceof McpError) {
@@ -128,7 +128,7 @@ async function makeApiRequest<T>(url: string): Promise<ServerResult> {
       }
       throw new McpError(
         ErrorCode.InternalError,
-        `解析响应失败: ${content}`
+        `解析响应失败: ${content}`,
       );
     }
   } catch (error: unknown) {
@@ -138,7 +138,7 @@ async function makeApiRequest<T>(url: string): Promise<ServerResult> {
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new McpError(
       ErrorCode.InternalError,
-      `请求出错: ${errorMessage}`
+      `请求出错: ${errorMessage}`,
     );
   }
 }
@@ -152,10 +152,10 @@ const ISBN_QUERY_TOOL: Tool = {
     properties: {
       isbn: {
         type: "string",
-        description: "图书的ISBN号码"
-      }
+        description: "图书的ISBN号码",
+      },
     },
-    required: ["isbn"]
+    required: ["isbn"],
   },
   outputSchema: {
     type: "object",
@@ -192,15 +192,15 @@ const ISBN_QUERY_TOOL: Tool = {
               properties: {
                 seller: { type: "string", description: "销售商" },
                 price: { type: "string", description: "售价" },
-                link: { type: "string", description: "购买链接" }
-              }
+                link: { type: "string", description: "购买链接" },
+              },
             },
-            description: "销售商列表"
-          }
-        }
-      }
-    }
-  }
+            description: "销售商列表",
+          },
+        },
+      },
+    },
+  },
 };
 
 const BOOK_SEARCH_TOOL: Tool = {
@@ -211,14 +211,14 @@ const BOOK_SEARCH_TOOL: Tool = {
     properties: {
       title: {
         type: "string",
-        description: "搜索的图书标题"
+        description: "搜索的图书标题",
       },
       pagenum: {
         type: "number",
-        description: "页码（默认为第一页，一页20条）"
-      }
+        description: "页码（默认为第一页，一页20条）",
+      },
     },
-    required: ["title"]
+    required: ["title"],
   },
   outputSchema: {
     type: "object",
@@ -240,15 +240,15 @@ const BOOK_SEARCH_TOOL: Tool = {
                 title: { type: "string", description: "图书标题" },
                 author: { type: "string", description: "作者" },
                 pic: { type: "string", description: "图书封面图片URL" },
-                isbn: { type: "string", description: "ISBN" }
-              }
+                isbn: { type: "string", description: "ISBN" },
+              },
             },
-            description: "搜索结果列表"
-          }
-        }
-      }
-    }
-  }
+            description: "搜索结果列表",
+          },
+        },
+      },
+    },
+  },
 };
 
 const TOOLS = [ISBN_QUERY_TOOL, BOOK_SEARCH_TOOL] as const;
@@ -260,7 +260,10 @@ async function handleIsbnQuery(isbn: string): Promise<ServerResult> {
 }
 
 // 图书搜索处理函数
-async function handleBookSearch(title: string, pagenum: number = 1): Promise<ServerResult> {
+async function handleBookSearch(
+  title: string,
+  pagenum: number = 1,
+): Promise<ServerResult> {
   const encodedTitle = encodeURIComponent(title);
   const querys = `pagenum=${pagenum}&title=${encodedTitle}`;
   const url = `${CONFIG.API_HOST}${CONFIG.ENDPOINTS.BOOK_SEARCH}?${querys}`;
@@ -319,7 +322,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       default:
         throw new McpError(
           ErrorCode.MethodNotFound,
-          `未知工具: ${name}`
+          `未知工具: ${name}`,
         );
     }
   } catch (error) {
@@ -329,7 +332,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new McpError(
       ErrorCode.InternalError,
-      `执行工具 ${name} 时发生错误: ${errorMessage}`
+      `执行工具 ${name} 时发生错误: ${errorMessage}`,
     );
   }
 });

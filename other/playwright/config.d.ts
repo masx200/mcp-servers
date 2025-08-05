@@ -14,9 +14,17 @@
  * limitations under the License.
  */
 
-import type * as playwright from 'playwright';
+import type * as playwright from "playwright";
 
-export type ToolCapability = 'core' | 'tabs' | 'pdf' | 'history' | 'wait' | 'files' | 'install' | 'testing';
+export type ToolCapability =
+  | "core"
+  | "tabs"
+  | "pdf"
+  | "history"
+  | "wait"
+  | "files"
+  | "install"
+  | "testing";
 
 export type Config = {
   /**
@@ -26,7 +34,7 @@ export type Config = {
     /**
      * The type of browser to use.
      */
-    browserName?: 'chromium' | 'firefox' | 'webkit';
+    browserName?: "chromium" | "firefox" | "webkit";
 
     /**
      * Keep the browser profile in memory, do not save it to disk.
@@ -63,7 +71,7 @@ export type Config = {
      * Remote endpoint to connect to an existing Playwright server.
      */
     remoteEndpoint?: string;
-  },
+  };
 
   server?: {
     /**
@@ -75,7 +83,7 @@ export type Config = {
      * The host to bind the server to. Default is localhost. Use 0.0.0.0 to bind to all interfaces.
      */
     host?: string;
-  },
+  };
 
   /**
    * List of enabled tool capabilities. Possible values:

@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   CallToolRequestSchema,
   ErrorCode,
   ListToolsRequestSchema,
   McpError,
-} from '@modelcontextprotocol/sdk/types.js';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+} from "@modelcontextprotocol/sdk/types.js";
+import { exec } from "child_process";
+import { promisify } from "util";
 
 const execAsync = promisify(exec);
 
@@ -21,7 +21,7 @@ function escapeString(str: string): string {
   return str
     .replace(/'/g, "'\\''")
     .replace(/"/g, '\\"');
-} 
+}
 
 interface NotificationParams {
   /** Title of the notification */
@@ -69,28 +69,29 @@ const repeatNotificationPool = new Map<string, RepeatNotification>();
  * 生成唯一任务ID
  */
 function generateNotificationId(): string {
-  return 'notification_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now().toString(36);
+  return "notification_" + Math.random().toString(36).substr(2, 9) + "_" +
+    Date.now().toString(36);
 }
 
 /**
  * Validates notification parameters
  */
 function validateParams(params: NotificationParams): void {
-  if (!params.title || typeof params.title !== 'string') {
+  if (!params.title || typeof params.title !== "string") {
     throw new Error(
-      'Title is required and must be a string'
+      "Title is required and must be a string",
     );
   }
 
-  if (!params.message || typeof params.message !== 'string') {
+  if (!params.message || typeof params.message !== "string") {
     throw new Error(
-      'Message is required and must be a string'
+      "Message is required and must be a string",
     );
   }
 
-  if (params.subtitle && typeof params.subtitle !== 'string') {
+  if (params.subtitle && typeof params.subtitle !== "string") {
     throw new Error(
-      'Subtitle must be a string'
+      "Subtitle must be a string",
     );
   }
 }
@@ -100,32 +101,34 @@ function validateParams(params: NotificationParams): void {
  */
 function buildNotificationCommand(params: NotificationParams): string {
   const { title, message, subtitle, sound = true } = params;
-  
-  let script = `display notification "${escapeString(message)}" with title "${escapeString(title)}"`;
-  
+
+  let script = `display notification "${escapeString(message)}" with title "${
+    escapeString(title)
+  }"`;
+
   if (subtitle) {
     script += ` subtitle "${escapeString(subtitle)}"`;
   }
-  
+
   if (sound) {
     script += ` sound name "default"`;
   }
-  
+
   return `osascript -e '${script}'`;
 }
 
 // 检测操作系统
-function getOS(): 'windows' | 'macos' | 'linux' {
+function getOS(): "windows" | "macos" | "linux" {
   const currentPlatform = process.platform;
-  if (currentPlatform === 'win32') return 'windows';
-  if (currentPlatform === 'darwin') return 'macos';
-  return 'linux';
+  if (currentPlatform === "win32") return "windows";
+  if (currentPlatform === "darwin") return "macos";
+  return "linux";
 }
 
 // Windows 通知命令构建
 function buildWindowsNotificationCommand(params: NotificationParams): string {
   const { title, message, sound = true } = params;
-  
+
   // 使用 PowerShell 的 BalloonTip
   let script = `
     Add-Type -AssemblyName System.Windows.Forms;
@@ -136,37 +139,41 @@ function buildWindowsNotificationCommand(params: NotificationParams): string {
     $notification.Visible = $true;
     $notification.ShowBalloonTip(5000);
   `;
-  
+
   if (sound) {
     script += `
     [System.Media.SystemSounds]::Asterisk.Play();
     `;
   }
-  
+
   script += `
     Start-Sleep -Seconds 1;
     $notification.Dispose();
   `;
-  
+
   return `powershell -Command "${script}"`;
 }
 
 // Linux 通知命令构建
 function buildLinuxNotificationCommand(params: NotificationParams): string {
   const { title, message, subtitle, sound = true } = params;
-  
-  let command = `notify-send "${escapeString(title)}" "${escapeString(message)}"`;
-  
+
+  let command = `notify-send "${escapeString(title)}" "${
+    escapeString(message)
+  }"`;
+
   if (subtitle) {
     // 将 subtitle 添加到消息中，因为 notify-send 不直接支持副标题
-    command = `notify-send "${escapeString(title)}" "${escapeString(subtitle)}\n${escapeString(message)}"`;
+    command = `notify-send "${escapeString(title)}" "${
+      escapeString(subtitle)
+    }\n${escapeString(message)}"`;
   }
-  
+
   // 添加声音支持
   if (sound) {
     command += ` --hint=string:sound-name:message-new-instant`;
   }
-  
+
   return command;
 }
 
@@ -174,41 +181,47 @@ function buildLinuxNotificationCommand(params: NotificationParams): string {
  * 解析时间字符串为毫秒数
  */
 function parseTimeDelay(delay: number | string): number {
-  if (typeof delay === 'number') {
+  if (typeof delay === "number") {
     return delay;
   }
-  
+
   const timeString = delay.toLowerCase().trim();
   const match = timeString.match(/^(\d+(?:\.\d+)?)\s*([smh]?)$/);
-  
+
   if (!match) {
     throw new Error(
-      'Invalid time format. Use numbers (milliseconds) or strings like "10s", "1m", "1h"'
+      'Invalid time format. Use numbers (milliseconds) or strings like "10s", "1m", "1h"',
     );
   }
-  
+
   const value = parseFloat(match[1]);
-  const unit = match[2] || 'ms'; // 默认单位为毫秒
-  
+  const unit = match[2] || "ms"; // 默认单位为毫秒
+
   switch (unit) {
-    case 's': return value * 1000;           // 秒
-    case 'm': return value * 60 * 1000;      // 分钟  
-    case 'h': return value * 60 * 60 * 1000; // 小时
-    default: return value;                    // 毫秒
+    case "s":
+      return value * 1000; // 秒
+    case "m":
+      return value * 60 * 1000; // 分钟
+    case "h":
+      return value * 60 * 60 * 1000; // 小时
+    default:
+      return value; // 毫秒
   }
 }
 
 /**
  * Sends a notification using the appropriate platform command
  */
-async function sendNotification(params: NotificationParams): Promise<NotificationResult> {
+async function sendNotification(
+  params: NotificationParams,
+): Promise<NotificationResult> {
   // 如果有 repeat 参数，设置重复提醒
   if (params.repeat !== undefined) {
     const repeatMs = parseTimeDelay(params.repeat);
-    
+
     if (repeatMs <= 0) {
       throw new Error(
-        'Repeat interval must be a positive number'
+        "Repeat interval must be a positive number",
       );
     }
 
@@ -223,7 +236,7 @@ async function sendNotification(params: NotificationParams): Promise<Notificatio
         repeatNotificationPool.delete(notificationId);
         return;
       }
-      
+
       const timeoutId = setTimeout(async () => {
         try {
           // 检查任务是否还在任务池中（可能已被取消）
@@ -231,14 +244,14 @@ async function sendNotification(params: NotificationParams): Promise<Notificatio
           if (!notification) return;
 
           await sendNotification(notificationParams);
-          
+
           // 更新任务信息
           notification.currentCount++;
-          
+
           // 调度下一次通知
           scheduleNextNotification(currentCount + 1);
         } catch (error) {
-          console.error('Repeated notification failed:', error);
+          console.error("Repeated notification failed:", error);
           // 即使失败也继续下一次
           scheduleNextNotification(currentCount + 1);
         }
@@ -262,9 +275,9 @@ async function sendNotification(params: NotificationParams): Promise<Notificatio
       timeoutId: null as any, // 稍后设置
       currentCount: 0,
       maxCount,
-      startTime: Date.now()
+      startTime: Date.now(),
     };
-    
+
     repeatNotificationPool.set(notificationId, notification);
 
     // 如果有初始延迟，先等待延迟再开始重复
@@ -275,8 +288,8 @@ async function sendNotification(params: NotificationParams): Promise<Notificatio
         sendNotification(notificationParams).then(() => {
           notification.currentCount = 1;
           scheduleNextNotification(1);
-        }).catch(error => {
-          console.error('Initial repeated notification failed:', error);
+        }).catch((error) => {
+          console.error("Initial repeated notification failed:", error);
           scheduleNextNotification(1);
         });
       }, delayMs);
@@ -287,27 +300,28 @@ async function sendNotification(params: NotificationParams): Promise<Notificatio
         notification.currentCount = 1;
         scheduleNextNotification(1);
       } catch (error) {
-        console.error('Initial repeated notification failed:', error);
+        console.error("Initial repeated notification failed:", error);
         scheduleNextNotification(1);
       }
     }
-    
+
     return {
       notificationId,
-      message: `Repeat notification notification created with ID: ${notificationId}`
+      message:
+        `Repeat notification notification created with ID: ${notificationId}`,
     };
   }
 
   // 如果有 delay 参数但没有 repeat，使用 setTimeout 延迟发送
   if (params.delay !== undefined) {
     const delayMs = parseTimeDelay(params.delay);
-    
+
     if (delayMs <= 0) {
       throw new Error(
-        'Delay must be a positive number'
+        "Delay must be a positive number",
       );
     }
-    
+
     try {
       // 设置延迟任务
       setTimeout(async () => {
@@ -316,15 +330,15 @@ async function sendNotification(params: NotificationParams): Promise<Notificatio
           const { delay, ...notificationParams } = params;
           await sendNotification(notificationParams);
         } catch (error) {
-          console.error('Delayed notification failed:', error);
+          console.error("Delayed notification failed:", error);
         }
       }, delayMs);
-      
+
       // 立即返回设置成功
-      return { message: 'Delayed notification scheduled successfully' };
+      return { message: "Delayed notification scheduled successfully" };
     } catch (error) {
       throw new Error(
-        'Failed to schedule delayed notification'
+        "Failed to schedule delayed notification",
       );
     }
   }
@@ -332,28 +346,28 @@ async function sendNotification(params: NotificationParams): Promise<Notificatio
   // 立即发送通知的逻辑
   try {
     validateParams(params);
-    
+
     const os = getOS();
     let command: string;
-    
+
     switch (os) {
-      case 'macos':
+      case "macos":
         command = buildNotificationCommand(params);
         break;
-      case 'windows':
+      case "windows":
         command = buildWindowsNotificationCommand(params);
         break;
-      case 'linux':
+      case "linux":
         command = buildLinuxNotificationCommand(params);
         break;
       default:
         throw new Error(
-          `Unsupported platform: ${os}`
+          `Unsupported platform: ${os}`,
         );
     }
-    
+
     await execAsync(command);
-    return { message: 'Notification sent successfully' };
+    return { message: "Notification sent successfully" };
   } catch (error) {
     if (error instanceof Error) {
       throw error;
@@ -361,17 +375,17 @@ async function sendNotification(params: NotificationParams): Promise<Notificatio
 
     // Handle different types of system errors
     const err = error as Error;
-    if (err.message.includes('execution error')) {
+    if (err.message.includes("execution error")) {
       throw new Error(
-        'Failed to execute notification command'
+        "Failed to execute notification command",
       );
-    } else if (err.message.includes('permission')) {
+    } else if (err.message.includes("permission")) {
       throw new Error(
-        'Permission denied when trying to send notification'
+        "Permission denied when trying to send notification",
       );
     } else {
       throw new Error(
-        `Unexpected error: ${err.message}`
+        `Unexpected error: ${err.message}`,
       );
     }
   }
@@ -385,15 +399,15 @@ function stopRepeatNotification(notificationId: string): boolean {
   if (!notification) {
     return false;
   }
-  
+
   // 清除定时器
   if (notification.timeoutId) {
     clearTimeout(notification.timeoutId);
   }
-  
+
   // 从任务池中移除
   repeatNotificationPool.delete(notificationId);
-  
+
   return true;
 }
 
@@ -402,17 +416,17 @@ function stopRepeatNotification(notificationId: string): boolean {
  */
 function stopAllRepeatNotifications(): number {
   const count = repeatNotificationPool.size;
-  
+
   // 清除所有定时器
   for (const notification of repeatNotificationPool.values()) {
     if (notification.timeoutId) {
       clearTimeout(notification.timeoutId);
     }
   }
-  
+
   // 清空任务池
   repeatNotificationPool.clear();
-  
+
   return count;
 }
 
@@ -420,26 +434,28 @@ function stopAllRepeatNotifications(): number {
  * 获取所有活跃的重复提醒任务信息
  */
 function getActiveRepeatNotifications(): RepeatNotification[] {
-  return Array.from(repeatNotificationPool.values()).map(notification => ({
+  return Array.from(repeatNotificationPool.values()).map((notification) => ({
     ...notification,
     // 不返回timeoutId，避免序列化问题
-    timeoutId: null as any
+    timeoutId: null as any,
   }));
 }
 
 /**
  * 获取指定任务的信息
  */
-function getRepeatNotificationInfo(notificationId: string): RepeatNotification | null {
+function getRepeatNotificationInfo(
+  notificationId: string,
+): RepeatNotification | null {
   const notification = repeatNotificationPool.get(notificationId);
   if (!notification) {
     return null;
   }
-  
+
   return {
     ...notification,
     // 不返回timeoutId，避免序列化问题
-    timeoutId: null as any
+    timeoutId: null as any,
   };
 }
 
@@ -449,21 +465,21 @@ class NotificationServer {
   constructor() {
     this.server = new Server(
       {
-        name: 'notification-mcp',
-        version: '1.0.0',
+        name: "notification-mcp",
+        version: "1.0.0",
       },
       {
         capabilities: {
           tools: {},
         },
-      }
+      },
     );
 
     this.setupToolHandlers();
-    
+
     // Error handling
-    this.server.onerror = (error) => console.error('[MCP Error]', error);
-    process.on('SIGINT', async () => {
+    this.server.onerror = (error) => console.error("[MCP Error]", error);
+    process.on("SIGINT", async () => {
       await this.server.close();
       process.exit(0);
     });
@@ -474,71 +490,80 @@ class NotificationServer {
     this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
       tools: [
         {
-          name: 'send_notification',
-          description: '发送系统通知或提醒',
+          name: "send_notification",
+          description: "发送系统通知或提醒",
           inputSchema: {
-            type: 'object',
+            type: "object",
             properties: {
               title: {
-                type: 'string',
-                description: '通知或提醒的标题',
+                type: "string",
+                description: "通知或提醒的标题",
               },
               message: {
-                type: 'string',
-                description: '通知或提醒的内容',
+                type: "string",
+                description: "通知或提醒的内容",
               },
               subtitle: {
-                type: 'string',
-                description: '可选的副标题',
+                type: "string",
+                description: "可选的副标题",
               },
               sound: {
-                type: 'boolean',
-                description: '是否播放默认提示音',
+                type: "boolean",
+                description: "是否播放默认提示音",
                 default: true,
               },
               delay: {
                 oneOf: [
-                  { type: 'number' },
-                  { type: 'string' }
+                  { type: "number" },
+                  { type: "string" },
                 ],
-                description: '延迟发送通知或提醒（毫秒或时间字符串如"10s", "1m", "1h"）',
+                description:
+                  '延迟发送通知或提醒（毫秒或时间字符串如"10s", "1m", "1h"）',
               },
               repeat: {
                 oneOf: [
-                  { type: 'number' },
-                  { type: 'string' }
+                  { type: "number" },
+                  { type: "string" },
                 ],
-                description: '重复通知或提醒的间隔（毫秒或时间字符串如"10s", "1m", "1h"）',
+                description:
+                  '重复通知或提醒的间隔（毫秒或时间字符串如"10s", "1m", "1h"）',
               },
               repeatCount: {
-                type: 'number',
-                description: '重复次数（可选，如果设置了repeat但未设置此项则无限重复）',
+                type: "number",
+                description:
+                  "重复次数（可选，如果设置了repeat但未设置此项则无限重复）",
                 minimum: 1,
               },
             },
-            required: ['title', 'message'],
+            required: ["title", "message"],
             additionalProperties: false,
           },
         },
         {
-          name: 'notification_task_management',
-          description: '管理计划的通知或提醒任务',
+          name: "notification_task_management",
+          description: "管理计划的通知或提醒任务",
           inputSchema: {
-            type: 'object',
+            type: "object",
             properties: {
               action: {
-                type: 'string',
-                enum: ['stop_repeat_task', 'stop_all_repeat_tasks', 'get_active_repeat_tasks', 'get_repeat_task_info'],
-                description: 'stop_repeat_task: 停止指定的重复通知或提醒任务. stop_all_repeat_tasks: 停止所有重复通知或提醒任务. get_active_repeat_tasks: 获取所有活跃的重复通知或提醒任务. get_repeat_task_info: 获取指定重复通知或提醒任务的信息.'
+                type: "string",
+                enum: [
+                  "stop_repeat_task",
+                  "stop_all_repeat_tasks",
+                  "get_active_repeat_tasks",
+                  "get_repeat_task_info",
+                ],
+                description:
+                  "stop_repeat_task: 停止指定的重复通知或提醒任务. stop_all_repeat_tasks: 停止所有重复通知或提醒任务. get_active_repeat_tasks: 获取所有活跃的重复通知或提醒任务. get_repeat_task_info: 获取指定重复通知或提醒任务的信息.",
               },
               taskId: {
-                type: 'string',
-                description: '要管理的任务ID'
-              }
+                type: "string",
+                description: "要管理的任务ID",
+              },
             },
-            required: ['action'],
-            additionalProperties: false
-          }
+            required: ["action"],
+            additionalProperties: false,
+          },
         },
       ],
     }));
@@ -546,85 +571,112 @@ class NotificationServer {
     // Handle tool execution
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       try {
-        if (!request.params.arguments || typeof request.params.arguments !== 'object') {
-          throw new McpError(ErrorCode.InvalidParams, 'Invalid parameters');
+        if (
+          !request.params.arguments ||
+          typeof request.params.arguments !== "object"
+        ) {
+          throw new McpError(ErrorCode.InvalidParams, "Invalid parameters");
         }
 
         switch (request.params.name) {
-          case 'send_notification': {
-            const { title, message, subtitle, sound, delay, repeat, repeatCount } = request.params.arguments as Record<string, unknown>;
-            
-            if (typeof title !== 'string' || typeof message !== 'string') {
-              throw new McpError(ErrorCode.InvalidParams, 'Title and message must be strings');
+          case "send_notification": {
+            const {
+              title,
+              message,
+              subtitle,
+              sound,
+              delay,
+              repeat,
+              repeatCount,
+            } = request.params.arguments as Record<string, unknown>;
+
+            if (typeof title !== "string" || typeof message !== "string") {
+              throw new McpError(
+                ErrorCode.InvalidParams,
+                "Title and message must be strings",
+              );
             }
 
             const params: NotificationParams = {
               title,
               message,
-              subtitle: typeof subtitle === 'string' ? subtitle : undefined,
-              sound: typeof sound === 'boolean' ? sound : undefined,
-              delay: (typeof delay === 'number' || typeof delay === 'string') ? delay : undefined,
-              repeat: (typeof repeat === 'number' || typeof repeat === 'string') ? repeat : undefined,
-              repeatCount: typeof repeatCount === 'number' ? repeatCount : undefined
+              subtitle: typeof subtitle === "string" ? subtitle : undefined,
+              sound: typeof sound === "boolean" ? sound : undefined,
+              delay: (typeof delay === "number" || typeof delay === "string")
+                ? delay
+                : undefined,
+              repeat: (typeof repeat === "number" || typeof repeat === "string")
+                ? repeat
+                : undefined,
+              repeatCount: typeof repeatCount === "number"
+                ? repeatCount
+                : undefined,
             };
 
             const result = await sendNotification(params);
             return {
               content: [
                 {
-                  type: 'text',
-                  text: result.notificationId ? 
-                    `${result.message}. Task ID: ${result.notificationId}` : 
-                    result.message,
+                  type: "text",
+                  text: result.notificationId
+                    ? `${result.message}. Task ID: ${result.notificationId}`
+                    : result.message,
                 },
               ],
             };
           }
 
-          case 'notification_task_management': {
-            const { action, taskId } = request.params.arguments as Record<string, unknown>;
-            
+          case "notification_task_management": {
+            const { action, taskId } = request.params.arguments as Record<
+              string,
+              unknown
+            >;
+
             switch (action) {
-              case 'stop_repeat_task': {
+              case "stop_repeat_task": {
                 const success = stopRepeatNotification(taskId as string);
                 return {
                   content: [
                     {
-                      type: 'text',
-                      text: success ? `任务 ${taskId} 已成功停止` : `任务 ${taskId} 未找到`,
+                      type: "text",
+                      text: success
+                        ? `任务 ${taskId} 已成功停止`
+                        : `任务 ${taskId} 未找到`,
                     },
                   ],
                 };
               }
-              case 'stop_all_repeat_tasks': {
+              case "stop_all_repeat_tasks": {
                 const count = stopAllRepeatNotifications();
                 return {
                   content: [
                     {
-                      type: 'text',
+                      type: "text",
                       text: `已停止 ${count} 个重复任务`,
                     },
                   ],
                 };
               }
-              case 'get_active_repeat_tasks': {
+              case "get_active_repeat_tasks": {
                 const tasks = getActiveRepeatNotifications();
                 return {
                   content: [
                     {
-                      type: 'text',
+                      type: "text",
                       text: JSON.stringify(tasks, null, 2),
                     },
                   ],
                 };
               }
-              case 'get_repeat_task_info': {
+              case "get_repeat_task_info": {
                 const info = getRepeatNotificationInfo(taskId as string);
                 return {
                   content: [
                     {
-                      type: 'text',
-                      text: info ? JSON.stringify(info, null, 2) : `任务 ${taskId} 未找到`,
+                      type: "text",
+                      text: info
+                        ? JSON.stringify(info, null, 2)
+                        : `任务 ${taskId} 未找到`,
                     },
                   ],
                 };
@@ -632,7 +684,7 @@ class NotificationServer {
               default:
                 throw new McpError(
                   ErrorCode.MethodNotFound,
-                  `Unknown task management action: ${action}`
+                  `Unknown task management action: ${action}`,
                 );
             }
           }
@@ -640,7 +692,7 @@ class NotificationServer {
           default:
             throw new McpError(
               ErrorCode.MethodNotFound,
-              `Unknown tool: ${request.params.name}`
+              `Unknown tool: ${request.params.name}`,
             );
         }
       } catch (error) {
@@ -652,9 +704,9 @@ class NotificationServer {
   async run() {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    console.error('Notification MCP server running on stdio');
+    console.error("Notification MCP server running on stdio");
   }
 }
 
 const server = new NotificationServer();
-server.run().catch(console.error); 
+server.run().catch(console.error);

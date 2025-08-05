@@ -4,8 +4,8 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   CallToolRequestSchema,
-  ListToolsRequestSchema,
   ListResourcesRequestSchema,
+  ListToolsRequestSchema,
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import fetch from "node-fetch";
@@ -48,10 +48,19 @@ const API_KEY = process.env.API_KEY;
 const BASE_URL = "https://yunwu.ai";
 
 // 图片生成API调用函数 - 提交任务
-async function submitGenerateTask(prompt: string, aspectRatio: string = "1:1", n: number = 1) {
+async function submitGenerateTask(
+  prompt: string,
+  aspectRatio: string = "1:1",
+  n: number = 1,
+) {
   try {
     console.error(`提交图片生成任务到: ${BASE_URL}/v1/images/generations`);
-    console.error(`请求数据:`, { model: "flux-kontext-pro", prompt, aspect_ratio: aspectRatio, n });
+    console.error(`请求数据:`, {
+      model: "flux-kontext-pro",
+      prompt,
+      aspect_ratio: aspectRatio,
+      n,
+    });
 
     const response = await axios.post(
       `${BASE_URL}/v1/images/generations`,
@@ -66,7 +75,7 @@ async function submitGenerateTask(prompt: string, aspectRatio: string = "1:1", n
           "Content-Type": "application/json",
         },
         timeout: 30000, // 30秒超时
-      }
+      },
     );
 
     console.error(`API响应状态: ${response.status}`);
@@ -83,15 +92,20 @@ async function submitGenerateTask(prompt: string, aspectRatio: string = "1:1", n
       });
 
       if (error.response?.status === 503) {
-        throw new Error(`服务暂时不可用(503)，请稍后重试。可能原因：服务器维护或过载`);
+        throw new Error(
+          `服务暂时不可用(503)，请稍后重试。可能原因：服务器维护或过载`,
+        );
       }
 
-      throw new Error(`图片生成任务提交失败: ${error.response?.status} ${error.response?.statusText} - ${JSON.stringify(error.response?.data)}`);
+      throw new Error(
+        `图片生成任务提交失败: ${error.response?.status} ${error.response?.statusText} - ${
+          JSON.stringify(error.response?.data)
+        }`,
+      );
     }
     throw error;
   }
 }
-
 
 // 图片上传函数 - 上传本地图片到MCP服务器
 async function uploadImageToMcp(imagePath: string): Promise<string> {
@@ -111,21 +125,21 @@ async function uploadImageToMcp(imagePath: string): Promise<string> {
 
     // 创建FormData
     const formData = new FormData();
-    formData.append('file', imageBuffer, {
+    formData.append("file", imageBuffer, {
       filename: fileName,
-      contentType: 'image/' + path.extname(imagePath).slice(1).toLowerCase()
+      contentType: "image/" + path.extname(imagePath).slice(1).toLowerCase(),
     });
 
     // 上传图片
     const response = await axios.post(
-      'https://www.mcpcn.cc/api/fileUploadAndDownload/uploadMcpFile',
+      "https://www.mcpcn.cc/api/fileUploadAndDownload/uploadMcpFile",
       formData,
       {
         headers: {
           ...formData.getHeaders(),
         },
         timeout: 30000, // 30秒超时
-      }
+      },
     );
 
     console.error(`上传响应状态: ${response.status}`);
@@ -133,11 +147,11 @@ async function uploadImageToMcp(imagePath: string): Promise<string> {
 
     // 检查响应格式
     if (response.data.code !== 0) {
-      throw new Error(`图片上传失败: ${response.data.msg || '未知错误'}`);
+      throw new Error(`图片上传失败: ${response.data.msg || "未知错误"}`);
     }
 
     if (!response.data.data || !response.data.data.url) {
-      throw new Error('上传响应中缺少图片URL');
+      throw new Error("上传响应中缺少图片URL");
     }
 
     const uploadedUrl = response.data.data.url;
@@ -152,7 +166,11 @@ async function uploadImageToMcp(imagePath: string): Promise<string> {
         data: error.response?.data,
         url: error.config?.url,
       });
-      throw new Error(`图片上传失败: ${error.response?.status} ${error.response?.statusText} - ${JSON.stringify(error.response?.data)}`);
+      throw new Error(
+        `图片上传失败: ${error.response?.status} ${error.response?.statusText} - ${
+          JSON.stringify(error.response?.data)
+        }`,
+      );
     }
     console.error(`图片上传失败:`, error);
     throw error;
@@ -160,9 +178,14 @@ async function uploadImageToMcp(imagePath: string): Promise<string> {
 }
 
 // 异步编辑函数 - 提交编辑任务
-async function submitEditTask(prompt: string, imageUrl: string, useMax: boolean = false) {
+async function submitEditTask(
+  prompt: string,
+  imageUrl: string,
+  useMax: boolean = false,
+) {
   try {
-    const endpoint = `${BASE_URL}/replicate/v1/models/black-forest-labs/flux-kontext-pro/predictions`;
+    const endpoint =
+      `${BASE_URL}/replicate/v1/models/black-forest-labs/flux-kontext-pro/predictions`;
 
     console.error(`提交图片编辑任务到: ${endpoint}`);
     console.error(`请求数据:`, {
@@ -172,8 +195,8 @@ async function submitEditTask(prompt: string, imageUrl: string, useMax: boolean 
         aspect_ratio: "match_input_image",
         output_format: "jpg",
         safety_tolerance: 2,
-        prompt_upsampling: false
-      }
+        prompt_upsampling: false,
+      },
     });
 
     const response = await axios.post(
@@ -185,8 +208,8 @@ async function submitEditTask(prompt: string, imageUrl: string, useMax: boolean 
           aspect_ratio: "match_input_image",
           output_format: "jpg",
           safety_tolerance: 2,
-          prompt_upsampling: false
-        }
+          prompt_upsampling: false,
+        },
       },
       {
         headers: {
@@ -194,7 +217,7 @@ async function submitEditTask(prompt: string, imageUrl: string, useMax: boolean 
           "Content-Type": "application/json",
         },
         timeout: 30000, // 30秒超时
-      }
+      },
     );
 
     console.error(`API响应状态: ${response.status}`);
@@ -210,12 +233,15 @@ async function submitEditTask(prompt: string, imageUrl: string, useMax: boolean 
         url: error.config?.url,
       });
 
-      throw new Error(`图片编辑任务提交失败: ${error.response?.status} ${error.response?.statusText} - ${JSON.stringify(error.response?.data)}`);
+      throw new Error(
+        `图片编辑任务提交失败: ${error.response?.status} ${error.response?.statusText} - ${
+          JSON.stringify(error.response?.data)
+        }`,
+      );
     }
     throw error;
   }
 }
-
 
 // 查询任务状态 - 已注释（使用直接编辑接口时不需要）
 
@@ -231,7 +257,7 @@ async function getTaskStatus(taskId: string) {
           "Authorization": `Bearer ${API_KEY}`,
         },
         timeout: 10000, // 10秒超时
-      }
+      },
     );
 
     console.error(`查询状态响应: ${response.status}`);
@@ -251,14 +277,13 @@ async function getTaskStatus(taskId: string) {
         throw new Error(`任务不存在或已过期`);
       }
 
-      throw new Error(`查询任务状态失败: ${error.response?.status} ${error.response?.statusText}`);
+      throw new Error(
+        `查询任务状态失败: ${error.response?.status} ${error.response?.statusText}`,
+      );
     }
     throw error;
   }
 }
-
-
-
 
 async function waitForCompletion(taskId: string, maxAttempts: number = 30) {
   for (let i = 0; i < maxAttempts; i++) {
@@ -278,22 +303,23 @@ async function waitForCompletion(taskId: string, maxAttempts: number = 30) {
 
       // 显示当前状态
       const status = result.status || "starting";
-      console.error(`任务状态: ${status}，等待2秒后重试... (${i + 1}/${maxAttempts})`);
+      console.error(
+        `任务状态: ${status}，等待2秒后重试... (${i + 1}/${maxAttempts})`,
+      );
 
       // 等待2秒后重试
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     } catch (error) {
       console.error(`查询尝试 ${i + 1} 失败:`, error);
       if (i === maxAttempts - 1) {
         throw error;
       }
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
   }
 
   throw new Error("任务超时，请稍后重试");
 }
-
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
@@ -327,8 +353,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     // },
     {
       name: "edit_image",
-      description:
-        "编辑现有图像，支持在图片上添加、修改或删除元素。" +
+      description: "编辑现有图像，支持在图片上添加、修改或删除元素。" +
         "可以在图片中添加图案、在背景中添加物体、修改颜色风格等。" +
         "支持对人物、动物、物品进行精确编辑，如在短袖上添加图案、在帽子上加装饰等。" +
         "\n适用场景：给图片添加图案、在物体上加装饰、修改图片元素、改变图片风格等。",
@@ -462,7 +487,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       // 第二步：提交编辑任务
       console.error(`第二步：提交编辑任务，图片URL: ${imageUrl}`);
-      const taskResult = await submitEditTask(translatedPrompt, imageUrl, use_max);
+      const taskResult = await submitEditTask(
+        translatedPrompt,
+        imageUrl,
+        use_max,
+      );
 
       if (!taskResult.id) {
         throw new Error("任务提交失败，未获取到任务ID");
@@ -490,14 +519,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         content: [
           {
             type: "text",
-            text: `图像编辑成功！\n编辑后的图像已在默认浏览器中打开。\n\n编辑详情：\n- 模式: ${mode}\n- 原始提示词: "${prompt}"\n- 翻译后提示词: "${translatedPrompt}"\n- 原始图像路径: ${image}\n- 上传后图像URL: ${imageUrl}\n- 任务ID: ${taskId}\n- 编辑后图像: ${editedImgUrl}\n\n您也可以点击上面的URL再次查看编辑后的图像。`,
+            text:
+              `图像编辑成功！\n编辑后的图像已在默认浏览器中打开。\n\n编辑详情：\n- 模式: ${mode}\n- 原始提示词: "${prompt}"\n- 翻译后提示词: "${translatedPrompt}"\n- 原始图像路径: ${image}\n- 上传后图像URL: ${imageUrl}\n- 任务ID: ${taskId}\n- 编辑后图像: ${editedImgUrl}\n\n您也可以点击上面的URL再次查看编辑后的图像。`,
           },
         ],
       };
     } catch (error: unknown) {
       console.error("详细错误:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "未知错误";
+      const errorMessage = error instanceof Error ? error.message : "未知错误";
       return {
         content: [{ type: "text", text: `图像编辑错误: ${errorMessage}` }],
         isError: true,

@@ -21,16 +21,19 @@ pip install -r requirements.txt
 ## 使用示例
 
 ### 将剪切板表格插入Excel A1单元格并保存
+
 ```bash
 python server.py --target="report.xlsx" --content=clipboard --position="Sheet1!A1" --save
 ```
 
 ### 导入CSV到Word书签位置（追加模式）
+
 ```bash
 python server.py --target="data.doc" --content=file:data.csv --position="TableAnchor" --mode=append
 ```
 
 ### 插入JSON数据到PPT第三页标题
+
 ```bash
 python server.py --target="presentation.pptx" --content='{"text":"年度总结"}' --position="slide:3#Title"
 ```
@@ -62,15 +65,15 @@ python server.py --target="presentation.pptx" --content='{"text":"年度总结"}
 
 ## 异常处理
 
-| 错误代码 | 含义 | 解决方案 |
-|---------|------|---------|
-| DOC_LOCKED | 文档被占用 | 使用--force-unlock尝试解除占用 |
-| FONT_MISSING | 缺失字体 | 通过--font-map=宋体:SimSun手动映射 |
-| DATA_OVERFLOW | Excel单元格溢出 | 启用--auto-expand-rows自动增加行数 |
-| FORMAT_UNSUPPORTED | 不支持的格式 | 使用支持的文档格式 |
-| IMAGE_TOO_LARGE | 图片分辨率过大 | 图片尺寸不应超过10000x10000 |
-| CONFLICT_ERROR | 合并冲突 | 查看_conflict.log文件了解详情 |
-| VBA_REMOVED | VBA代码被移除 | 在Office环境下编辑包含宏的文档 |
+| 错误代码           | 含义            | 解决方案                           |
+| ------------------ | --------------- | ---------------------------------- |
+| DOC_LOCKED         | 文档被占用      | 使用--force-unlock尝试解除占用     |
+| FONT_MISSING       | 缺失字体        | 通过--font-map=宋体:SimSun手动映射 |
+| DATA_OVERFLOW      | Excel单元格溢出 | 启用--auto-expand-rows自动增加行数 |
+| FORMAT_UNSUPPORTED | 不支持的格式    | 使用支持的文档格式                 |
+| IMAGE_TOO_LARGE    | 图片分辨率过大  | 图片尺寸不应超过10000x10000        |
+| CONFLICT_ERROR     | 合并冲突        | 查看_conflict.log文件了解详情      |
+| VBA_REMOVED        | VBA代码被移除   | 在Office环境下编辑包含宏的文档     |
 
 ## 特殊功能
 
@@ -97,4 +100,4 @@ mcp-server-document-writer/
 
 ## 许可证
 
-此项目基于MIT许可证开源，详情请查看LICENSE文件。 
+此项目基于MIT许可证开源，详情请查看LICENSE文件。

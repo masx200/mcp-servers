@@ -1,6 +1,7 @@
 # 图书信息 MCP 服务器
 
-这是一个基于 Model Context Protocol (MCP) 的图书信息查询工具，允许 AI 模型通过 ISBN 或书名获取图书的详细信息。
+这是一个基于 Model Context Protocol (MCP) 的图书信息查询工具，允许 AI 模型通过
+ISBN 或书名获取图书的详细信息。
 
 ## 功能特点
 
@@ -12,6 +13,7 @@
 > 注意：需要在[极速数据](https://www.jisuapi.com/api/isbn/)申请"ISBN查询"API的APPCODE作为API密钥。
 
 ## 使用方法
+
 ```json
 {
   "mcpServers": {
@@ -49,6 +51,7 @@
 ### ISBN 查询示例
 
 输入:
+
 ```json
 {
   "isbn": "9787115428028"
@@ -56,6 +59,7 @@
 ```
 
 输出:
+
 ```json
 {
   "status": 0,
@@ -95,6 +99,7 @@
 ### 图书搜索示例
 
 输入:
+
 ```json
 {
   "title": "深入理解Java",
@@ -103,6 +108,7 @@
 ```
 
 输出:
+
 ```json
 {
   "status": 0,

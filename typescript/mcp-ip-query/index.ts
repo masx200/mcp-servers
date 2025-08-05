@@ -62,18 +62,18 @@ const GET_MY_IP_TOOL: Tool = {
   inputSchema: {
     type: "object",
     properties: {},
-    required: []
+    required: [],
   },
   outputSchema: {
     type: "object",
     properties: {
       ip: {
         type: "string",
-        description: "IP地址"
-      }
+        description: "IP地址",
+      },
     },
-    required: ["ip"]
-  }
+    required: ["ip"],
+  },
 };
 
 const GET_IP_LOCATION_TOOL: Tool = {
@@ -84,46 +84,46 @@ const GET_IP_LOCATION_TOOL: Tool = {
     properties: {
       ip: {
         type: "string",
-        description: "要查询的IP地址"
-      }
+        description: "要查询的IP地址",
+      },
     },
-    required: ["ip"]
+    required: ["ip"],
   },
   outputSchema: {
     type: "object",
     properties: {
       ip: {
         type: "string",
-        description: "IP地址"
+        description: "IP地址",
       },
       country: {
         type: "string",
-        description: "国家"
+        description: "国家",
       },
       region: {
         type: "string",
-        description: "省份/地区"
+        description: "省份/地区",
       },
       city: {
         type: "string",
-        description: "城市"
+        description: "城市",
       },
       isp: {
         type: "string",
-        description: "互联网服务提供商"
+        description: "互联网服务提供商",
       },
       orderNo: {
         type: "string",
-        description: "订单号"
-      }
+        description: "订单号",
+      },
     },
-    required: ["ip", "country", "region", "city", "isp"]
-  }
+    required: ["ip", "country", "region", "city", "isp"],
+  },
 };
 
 const IP_TOOLS = [
   GET_MY_IP_TOOL,
-  GET_IP_LOCATION_TOOL
+  GET_IP_LOCATION_TOOL,
 ] as const;
 
 // API处理函数
@@ -135,43 +135,43 @@ async function handleGetMyIP() {
       return {
         content: [{
           type: "text",
-          text: `获取IP地址失败: ${ipResponse.statusText}`
+          text: `获取IP地址失败: ${ipResponse.statusText}`,
         }],
-        isError: true
+        isError: true,
       };
     }
-    
+
     const ipData = await ipResponse.json() as IPAddressResponse;
     // 检查响应是否成功
     if (!ipData.success || ipData.code !== 200) {
       return {
         content: [{
           type: "text",
-          text: `获取IP地址失败: ${ipData.msg}`
+          text: `获取IP地址失败: ${ipData.msg}`,
         }],
-        isError: true
+        isError: true,
       };
     }
-    
+
     const ip = ipData.data;
-    
+
     // 然后获取IP地址的地理位置信息
     // return await getIPLocation(ip);
     return {
       structuredContent: { ip: ip },
       content: [{
         type: "text",
-        text: JSON.stringify({ ip: ip }, null, 2)
+        text: JSON.stringify({ ip: ip }, null, 2),
       }],
-      isError: false
+      isError: false,
     };
   } catch (error) {
     return {
       content: [{
         type: "text",
-        text: `错误: ${error instanceof Error ? error.message : String(error)}`
+        text: `错误: ${error instanceof Error ? error.message : String(error)}`,
       }],
-      isError: true
+      isError: true,
     };
   }
 }
@@ -184,56 +184,56 @@ async function handleGetIPLocation(ip: string) {
 async function getIPLocation(ip: string) {
   try {
     // 使用阿里云IP地址查询API
-    const host = 'https://kzipglobal.market.alicloudapi.com';
-    const path = '/api/ip/query';
+    const host = "https://kzipglobal.market.alicloudapi.com";
+    const path = "/api/ip/query";
     const url = `${host}${path}?ip=${ip}`;
-    
+
     const response = await fetch(url, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': 'APPCODE ' + ALIYUN_IP_API_KEY
-      }
+        "Authorization": "APPCODE " + ALIYUN_IP_API_KEY,
+      },
     });
-    
+
     if (!response.ok) {
       return {
         content: [{
           type: "text",
-          text: `获取IP地址位置信息失败: ${response.statusText}`
+          text: `获取IP地址位置信息失败: ${response.statusText}`,
         }],
-        isError: true
+        isError: true,
       };
     }
-    
+
     const result = await response.json() as AliyunIPLocationResponse;
-    
+
     const ipInfo: IPResponse = {
       ip: ip,
       country: result.data.nation || "未知",
       region: result.data.province || "未知",
       city: result.data.city || "未知",
       isp: result.data.isp || "未知",
-      orderNo: result.data.orderNo
+      orderNo: result.data.orderNo,
     };
-    
+
     return {
       structuredContent: ipInfo,
       content: [{
         type: "text",
-        text: JSON.stringify(ipInfo, null, 2)
+        text: JSON.stringify(ipInfo, null, 2),
       }, {
         type: "text",
-        text: `\n\n原始API响应数据:\n${JSON.stringify(result, null, 2)}`
+        text: `\n\n原始API响应数据:\n${JSON.stringify(result, null, 2)}`,
       }],
-      isError: false
+      isError: false,
     };
   } catch (error) {
     return {
       content: [{
         type: "text",
-        text: `错误: ${error instanceof Error ? error.message : String(error)}`
+        text: `错误: ${error instanceof Error ? error.message : String(error)}`,
       }],
-      isError: true
+      isError: true,
     };
   }
 }
@@ -262,28 +262,30 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "get_my_ip": {
         return await handleGetMyIP();
       }
-      
+
       case "get_ip_location": {
         const { ip } = request.params.arguments as { ip: string };
         return await handleGetIPLocation(ip);
       }
-      
+
       default:
         return {
           content: [{
             type: "text",
-            text: `Unknown tool: ${request.params.name}`
+            text: `Unknown tool: ${request.params.name}`,
           }],
-          isError: true
+          isError: true,
         };
     }
   } catch (error) {
     return {
       content: [{
         type: "text",
-        text: `Error: ${error instanceof Error ? error.message : String(error)}`
+        text: `Error: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
       }],
-      isError: true
+      isError: true,
     };
   }
 });
@@ -297,4 +299,4 @@ async function runServer() {
 runServer().catch((error) => {
   console.error("Fatal error running server:", error);
   process.exit(1);
-}); 
+});

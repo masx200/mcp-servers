@@ -1,6 +1,7 @@
 # MCP Open App Server
 
-一个基于 MCP (Model Context Protocol) 的轻量级应用程序启动服务器，支持搜索和打开系统中安装的应用程序。
+一个基于 MCP (Model Context Protocol)
+的轻量级应用程序启动服务器，支持搜索和打开系统中安装的应用程序。
 
 ## 功能特性
 
@@ -20,18 +21,21 @@
 ## 支持的平台
 
 ### macOS
+
 - 扫描 `/Applications` 目录
 - 扫描 `/System/Applications` 目录（可选）
 - 扫描用户 `~/Applications` 目录
 - 支持 `.app` 包
 
 ### Windows
+
 - 扫描 `C:\Program Files` 目录
 - 扫描 `C:\Program Files (x86)` 目录
 - 扫描用户程序目录
 - 支持 `.exe` 文件
 
 ### Linux
+
 - 扫描 `/usr/share/applications` 目录
 - 扫描 `/usr/local/share/applications` 目录
 - 扫描用户 `~/.local/share/applications` 目录
@@ -40,21 +44,25 @@
 ## 安装与使用
 
 ### 安装依赖
+
 ```bash
 npm install
 ```
 
 ### 编译项目
+
 ```bash
 npm run build
 ```
 
 ### 运行服务器
+
 ```bash
 npm start
 ```
 
 ### 开发模式
+
 ```bash
 npm run dev
 ```
@@ -64,12 +72,15 @@ npm run dev
 服务器提供以下三个工具：
 
 ### 1. search_apps
+
 搜索系统中安装的应用程序
 
 **参数:**
+
 - `query` (可选): 搜索关键词，支持应用名称和关键词搜索
 
 **示例:**
+
 ```json
 {
   "name": "search_apps",
@@ -80,12 +91,15 @@ npm run dev
 ```
 
 ### 2. open_app
+
 根据应用名称打开应用程序
 
 **参数:**
+
 - `appName` (必需): 要打开的应用程序名称
 
 **示例:**
+
 ```json
 {
   "name": "open_app",
@@ -96,9 +110,11 @@ npm run dev
 ```
 
 ### 3. get_platform_info
+
 获取当前系统平台信息
 
 **示例:**
+
 ```json
 {
   "name": "get_platform_info",
@@ -123,9 +139,11 @@ src/
 ## 依赖包
 
 ### 运行时依赖
+
 - `@modelcontextprotocol/sdk`: MCP 协议实现
 
 ### 开发依赖
+
 - `typescript`: TypeScript 编译器
 - `tsx`: TypeScript 执行器
 - `@types/node`: Node.js 类型定义
@@ -146,4 +164,4 @@ ISC License
 
 ## 作者
 
-传杰 
+传杰

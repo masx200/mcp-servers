@@ -28,10 +28,10 @@ const OIL_PRICE_TOOL: Tool = {
     properties: {
       prov: {
         type: "string",
-        description: "省份，如北京，广西"
-      }
+        description: "省份，如北京，广西",
+      },
     },
-    required: ["prov"]
+    required: ["prov"],
   },
   outputSchema: {
     type: "object",
@@ -58,14 +58,14 @@ const OIL_PRICE_TOOL: Tool = {
                 p95: { type: "string", description: "95号油价格" },
                 p97: { type: "string", description: "97号油价格" },
                 p98: { type: "string", description: "98号油价格" },
-                ct: { type: "string", description: "更新时间" }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+                ct: { type: "string", description: "更新时间" },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
 };
 
 const VEHICLE_LIMIT_TOOL: Tool = {
@@ -76,14 +76,14 @@ const VEHICLE_LIMIT_TOOL: Tool = {
     properties: {
       city: {
         type: "string",
-        description: "城市名称，如hangzhou"
+        description: "城市名称，如hangzhou",
       },
       date: {
         type: "string",
-        description: "日期，格式为YYYY-MM-DD，默认为今天"
-      }
+        description: "日期，格式为YYYY-MM-DD，默认为今天",
+      },
     },
-    required: ["city"]
+    required: ["city"],
   },
   outputSchema: {
     type: "object",
@@ -100,34 +100,34 @@ const VEHICLE_LIMIT_TOOL: Tool = {
           time: {
             type: "array",
             items: { type: "string" },
-            description: "限行时间段"
+            description: "限行时间段",
           },
           area: { type: "string", description: "限行区域详细描述" },
           summary: { type: "string", description: "限行规则摘要" },
           numberrule: { type: "string", description: "限行规则类型" },
-          number: { type: "string", description: "限行的尾号" }
-        }
-      }
-    }
-  }
+          number: { type: "string", description: "限行的尾号" },
+        },
+      },
+    },
+  },
 };
 
 const TOOLS = [OIL_PRICE_TOOL, VEHICLE_LIMIT_TOOL] as const;
 
 async function handleOilPriceQuery(prov: string) {
-  const host = 'https://smjryjcx.market.alicloudapi.com';
-  const path = '/oil/price';
+  const host = "https://smjryjcx.market.alicloudapi.com";
+  const path = "/oil/price";
   const encodedProv = encodeURIComponent(prov);
   const url = `${host}${path}?prov=${encodedProv}`;
 
   const headers = {
-    "Authorization": `APPCODE ${OIL_PRICE_API_KEY}`
+    "Authorization": `APPCODE ${OIL_PRICE_API_KEY}`,
   };
 
   try {
     const response = await fetch(url, {
-      method: 'GET',
-      headers: headers
+      method: "GET",
+      headers: headers,
     });
 
     if (!response.ok) {
@@ -139,18 +139,18 @@ async function handleOilPriceQuery(prov: string) {
       structuredContent: data,
       content: [{
         type: "text",
-        text: JSON.stringify(data, null, 2)
+        text: JSON.stringify(data, null, 2),
       }],
-      isError: false
+      isError: false,
     };
   } catch (error: any) {
     console.error("请求出错:", error);
     return {
       content: [{
         type: "text",
-        text: `查询出错: ${error.message}`
+        text: `查询出错: ${error.message}`,
       }],
-      isError: true
+      isError: true,
     };
   }
 }
@@ -159,23 +159,23 @@ async function handleVehicleLimitQuery(city: string, date: string) {
   // 如果没有提供日期参数，设置为今天
   if (!date) {
     const today = new Date();
-    date = today.toISOString().split('T')[0]; // 格式化为 YYYY-MM-DD
+    date = today.toISOString().split("T")[0]; // 格式化为 YYYY-MM-DD
   }
 
-  const host = 'https://jisuclwhxx.market.alicloudapi.com';
-  const path = '/vehiclelimit/query';
+  const host = "https://jisuclwhxx.market.alicloudapi.com";
+  const path = "/vehiclelimit/query";
   const encodedCity = encodeURIComponent(city);
   const encodedDate = encodeURIComponent(date);
   const url = `${host}${path}?city=${encodedCity}&date=${encodedDate}`;
 
   const headers = {
-    "Authorization": `APPCODE ${OIL_PRICE_API_KEY}`
+    "Authorization": `APPCODE ${OIL_PRICE_API_KEY}`,
   };
 
   try {
     const response = await fetch(url, {
-      method: 'GET',
-      headers: headers
+      method: "GET",
+      headers: headers,
     });
 
     if (!response.ok) {
@@ -187,18 +187,18 @@ async function handleVehicleLimitQuery(city: string, date: string) {
       structuredContent: data,
       content: [{
         type: "text",
-        text: JSON.stringify(data, null, 2)
+        text: JSON.stringify(data, null, 2),
       }],
-      isError: false
+      isError: false,
     };
   } catch (error: any) {
     console.error("请求出错:", error);
     return {
       content: [{
         type: "text",
-        text: `查询出错: ${error.message}`
+        text: `查询出错: ${error.message}`,
       }],
-      isError: true
+      isError: true,
     };
   }
 }
@@ -229,25 +229,28 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return await handleOilPriceQuery(prov);
       }
       case "vehicle_limit_query": {
-        const { city, date } = request.params.arguments as { city: string; date: string };
+        const { city, date } = request.params.arguments as {
+          city: string;
+          date: string;
+        };
         return await handleVehicleLimitQuery(city, date);
       }
       default:
         return {
           content: [{
             type: "text",
-            text: `未知工具: ${request.params.name}`
+            text: `未知工具: ${request.params.name}`,
           }],
-          isError: true
+          isError: true,
         };
     }
   } catch (error) {
     return {
       content: [{
         type: "text",
-        text: `错误: ${error instanceof Error ? error.message : String(error)}`
+        text: `错误: ${error instanceof Error ? error.message : String(error)}`,
       }],
-      isError: true
+      isError: true,
     };
   }
 });

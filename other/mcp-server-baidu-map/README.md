@@ -6,18 +6,18 @@ MCP Server for the Baidu Map API.
 
 1. `map_geocode`
    - 地理编码服务
-   - Input: 
+   - Input:
      - `address` (string): 待解析的地址。最多支持84个字节。
        可以输入两种样式的值，分别是
        1. 标准的结构化地址信息，如北京市海淀区上地十街十号【推荐，地址结构越完整，解析精度越高】
        2. 支持“*路与*路交叉口”描述方式，如北一环路和阜阳路的交叉路口
           第二种方式并不总是有返回结果，只有当地址库中存在该地址描述时才有返回。
-   - Returns: 
-     - `location`: { lat: number, lng: number } 
-     - `precise`: number 
-     - `confidence`: number 
-     - `comprehension`: number 
-     - `level`: string 
+   - Returns:
+     - `location`: { lat: number, lng: number }
+     - `precise`: number
+     - `confidence`: number
+     - `comprehension`: number
+     - `level`: string
 
 2. `map_reverse_geocode`
    - 全球逆地理编码
@@ -35,8 +35,7 @@ MCP Server for the Baidu Map API.
        - `location`: { lng: number, lat: number }
        - `adcode`: number
        - `distance`: number
-       - `direction`: string
-     }
+       - `direction`: string }
      - `addressComponent`: {
        - `country`: string
        - `province`: string
@@ -44,8 +43,7 @@ MCP Server for the Baidu Map API.
        - `district`: string
        - `street`: string
        - `street_number`: string
-       - (and other detailed address components)
-     }
+       - (and other detailed address components) }
      - `pois`: Array of POI information
      - `roads`: Array of nearby roads
      - `poiRegions`: Array of POI regions
@@ -57,24 +55,24 @@ MCP Server for the Baidu Map API.
    - Inputs:
      - `query` (string): 检索关键字
      - `region` (string, 可选): 检索行政区划区域，如"北京"
-     - `bounds` (string, 可选): 检索多边形区域，格式如"38.76623,116.43213,39.54321,116.46773"
+     - `bounds` (string, 可选):
+       检索多边形区域，格式如"38.76623,116.43213,39.54321,116.46773"
      - `location` (string, 可选): 圆形区域检索中心点，格式如"39.915,116.404"
-     注意：region、bounds、location 三个参数必须且只能选择其中一个
+       注意：region、bounds、location 三个参数必须且只能选择其中一个
    - Returns:
-     - `result_type`: string 
+     - `result_type`: string
      - `query_type`: string
      - `places`: Array of {
-       - `name`: string 
-       - `location`: { lat: number, lng: number } 
-       - `address`: string 
-       - `province`: string 
-       - `city`: string 
-       - `area`: string 
-       - `street_id`: string 
-       - `telephone`: string 
-       - `detail`: number 
-       - `uid`: string 
-     }
+       - `name`: string
+       - `location`: { lat: number, lng: number }
+       - `address`: string
+       - `province`: string
+       - `city`: string
+       - `area`: string
+       - `street_id`: string
+       - `telephone`: string
+       - `detail`: number
+       - `uid`: string }
 
 4. `map_place_details`
    - 地点详情检索服务
@@ -83,8 +81,7 @@ MCP Server for the Baidu Map API.
      - `scope` (string, 可选): 检索结果详细程度
        - 1 或空: 返回基本信息
        - 2: 返回检索POI详细信息
-   - Returns:
-     基本信息 (scope=1):
+   - Returns: 基本信息 (scope=1):
      - `uid`: string
      - `street_id`: string
      - `name`: string
@@ -95,8 +92,7 @@ MCP Server for the Baidu Map API.
      - `area`: string
      - `detail`: number
 
-     详细信息 (scope=2):
-     包含基本信息，并额外返回：
+     详细信息 (scope=2): 包含基本信息，并额外返回：
      - `detail_info`: {
        - `tag`: string
        - `navi_location`: { lng: number, lat: number }
@@ -107,8 +103,7 @@ MCP Server for the Baidu Map API.
        - `overall_rating`: string
        - `image_num`: string
        - `comment_num`: string
-       - `content_tag`: string 
-     }
+       - `content_tag`: string }
 
 5. `map_distance_matrix`
    - 计算多个出发地和目的地的距离和路线用时
@@ -152,10 +147,13 @@ MCP Server for the Baidu Map API.
       - `desc` string
       - `image` string
       - `poi` Array of POI information
+
 ## Setup
 
 ### API Key
-Get a Baidu Map API key by following the instructions [here](https://lbsyun.baidu.com/faq/search?id=299&title=677).
+
+Get a Baidu Map API key by following the instructions
+[here](https://lbsyun.baidu.com/faq/search?id=299&title=677).
 
 ### Usage with Claude Desktop
 
@@ -182,4 +180,7 @@ Add the following to your `claude_desktop_config.json`:
 
 ## License
 
-This MCP server is licensed under the MIT License. This means you are free to use, modify, and distribute the software, subject to the terms and conditions of the MIT License. For more details, please see the LICENSE file in the project repository.
+This MCP server is licensed under the MIT License. This means you are free to
+use, modify, and distribute the software, subject to the terms and conditions of
+the MIT License. For more details, please see the LICENSE file in the project
+repository.

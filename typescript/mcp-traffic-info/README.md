@@ -1,6 +1,7 @@
 # 交通信息查询工具
 
-这是一个基于 Model Context Protocol (MCP) 的交通信息查询工具,允许 AI 模型查询实时油价和车辆限行信息。
+这是一个基于 Model Context Protocol (MCP) 的交通信息查询工具,允许 AI
+模型查询实时油价和车辆限行信息。
 
 ## 功能特点
 
@@ -10,7 +11,8 @@
 
 ## 环境配置
 
-> 注意:需要在[阿里云市场](https://market.aliyun.com/)申请"今日油价"和"机动车尾号限行"API 的 APPCODE 作为 API 密钥。
+> 注意:需要在[阿里云市场](https://market.aliyun.com/)申请"今日油价"和"机动车尾号限行"API
+> 的 APPCODE 作为 API 密钥。
 
 ## 使用方法
 
@@ -51,6 +53,7 @@
 ### 油价查询示例
 
 输入:
+
 ```json
 {
   "prov": "北京"
@@ -58,6 +61,7 @@
 ```
 
 输出:
+
 ```json
 {
   "status": "0",
@@ -77,6 +81,7 @@
 ### 车辆限行查询示例
 
 输入:
+
 ```json
 {
   "city": "hangzhou",
@@ -85,6 +90,7 @@
 ```
 
 输出:
+
 ```json
 {
   "status": "0",

@@ -16,9 +16,11 @@
 ## 工具
 
 ### take_screenshot
+
 截取屏幕截图
 
 **参数：**
+
 - `path` (必需): 保存截图的文件路径
 - `type` (必需): 截图类型（fullscreen, window, selection）
 - `format` (可选): 图片格式（png, jpg, pdf, tiff），默认png
@@ -48,6 +50,7 @@ pnpm start
 ## Linux依赖
 
 Linux系统需要安装截图工具之一：
+
 - gnome-screenshot（GNOME桌面默认）
 - scrot
 - ImageMagick (import命令)
@@ -56,6 +59,7 @@ Linux系统需要安装截图工具之一：
 ## 示例
 
 全屏截图：
+
 ```json
 {
   "path": "/path/to/screenshot.png",
@@ -67,6 +71,7 @@ Linux系统需要安装截图工具之一：
 ```
 
 窗口截图：
+
 ```json
 {
   "path": "/path/to/window.jpg",
@@ -77,9 +82,10 @@ Linux系统需要安装截图工具之一：
 ```
 
 区域选择截图：
+
 ```json
 {
   "path": "/path/to/selection.png",
   "type": "selection"
 }
-``` 
+```

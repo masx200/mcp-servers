@@ -218,8 +218,10 @@ npm run dev
 
 - `inputPaths`: 待处理图片路径
 - `text`: 水印内容（文字）
-- `position`: 水印添加方式（必填，可能的取值为：top-left（左上）、top-right（右上）、bottom-left（左下）、bottom-right（右下）、center（中央）、tile（铺满））
-- `density`: 满铺密度（可选参数，在水印添加方式为铺满时有效，取值范围为1-10的整数，1最稀疏，10最密）
+- `position`:
+  水印添加方式（必填，可能的取值为：top-left（左上）、top-right（右上）、bottom-left（左下）、bottom-right（右下）、center（中央）、tile（铺满））
+- `density`:
+  满铺密度（可选参数，在水印添加方式为铺满时有效，取值范围为1-10的整数，1最稀疏，10最密）
 - `fontSize`: 文字尺寸（可选参数，单位为像素，不传则根据图片尺寸自动计算）
 - `overwrite`: 是否覆盖原图（可选，默认为false）
 - `outputPath`: 存储路径（可选，不覆盖原图时如果没传则为原图所在目录）
@@ -278,10 +280,8 @@ npm run build
 npm start
 ```
 
-
-
 ## 依赖
 
 - sharp: 用于图片处理
 - @modelcontextprotocol/sdk: MCP SDK
-- TypeScript: 用于类型检查和编译 
+- TypeScript: 用于类型检查和编译

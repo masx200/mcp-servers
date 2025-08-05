@@ -1,6 +1,8 @@
 # MCP 图像编辑器
 
-一个基于云雾AI API的MCP (Model Context Protocol) 服务器，提供强大的图像编辑功能。该服务器集成了FLUX Kontext Pro模型，支持对现有图像进行智能编辑，如添加图案、修改元素、改变风格等。
+一个基于云雾AI API的MCP (Model Context Protocol)
+服务器，提供强大的图像编辑功能。该服务器集成了FLUX Kontext
+Pro模型，支持对现有图像进行智能编辑，如添加图案、修改元素、改变风格等。
 
 ## 功能特性
 
@@ -34,16 +36,19 @@ export BAIDU_TRANSLATE_APP_KEY="your_baidu_app_key"
 ## 安装步骤
 
 1. 克隆项目并进入目录：
+
 ```bash
 cd typescript/mcp-image-editor
 ```
 
 2. 安装依赖：
+
 ```bash
 npm install
 ```
 
 3. 构建项目：
+
 ```bash
 npm run build
 ```
@@ -82,6 +87,7 @@ node dist/index.js
 编辑现有图像，支持在图片上添加、修改或删除元素。
 
 **参数：**
+
 - `prompt` (必需): 描述如何编辑图像的文本提示
 - `image` (必需): 要编辑的原始图像本地文件路径
 - `use_max` (可选): 是否使用max模式（效果更好但可能更慢），默认false
@@ -89,6 +95,7 @@ node dist/index.js
 - `n` (可选): 生成图像的数量，默认1
 
 **使用示例：**
+
 ```javascript
 // 在T恤上添加图案
 {
@@ -117,17 +124,17 @@ node dist/index.js
 
 ### 核心组件
 
-1. **翻译模块** (`translate-utils.ts`): 
+1. **翻译模块** (`translate-utils.ts`):
    - 使用百度翻译API将中文提示词翻译为英文
    - 自动检测中文字符
    - 错误处理和降级机制
 
-2. **图像上传模块**: 
+2. **图像上传模块**:
    - 支持本地图像文件上传到MCP服务器
    - 自动文件格式检测
    - 文件大小和格式验证
 
-3. **异步编辑引擎**: 
+3. **异步编辑引擎**:
    - 基于FLUX Kontext Pro模型
    - 支持任务提交和状态查询
    - 自动重试和错误恢复
@@ -186,6 +193,7 @@ MIT License
 ## 更新日志
 
 ### v0.1
+
 - 初始版本
 - 支持图像编辑功能
 - 集成百度翻译API

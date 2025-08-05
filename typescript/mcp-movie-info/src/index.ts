@@ -31,9 +31,9 @@ const MOVIE_TOOLS: Tool[] = [
       properties: {
         cityid: { type: "string", description: "城市ID" },
         city: { type: "string", description: "城市名称" },
-        date: { type: "string", description: "日期，格式：YYYY-MM-DD" }
+        date: { type: "string", description: "日期，格式：YYYY-MM-DD" },
       },
-      required: ["city"]
+      required: ["city"],
     },
     outputSchema: {
       type: "object",
@@ -53,14 +53,14 @@ const MOVIE_TOOLS: Tool[] = [
                 properties: {
                   movieid: { type: "string", description: "电影ID" },
                   moviename: { type: "string", description: "电影名称" },
-                  pic: { type: "string", description: "电影海报图片URL" }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                  pic: { type: "string", description: "电影海报图片URL" },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   {
     name: "movie_theaters",
@@ -71,9 +71,9 @@ const MOVIE_TOOLS: Tool[] = [
         cityid: { type: "string", description: "城市ID" },
         city: { type: "string", description: "城市名称" },
         movieid: { type: "string", description: "电影ID" },
-        date: { type: "string", description: "日期，格式：YYYY-MM-DD" }
+        date: { type: "string", description: "日期，格式：YYYY-MM-DD" },
       },
-      required: ["city", "movieid"]
+      required: ["city", "movieid"],
     },
     outputSchema: {
       type: "object",
@@ -95,14 +95,14 @@ const MOVIE_TOOLS: Tool[] = [
                 properties: {
                   theaterid: { type: "string", description: "电影院ID" },
                   theatername: { type: "string", description: "电影院名称" },
-                  address: { type: "string", description: "电影院地址" }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                  address: { type: "string", description: "电影院地址" },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   {
     name: "theater_movies",
@@ -111,9 +111,9 @@ const MOVIE_TOOLS: Tool[] = [
       type: "object",
       properties: {
         theaterid: { type: "string", description: "电影院ID" },
-        date: { type: "string", description: "日期，格式：YYYY-MM-DD" }
+        date: { type: "string", description: "日期，格式：YYYY-MM-DD" },
       },
-      required: ["theaterid"]
+      required: ["theaterid"],
     },
     outputSchema: {
       type: "object",
@@ -134,14 +134,14 @@ const MOVIE_TOOLS: Tool[] = [
                 properties: {
                   movieid: { type: "string", description: "电影ID" },
                   moviename: { type: "string", description: "电影名称" },
-                  pic: { type: "string", description: "电影海报图片URL" }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                  pic: { type: "string", description: "电影海报图片URL" },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   {
     name: "movie_detail",
@@ -150,9 +150,9 @@ const MOVIE_TOOLS: Tool[] = [
       type: "object",
       properties: {
         movieid: { type: "string", description: "电影ID" },
-        moviename: { type: "string", description: "电影名称" }
+        moviename: { type: "string", description: "电影名称" },
       },
-      required: ["movieid"]
+      required: ["movieid"],
     },
     outputSchema: {
       type: "object",
@@ -173,11 +173,11 @@ const MOVIE_TOOLS: Tool[] = [
             duration: { type: "string", description: "片长" },
             score: { type: "string", description: "评分" },
             releasedate: { type: "string", description: "上映日期" },
-            content: { type: "string", description: "电影简介" }
-          }
-        }
-      }
-    }
+            content: { type: "string", description: "电影简介" },
+          },
+        },
+      },
+    },
   },
   {
     name: "city_theaters",
@@ -187,9 +187,9 @@ const MOVIE_TOOLS: Tool[] = [
       properties: {
         cityid: { type: "string", description: "城市ID" },
         city: { type: "string", description: "城市名称" },
-        keyword: { type: "string", description: "关键词" }
+        keyword: { type: "string", description: "关键词" },
       },
-      required: ["city"]
+      required: ["city"],
     },
     outputSchema: {
       type: "object",
@@ -209,14 +209,14 @@ const MOVIE_TOOLS: Tool[] = [
                   theaterid: { type: "string", description: "电影院ID" },
                   theatername: { type: "string", description: "电影院名称" },
                   address: { type: "string", description: "电影院地址" },
-                  tel: { type: "string", description: "电影院电话" }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                  tel: { type: "string", description: "电影院电话" },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   {
     name: "movie_cities",
@@ -224,8 +224,8 @@ const MOVIE_TOOLS: Tool[] = [
     inputSchema: {
       type: "object",
       properties: {
-        parentid: { type: "string", description: "上级ID" }
-      }
+        parentid: { type: "string", description: "上级ID" },
+      },
     },
     outputSchema: {
       type: "object",
@@ -242,20 +242,22 @@ const MOVIE_TOOLS: Tool[] = [
               parentid: { type: "string", description: "上级ID" },
               parentname: { type: "string", description: "上级名称" },
               topname: { type: "string", description: "顶级名称" },
-              depth: { type: "string", description: "层级深度" }
-            }
-          }
-        }
-      }
-    }
-  }
+              depth: { type: "string", description: "层级深度" },
+            },
+          },
+        },
+      },
+    },
+  },
 ];
 
 // API请求处理函数
 async function handleApiRequest(endpoint: string, params: any) {
   const url = new URL(`https://api.jisuapi.com/movie/${endpoint}`);
-  Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
-  url.searchParams.append('appkey', MOVIE_API_KEY);
+  Object.keys(params).forEach((key) =>
+    url.searchParams.append(key, params[key])
+  );
+  url.searchParams.append("appkey", MOVIE_API_KEY);
 
   try {
     const response = await fetch(url.toString());
@@ -267,18 +269,18 @@ async function handleApiRequest(endpoint: string, params: any) {
       structuredContent: data,
       content: [{
         type: "text",
-        text: JSON.stringify(data, null, 2)
+        text: JSON.stringify(data, null, 2),
       }],
-      isError: false
+      isError: false,
     };
   } catch (error: any) {
     console.error("API请求错误:", error);
     return {
       content: [{
         type: "text",
-        text: `API请求错误: ${error.message}`
+        text: `API请求错误: ${error.message}`,
       }],
-      isError: true
+      isError: true,
     };
   }
 }
@@ -305,33 +307,33 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     switch (request.params.name) {
       case "current_movies":
-        return await handleApiRequest('on', request.params.arguments);
+        return await handleApiRequest("on", request.params.arguments);
       case "movie_theaters":
-        return await handleApiRequest('movietheater', request.params.arguments);
+        return await handleApiRequest("movietheater", request.params.arguments);
       case "theater_movies":
-        return await handleApiRequest('theatermovie', request.params.arguments);
+        return await handleApiRequest("theatermovie", request.params.arguments);
       case "movie_detail":
-        return await handleApiRequest('detail', request.params.arguments);
+        return await handleApiRequest("detail", request.params.arguments);
       case "city_theaters":
-        return await handleApiRequest('theater', request.params.arguments);
+        return await handleApiRequest("theater", request.params.arguments);
       case "movie_cities":
-        return await handleApiRequest('city', request.params.arguments);
+        return await handleApiRequest("city", request.params.arguments);
       default:
         return {
           content: [{
             type: "text",
-            text: `未知工具: ${request.params.name}`
+            text: `未知工具: ${request.params.name}`,
           }],
-          isError: true
+          isError: true,
         };
     }
   } catch (error) {
     return {
       content: [{
         type: "text",
-        text: `错误: ${error instanceof Error ? error.message : String(error)}`
+        text: `错误: ${error instanceof Error ? error.message : String(error)}`,
       }],
-      isError: true
+      isError: true,
     };
   }
 });

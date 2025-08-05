@@ -13,15 +13,18 @@
 ## 工具
 
 ### prompt_user
+
 显示对话框获取用户输入
 
 **参数：**
+
 - `message` (必需): 对话框显示的消息
 - `defaultAnswer` (可选): 默认预填文本
 - `buttons` (可选): 自定义按钮标签（最多3个）
 - `icon` (可选): 显示图标（note, stop, caution）
 
 **返回值：**
+
 ```json
 {
   "text": "用户输入的文本",
@@ -60,9 +63,10 @@ pnpm start
 ```
 
 返回：
+
 ```json
 {
   "text": "李四",
   "buttonIndex": 1
 }
-``` 
+```

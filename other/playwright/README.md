@@ -1,14 +1,20 @@
 ## Playwright MCP
 
-A Model Context Protocol (MCP) server that provides browser automation capabilities using [Playwright](https://playwright.dev). This server enables LLMs to interact with web pages through structured accessibility snapshots, bypassing the need for screenshots or visually-tuned models.
+A Model Context Protocol (MCP) server that provides browser automation
+capabilities using [Playwright](https://playwright.dev). This server enables
+LLMs to interact with web pages through structured accessibility snapshots,
+bypassing the need for screenshots or visually-tuned models.
 
 ### Key Features
 
-- **Fast and lightweight**. Uses Playwright's accessibility tree, not pixel-based input.
+- **Fast and lightweight**. Uses Playwright's accessibility tree, not
+  pixel-based input.
 - **LLM-friendly**. No vision models needed, operates purely on structured data.
-- **Deterministic tool application**. Avoids ambiguity common with screenshot-based approaches.
+- **Deterministic tool application**. Avoids ambiguity common with
+  screenshot-based approaches.
 
 ### Requirements
+
 - Node.js 18 or newer
 - VS Code, Cursor, Windsurf, Claude Desktop or any other MCP client
 
@@ -19,7 +25,8 @@ node utils/generate-links.js
 
 ### Getting started
 
-First, install the Playwright MCP server with your client. A typical configuration looks like this:
+First, install the Playwright MCP server with your client. A typical
+configuration looks like this:
 
 ```js
 {
@@ -34,8 +41,8 @@ First, install the Playwright MCP server with your client. A typical configurati
 }
 ```
 
-[<img src="https://img.shields.io/badge/VS_Code-VS_Code?style=flat-square&label=Install%20Server&color=0098FF" alt="Install in VS Code">](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522playwright%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522%2540playwright%252Fmcp%2540latest%2522%255D%257D) [<img alt="Install in VS Code Insiders" src="https://img.shields.io/badge/VS_Code_Insiders-VS_Code_Insiders?style=flat-square&label=Install%20Server&color=24bfa5">](https://insiders.vscode.dev/redirect?url=vscode-insiders%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522playwright%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522%2540playwright%252Fmcp%2540latest%2522%255D%257D)
-
+[<img src="https://img.shields.io/badge/VS_Code-VS_Code?style=flat-square&label=Install%20Server&color=0098FF" alt="Install in VS Code">](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522playwright%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522%2540playwright%252Fmcp%2540latest%2522%255D%257D)
+[<img alt="Install in VS Code Insiders" src="https://img.shields.io/badge/VS_Code_Insiders-VS_Code_Insiders?style=flat-square&label=Install%20Server&color=24bfa5">](https://insiders.vscode.dev/redirect?url=vscode-insiders%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522playwright%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522%2540playwright%252Fmcp%2540latest%2522%255D%257D)
 
 <details><summary><b>Install in VS Code</b></summary>
 
@@ -46,13 +53,17 @@ You can also install the Playwright MCP server using the VS Code CLI:
 code --add-mcp '{"name":"playwright","command":"npx","args":["@playwright/mcp@latest"]}'
 ```
 
-After installation, the Playwright MCP server will be available for use with your GitHub Copilot agent in VS Code.
+After installation, the Playwright MCP server will be available for use with
+your GitHub Copilot agent in VS Code.
+
 </details>
 
 <details>
 <summary><b>Install in Cursor</b></summary>
 
-Go to `Cursor Settings` -> `MCP` -> `Add new MCP Server`. Name to your liking, use `command` type with the command `npx @playwright/mcp`. You can also verify config or add command like arguments via clicking `Edit`.
+Go to `Cursor Settings` -> `MCP` -> `Add new MCP Server`. Name to your liking,
+use `command` type with the command `npx @playwright/mcp`. You can also verify
+config or add command like arguments via clicking `Edit`.
 
 ```js
 {
@@ -66,12 +77,15 @@ Go to `Cursor Settings` -> `MCP` -> `Add new MCP Server`. Name to your liking, u
   }
 }
 ```
+
 </details>
 
 <details>
 <summary><b>Install in Windsurf</b></summary>
 
-Follow Windsuff MCP [documentation](https://docs.windsurf.com/windsurf/cascade/mcp). Use following configuration:
+Follow Windsuff MCP
+[documentation](https://docs.windsurf.com/windsurf/cascade/mcp). Use following
+configuration:
 
 ```js
 {
@@ -85,12 +99,14 @@ Follow Windsuff MCP [documentation](https://docs.windsurf.com/windsurf/cascade/m
   }
 }
 ```
+
 </details>
 
 <details>
 <summary><b>Install in Claude Desktop</b></summary>
 
-Follow the MCP install [guide](https://modelcontextprotocol.io/quickstart/user), use following configuration:
+Follow the MCP install [guide](https://modelcontextprotocol.io/quickstart/user),
+use following configuration:
 
 ```js
 {
@@ -104,11 +120,13 @@ Follow the MCP install [guide](https://modelcontextprotocol.io/quickstart/user),
   }
 }
 ```
+
 </details>
 
 ### Configuration
 
-Playwright MCP server supports following arguments. They can be provided in the JSON configuration above, as a part of the `"args"` list:
+Playwright MCP server supports following arguments. They can be provided in the
+JSON configuration above, as a part of the `"args"` list:
 
 <!--- Options generated by update-readme.js -->
 
@@ -163,12 +181,15 @@ Playwright MCP server supports following arguments. They can be provided in the 
 
 ### User profile
 
-You can run Playwright MCP with persistent profile like a regular browser (default), or in the isolated contexts for the testing sessions.
+You can run Playwright MCP with persistent profile like a regular browser
+(default), or in the isolated contexts for the testing sessions.
 
 **Persistent profile**
 
-All the logged in information will be stored in the persistent profile, you can delete it between sessions if you'd like to clear the offline state.
-Persistent profile is located at the following locations and you can override it with the `--user-data-dir` argument.
+All the logged in information will be stored in the persistent profile, you can
+delete it between sessions if you'd like to clear the offline state. Persistent
+profile is located at the following locations and you can override it with the
+`--user-data-dir` argument.
 
 ```bash
 # Windows
@@ -183,10 +204,11 @@ Persistent profile is located at the following locations and you can override it
 
 **Isolated**
 
-In the isolated mode, each session is started in the isolated profile. Every time you ask MCP to close the browser,
-the session is closed and all the storage state for this session is lost. You can provide initial storage state
-to the browser via the config's `contextOptions` or via the `--storage-state` argument. Learn more about the storage
-state [here](https://playwright.dev/docs/auth).
+In the isolated mode, each session is started in the isolated profile. Every
+time you ask MCP to close the browser, the session is closed and all the storage
+state for this session is lost. You can provide initial storage state to the
+browser via the config's `contextOptions` or via the `--storage-state` argument.
+Learn more about the storage state [here](https://playwright.dev/docs/auth).
 
 ```js
 {
@@ -205,8 +227,8 @@ state [here](https://playwright.dev/docs/auth).
 
 ### Configuration file
 
-The Playwright MCP server can be configured using a JSON configuration file. You can specify the configuration file
-using the `--config` command line option:
+The Playwright MCP server can be configured using a JSON configuration file. You
+can specify the configuration file using the `--config` command line option:
 
 ```bash
 npx @playwright/mcp@latest --config path/to/config.json
@@ -290,12 +312,14 @@ npx @playwright/mcp@latest --config path/to/config.json
   noImageResponses?: boolean;
 }
 ```
+
 </details>
 
 ### Standalone MCP server
 
-When running headed browser on system w/o display or from worker processes of the IDEs,
-run the MCP server from environment with the DISPLAY and pass the `--port` flag to enable SSE transport.
+When running headed browser on system w/o display or from worker processes of
+the IDEs, run the MCP server from environment with the DISPLAY and pass the
+`--port` flag to enable SSE transport.
 
 ```bash
 npx @playwright/mcp@latest --port 8931
@@ -316,7 +340,8 @@ And then in MCP client config, set the `url` to the SSE endpoint:
 <details>
 <summary><b>Docker</b></summary>
 
-**NOTE:** The Docker implementation only supports headless chromium at the moment.
+**NOTE:** The Docker implementation only supports headless chromium at the
+moment.
 
 ```js
 {
@@ -334,35 +359,40 @@ You can build the Docker image yourself.
 ```
 docker build -t mcr.microsoft.com/playwright/mcp .
 ```
+
 </details>
 
 <details>
 <summary><b>Programmatic usage</b></summary>
 
 ```js
-import http from 'http';
+import http from "http";
 
-import { createConnection } from '@playwright/mcp';
-import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
+import { createConnection } from "@playwright/mcp";
+import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 
 http.createServer(async (req, res) => {
   // ...
 
   // Creates a headless Playwright MCP server with SSE transport
-  const connection = await createConnection({ browser: { launchOptions: { headless: true } } });
-  const transport = new SSEServerTransport('/messages', res);
+  const connection = await createConnection({
+    browser: { launchOptions: { headless: true } },
+  });
+  const transport = new SSEServerTransport("/messages", res);
   await connection.connect(transport);
 
   // ...
 });
 ```
+
 </details>
 
 ### Tools
 
 The tools are available in two modes:
 
-1. **Snapshot Mode** (default): Uses accessibility snapshots for better performance and reliability
+1. **Snapshot Mode** (default): Uses accessibility snapshots for better
+   performance and reliability
 2. **Vision Mode**: Uses screenshots for visual-based interactions
 
 To use Vision Mode, add the `--vision` flag when starting the server:
@@ -381,8 +411,8 @@ To use Vision Mode, add the `--vision` flag when starting the server:
 }
 ```
 
-Vision Mode works best with the computer use models that are able to interact with elements using
-X Y coordinate space, based on the provided screenshot.
+Vision Mode works best with the computer use models that are able to interact
+with elements using X Y coordinate space, based on the provided screenshot.
 
 <!--- Tools generated by update-readme.js -->
 
@@ -393,7 +423,8 @@ X Y coordinate space, based on the provided screenshot.
 
 - **browser_snapshot**
   - Title: Page snapshot
-  - Description: Capture accessibility snapshot of the current page, this is better than screenshot
+  - Description: Capture accessibility snapshot of the current page, this is
+    better than screenshot
   - Parameters: None
   - Read-only: **true**
 
@@ -403,7 +434,8 @@ X Y coordinate space, based on the provided screenshot.
   - Title: Click
   - Description: Perform click on a web page
   - Parameters:
-    - `element` (string): Human-readable element description used to obtain permission to interact with the element
+    - `element` (string): Human-readable element description used to obtain
+      permission to interact with the element
     - `ref` (string): Exact target element reference from the page snapshot
   - Read-only: **false**
 
@@ -413,9 +445,11 @@ X Y coordinate space, based on the provided screenshot.
   - Title: Drag mouse
   - Description: Perform drag and drop between two elements
   - Parameters:
-    - `startElement` (string): Human-readable source element description used to obtain the permission to interact with the element
+    - `startElement` (string): Human-readable source element description used to
+      obtain the permission to interact with the element
     - `startRef` (string): Exact source element reference from the page snapshot
-    - `endElement` (string): Human-readable target element description used to obtain the permission to interact with the element
+    - `endElement` (string): Human-readable target element description used to
+      obtain the permission to interact with the element
     - `endRef` (string): Exact target element reference from the page snapshot
   - Read-only: **false**
 
@@ -425,7 +459,8 @@ X Y coordinate space, based on the provided screenshot.
   - Title: Hover mouse
   - Description: Hover over element on page
   - Parameters:
-    - `element` (string): Human-readable element description used to obtain permission to interact with the element
+    - `element` (string): Human-readable element description used to obtain
+      permission to interact with the element
     - `ref` (string): Exact target element reference from the page snapshot
   - Read-only: **true**
 
@@ -435,11 +470,15 @@ X Y coordinate space, based on the provided screenshot.
   - Title: Type text
   - Description: Type text into editable element
   - Parameters:
-    - `element` (string): Human-readable element description used to obtain permission to interact with the element
+    - `element` (string): Human-readable element description used to obtain
+      permission to interact with the element
     - `ref` (string): Exact target element reference from the page snapshot
     - `text` (string): Text to type into the element
-    - `submit` (boolean, optional): Whether to submit entered text (press Enter after)
-    - `slowly` (boolean, optional): Whether to type one character at a time. Useful for triggering key handlers in the page. By default entire text is filled in at once.
+    - `submit` (boolean, optional): Whether to submit entered text (press Enter
+      after)
+    - `slowly` (boolean, optional): Whether to type one character at a time.
+      Useful for triggering key handlers in the page. By default entire text is
+      filled in at once.
   - Read-only: **false**
 
 <!-- NOTE: This has been generated via update-readme.js -->
@@ -448,9 +487,11 @@ X Y coordinate space, based on the provided screenshot.
   - Title: Select option
   - Description: Select an option in a dropdown
   - Parameters:
-    - `element` (string): Human-readable element description used to obtain permission to interact with the element
+    - `element` (string): Human-readable element description used to obtain
+      permission to interact with the element
     - `ref` (string): Exact target element reference from the page snapshot
-    - `values` (array): Array of values to select in the dropdown. This can be a single value or multiple values.
+    - `values` (array): Array of values to select in the dropdown. This can be a
+      single value or multiple values.
   - Read-only: **false**
 
 <!-- NOTE: This has been generated via update-readme.js -->
@@ -459,14 +500,16 @@ X Y coordinate space, based on the provided screenshot.
   - Title: Press a key
   - Description: Press a key on the keyboard
   - Parameters:
-    - `key` (string): Name of the key to press or a character to generate, such as `ArrowLeft` or `a`
+    - `key` (string): Name of the key to press or a character to generate, such
+      as `ArrowLeft` or `a`
   - Read-only: **false**
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_wait_for**
   - Title: Wait for
-  - Description: Wait for text to appear or disappear or a specified time to pass
+  - Description: Wait for text to appear or disappear or a specified time to
+    pass
   - Parameters:
     - `time` (number, optional): The time to wait in seconds
     - `text` (string, optional): The text to wait for
@@ -479,7 +522,8 @@ X Y coordinate space, based on the provided screenshot.
   - Title: Upload files
   - Description: Upload one or multiple files
   - Parameters:
-    - `paths` (array): The absolute paths to the files to upload. Can be a single file or multiple files.
+    - `paths` (array): The absolute paths to the files to upload. Can be a
+      single file or multiple files.
   - Read-only: **false**
 
 <!-- NOTE: This has been generated via update-readme.js -->
@@ -489,7 +533,8 @@ X Y coordinate space, based on the provided screenshot.
   - Description: Handle a dialog
   - Parameters:
     - `accept` (boolean): Whether to accept the dialog.
-    - `promptText` (string, optional): The text of the prompt in case of a prompt dialog.
+    - `promptText` (string, optional): The text of the prompt in case of a
+      prompt dialog.
   - Read-only: **false**
 
 </details>
@@ -531,12 +576,20 @@ X Y coordinate space, based on the provided screenshot.
 
 - **browser_take_screenshot**
   - Title: Take a screenshot
-  - Description: Take a screenshot of the current page. You can't perform actions based on the screenshot, use browser_snapshot for actions.
+  - Description: Take a screenshot of the current page. You can't perform
+    actions based on the screenshot, use browser_snapshot for actions.
   - Parameters:
-    - `raw` (boolean, optional): Whether to return without compression (in PNG format). Default is false, which returns a JPEG image.
-    - `filename` (string, optional): File name to save the screenshot to. Defaults to `page-{timestamp}.{png|jpeg}` if not specified.
-    - `element` (string, optional): Human-readable element description used to obtain permission to screenshot the element. If not provided, the screenshot will be taken of viewport. If element is provided, ref must be provided too.
-    - `ref` (string, optional): Exact target element reference from the page snapshot. If not provided, the screenshot will be taken of viewport. If ref is provided, element must be provided too.
+    - `raw` (boolean, optional): Whether to return without compression (in PNG
+      format). Default is false, which returns a JPEG image.
+    - `filename` (string, optional): File name to save the screenshot to.
+      Defaults to `page-{timestamp}.{png|jpeg}` if not specified.
+    - `element` (string, optional): Human-readable element description used to
+      obtain permission to screenshot the element. If not provided, the
+      screenshot will be taken of viewport. If element is provided, ref must be
+      provided too.
+    - `ref` (string, optional): Exact target element reference from the page
+      snapshot. If not provided, the screenshot will be taken of viewport. If
+      ref is provided, element must be provided too.
   - Read-only: **true**
 
 <!-- NOTE: This has been generated via update-readme.js -->
@@ -545,7 +598,8 @@ X Y coordinate space, based on the provided screenshot.
   - Title: Save as PDF
   - Description: Save page as PDF
   - Parameters:
-    - `filename` (string, optional): File name to save the pdf to. Defaults to `page-{timestamp}.pdf` if not specified.
+    - `filename` (string, optional): File name to save the pdf to. Defaults to
+      `page-{timestamp}.pdf` if not specified.
   - Read-only: **true**
 
 <!-- NOTE: This has been generated via update-readme.js -->
@@ -573,7 +627,8 @@ X Y coordinate space, based on the provided screenshot.
 
 - **browser_install**
   - Title: Install the browser specified in the config
-  - Description: Install the browser specified in the config. Call this if you get an error about the browser not being installed.
+  - Description: Install the browser specified in the config. Call this if you
+    get an error about the browser not being installed.
   - Parameters: None
   - Read-only: **false**
 
@@ -614,7 +669,8 @@ X Y coordinate space, based on the provided screenshot.
   - Title: Open a new tab
   - Description: Open a new tab
   - Parameters:
-    - `url` (string, optional): The URL to navigate to in the new tab. If not provided, the new tab will be blank.
+    - `url` (string, optional): The URL to navigate to in the new tab. If not
+      provided, the new tab will be blank.
   - Read-only: **true**
 
 <!-- NOTE: This has been generated via update-readme.js -->
@@ -632,7 +688,8 @@ X Y coordinate space, based on the provided screenshot.
   - Title: Close a tab
   - Description: Close a tab
   - Parameters:
-    - `index` (number, optional): The index of the tab to close. Closes current tab if not provided.
+    - `index` (number, optional): The index of the tab to close. Closes current
+      tab if not provided.
   - Read-only: **false**
 
 </details>
@@ -670,7 +727,8 @@ X Y coordinate space, based on the provided screenshot.
   - Title: Move mouse
   - Description: Move mouse to a given position
   - Parameters:
-    - `element` (string): Human-readable element description used to obtain permission to interact with the element
+    - `element` (string): Human-readable element description used to obtain
+      permission to interact with the element
     - `x` (number): X coordinate
     - `y` (number): Y coordinate
   - Read-only: **true**
@@ -681,7 +739,8 @@ X Y coordinate space, based on the provided screenshot.
   - Title: Click
   - Description: Click left mouse button
   - Parameters:
-    - `element` (string): Human-readable element description used to obtain permission to interact with the element
+    - `element` (string): Human-readable element description used to obtain
+      permission to interact with the element
     - `x` (number): X coordinate
     - `y` (number): Y coordinate
   - Read-only: **false**
@@ -692,7 +751,8 @@ X Y coordinate space, based on the provided screenshot.
   - Title: Drag mouse
   - Description: Drag left mouse button
   - Parameters:
-    - `element` (string): Human-readable element description used to obtain permission to interact with the element
+    - `element` (string): Human-readable element description used to obtain
+      permission to interact with the element
     - `startX` (number): Start X coordinate
     - `startY` (number): Start Y coordinate
     - `endX` (number): End X coordinate
@@ -706,7 +766,8 @@ X Y coordinate space, based on the provided screenshot.
   - Description: Type text
   - Parameters:
     - `text` (string): Text to type into the element
-    - `submit` (boolean, optional): Whether to submit entered text (press Enter after)
+    - `submit` (boolean, optional): Whether to submit entered text (press Enter
+      after)
   - Read-only: **false**
 
 <!-- NOTE: This has been generated via update-readme.js -->
@@ -715,14 +776,16 @@ X Y coordinate space, based on the provided screenshot.
   - Title: Press a key
   - Description: Press a key on the keyboard
   - Parameters:
-    - `key` (string): Name of the key to press or a character to generate, such as `ArrowLeft` or `a`
+    - `key` (string): Name of the key to press or a character to generate, such
+      as `ArrowLeft` or `a`
   - Read-only: **false**
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_wait_for**
   - Title: Wait for
-  - Description: Wait for text to appear or disappear or a specified time to pass
+  - Description: Wait for text to appear or disappear or a specified time to
+    pass
   - Parameters:
     - `time` (number, optional): The time to wait in seconds
     - `text` (string, optional): The text to wait for
@@ -735,7 +798,8 @@ X Y coordinate space, based on the provided screenshot.
   - Title: Upload files
   - Description: Upload one or multiple files
   - Parameters:
-    - `paths` (array): The absolute paths to the files to upload. Can be a single file or multiple files.
+    - `paths` (array): The absolute paths to the files to upload. Can be a
+      single file or multiple files.
   - Read-only: **false**
 
 <!-- NOTE: This has been generated via update-readme.js -->
@@ -745,10 +809,10 @@ X Y coordinate space, based on the provided screenshot.
   - Description: Handle a dialog
   - Parameters:
     - `accept` (boolean): Whether to accept the dialog.
-    - `promptText` (string, optional): The text of the prompt in case of a prompt dialog.
+    - `promptText` (string, optional): The text of the prompt in case of a
+      prompt dialog.
   - Read-only: **false**
 
 </details>
-
 
 <!--- End of tools generated section -->

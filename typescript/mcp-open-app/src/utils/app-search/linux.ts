@@ -59,7 +59,8 @@ function convertEntryFile2Feature(appPath: string): any {
   if (matches) {
     matches.forEach((e: string) => {
       const index = e.indexOf("=");
-      targetAppInfo[e.substring(0, index).trim()] = e.substring(index + 1).trim();
+      targetAppInfo[e.substring(0, index).trim()] = e.substring(index + 1)
+        .trim();
     });
   }
 
@@ -83,7 +84,7 @@ function convertEntryFile2Feature(appPath: string): any {
   ) {
     return null;
   }
-  
+
   let desktop_session = String(process.env.DESKTOP_SESSION || "").toLowerCase();
   if (desktop_session === "ubuntu") {
     desktop_session = "gnome";
@@ -100,7 +101,7 @@ function convertEntryFile2Feature(appPath: string): any {
   ) {
     return null;
   }
-  
+
   // 简化路径获取逻辑，直接使用可执行文件路径
   let execPath = targetAppInfo.Exec.replace(/ %[A-Za-z]/g, "")
     .replace(/"/g, "")
@@ -113,7 +114,7 @@ function convertEntryFile2Feature(appPath: string): any {
     path: execPath,
     keyWords: [targetAppInfo.Name],
     name: targetAppInfo.Name,
-    names: [targetAppInfo.Name]
+    names: [targetAppInfo.Name],
   };
 
   if ("X-Ubuntu-Gettext-Domain" in targetAppInfo) {

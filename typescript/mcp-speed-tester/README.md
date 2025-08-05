@@ -1,6 +1,7 @@
 # MCP 网速测试服务
 
-一个基于 MCP（Model Context Protocol）的网速测试服务，内置多个测试服务器，无需用户提供测试URL即可测试网络延迟、下载速度和上传速度。
+一个基于 MCP（Model Context
+Protocol）的网速测试服务，内置多个测试服务器，无需用户提供测试URL即可测试网络延迟、下载速度和上传速度。
 
 ## 功能特点
 
@@ -28,6 +29,7 @@ npm run build
 在您的 MCP 客户端配置文件中添加以下配置：
 
 #### Claude Desktop (`~/.cursor/mcp.json`)
+
 ```json
 {
   "mcpServers": {
@@ -45,6 +47,7 @@ npm run build
 ```
 
 #### VS Code 等其他客户端
+
 ```json
 {
   "mcpServers": {
@@ -64,6 +67,7 @@ npm run build
 ### 工具：test_network_speed
 
 #### 参数说明
+
 - `testType` (可选): 测试类型
   - `"ping"`: 仅测试延迟
   - `"download"`: 仅测试下载速度
@@ -75,6 +79,7 @@ npm run build
 #### 使用示例
 
 ##### 1. 全面测试（默认）
+
 ```json
 {
   "name": "test_network_speed",
@@ -83,6 +88,7 @@ npm run build
 ```
 
 ##### 2. 仅测试下载速度
+
 ```json
 {
   "name": "test_network_speed",
@@ -94,6 +100,7 @@ npm run build
 ```
 
 ##### 3. 指定服务器测试
+
 ```json
 {
   "name": "test_network_speed",
@@ -105,6 +112,7 @@ npm run build
 ```
 
 ##### 4. 仅测试延迟
+
 ```json
 {
   "name": "test_network_speed",
@@ -152,11 +160,13 @@ npm run build
 ## 技术细节
 
 ### 测试原理
+
 - **延迟测试**: 通过 HTTP GET 请求测量往返时间
 - **下载速度**: 下载指定大小的文件并计算传输速度
 - **上传速度**: 上传数据块并计算传输速度
 
 ### 默认配置
+
 - 下载测试时间: 10秒
 - 上传测试时间: 10秒
 - 测试文件大小: 50MB（下载）
@@ -171,11 +181,13 @@ npm run build
 3. **上传测试不支持**: 某些服务器不支持上传测试
 
 ### 日志调试
+
 服务器会在 stderr 输出运行日志，可以查看详细的错误信息。
 
 ## 开发
 
 ### 本地开发
+
 ```bash
 # 开发模式运行
 npm run dev
@@ -188,6 +200,7 @@ npm run start
 ```
 
 ### 添加新测试服务器
+
 在 `src/index.ts` 中的 `TEST_SERVERS` 数组添加新的服务器配置：
 
 ```typescript

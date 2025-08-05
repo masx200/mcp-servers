@@ -1,6 +1,8 @@
 # MCP Server Collection
 
-这个仓库包含了一系列基于 MCP (Multi-Agent Collaboration Protocol) 协议的服务器实现。这些服务器旨在为 AI 代理提供各种功能接口，促进多代理协作和任务执行。
+这个仓库包含了一系列基于 MCP (Multi-Agent Collaboration Protocol)
+协议的服务器实现。这些服务器旨在为 AI
+代理提供各种功能接口，促进多代理协作和任务执行。
 
 ## 项目结构
 
@@ -17,7 +19,6 @@ mcp-servers/
 ├── README.md
 └── .gitignore
 ```
-
 
 ## Python 服务器
 
@@ -54,7 +55,6 @@ mcp-servers/
 1. 确保安装了 Python 3.12 或更高版本。
 2. 进入相应的 Python 项目目录。
 3. 创建并激活虚拟环境：
-
 
 ### TypeScript 服务器
 

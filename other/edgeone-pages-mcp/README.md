@@ -1,6 +1,7 @@
 # EdgeOne Pages MCP
 
-An MCP service for deploying HTML content, folder, and zip file to EdgeOne Pages and obtaining a publicly accessible URL.
+An MCP service for deploying HTML content, folder, and zip file to EdgeOne Pages
+and obtaining a publicly accessible URL.
 
 <a href="https://glama.ai/mcp/servers/@TencentEdgeOne/edgeone-pages-mcp">
   <img width="380" height="200" src="https://glama.ai/mcp/servers/@TencentEdgeOne/edgeone-pages-mcp/badge" alt="EdgeOne Pages MCP server" />
@@ -79,9 +80,11 @@ The architecture diagram illustrates the workflow:
 
 ## Implementation
 
-This MCP service integrates with EdgeOne Pages Functions to deploy static HTML content. The implementation uses:
+This MCP service integrates with EdgeOne Pages Functions to deploy static HTML
+content. The implementation uses:
 
-1. **EdgeOne Pages Functions** - A serverless computing platform that allows execution of JavaScript/TypeScript code at the edge.
+1. **EdgeOne Pages Functions** - A serverless computing platform that allows
+   execution of JavaScript/TypeScript code at the edge.
 
 2. **Key Implementation Details** :
 
@@ -100,7 +103,10 @@ This MCP service integrates with EdgeOne Pages Functions to deploy static HTML c
    - Provide HTML content to the MCP service
    - Receive a public URL that can be accessed immediately
 
-For more information, see the [EdgeOne Pages Functions documentation](https://edgeone.ai/document/162227908259442688) and [EdgeOne Pages KV Storage Guide](https://edgeone.ai/document/162227803822321664).
+For more information, see the
+[EdgeOne Pages Functions documentation](https://edgeone.ai/document/162227908259442688)
+and
+[EdgeOne Pages KV Storage Guide](https://edgeone.ai/document/162227803822321664).
 
 ## License
 

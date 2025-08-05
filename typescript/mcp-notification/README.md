@@ -13,9 +13,11 @@
 ## 工具
 
 ### send_notification
+
 发送系统通知
 
 **参数：**
+
 - `title` (必需): 通知标题
 - `message` (必需): 通知内容
 - `subtitle` (可选): 副标题
@@ -25,9 +27,11 @@
 - `repeatCount` (可选): 重复次数
 
 ### notification_task_management
+
 管理通知任务
 
 **参数：**
+
 - `action` (必需): 操作类型
   - `stop_repeat_task`: 停止指定任务
   - `stop_all_repeat_tasks`: 停止所有任务
@@ -64,4 +68,4 @@ pnpm start
   "sound": true,
   "delay": "5s"
 }
-``` 
+```

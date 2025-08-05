@@ -4,9 +4,12 @@
 
 > 让 AI 助手变身私人大厨，为你的一日三餐出谋划策！
 
-基于[Anduin2017/HowToCook](https://github.com/Anduin2017/HowToCook)打造的 MCP(Model Context Protocol)服务器，让 AI 助手能够为你推荐菜谱、规划膳食，解决"今天吃什么"的世纪难题！
+基于[Anduin2017/HowToCook](https://github.com/Anduin2017/HowToCook)打造的
+MCP(Model Context Protocol)服务器，让 AI
+助手能够为你推荐菜谱、规划膳食，解决"今天吃什么"的世纪难题！
 
-数据来源：[Anduin2017/HowToCook](https://github.com/Anduin2017/HowToCook) ⭐ 没有 star 的同学快去点个星星吧！
+数据来源：[Anduin2017/HowToCook](https://github.com/Anduin2017/HowToCook) ⭐
+没有 star 的同学快去点个星星吧！
 
 ## 📸 效果预览
 
@@ -26,9 +29,12 @@
 该 MCP 服务器提供以下美食工具:
 
 1. **📚 查询全部菜谱** - 获取所有可用菜谱数据，做菜百科全书
-2. **🔍 根据分类查询菜谱** - 按照分类筛选菜谱，想吃水产？早餐？荤菜？主食？一键搞定！
-3. **🧩 智能推荐膳食** - 根据你的忌口、过敏原和用餐人数，为你规划整整一周的美味佳肴
-4. **🎲 不知道吃什么** - 选择困难症福音！根据人数直接推荐今日菜单，再也不用纠结了
+2. **🔍 根据分类查询菜谱** -
+   按照分类筛选菜谱，想吃水产？早餐？荤菜？主食？一键搞定！
+3. **🧩 智能推荐膳食** -
+   根据你的忌口、过敏原和用餐人数，为你规划整整一周的美味佳肴
+4. **🎲 不知道吃什么** -
+   选择困难症福音！根据人数直接推荐今日菜单，再也不用纠结了
 
 ## 🚀 快速上手
 
@@ -70,7 +76,8 @@ npm start
 
 #### 推荐使用 Cursor 快速体验(两种方式)
 
-1. 使用 npm 包：请先运行 `npm i -g howtocook-mcp` ,否则会出现 `Failed to create client`
+1. 使用 npm 包：请先运行 `npm i -g howtocook-mcp` ,否则会出现
+   `Failed to create client`
 
 然后在 Cursor 设置中添加 MCP 服务器配置：
 

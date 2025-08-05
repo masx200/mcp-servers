@@ -1,6 +1,7 @@
 # MCP System Cleaner
 
-一个基于MCP协议的跨平台系统垃圾清理服务，支持Windows、macOS和Linux系统，为 AI Agent 提供智能化系统清理工具。
+一个基于MCP协议的跨平台系统垃圾清理服务，支持Windows、macOS和Linux系统，为 AI
+Agent 提供智能化系统清理工具。
 
 ## 功能特点
 
@@ -44,8 +45,11 @@ npm run build
 ```
 
 注意：
+
 1. 请将配置中的"你的项目路径"替换为实际的项目路径
-2. `autoApprove` 字段表示允许自动执行的命令，这里配置了 `get_system_status`, `scan_system`, `clean_files`, `empty_recycle_bin`, `find_large_files`, `update_config`
+2. `autoApprove` 字段表示允许自动执行的命令，这里配置了 `get_system_status`,
+   `scan_system`, `clean_files`, `empty_recycle_bin`, `find_large_files`,
+   `update_config`
 
 ## 使用示例
 
@@ -128,15 +132,18 @@ npm run build
 ## 配置说明
 
 ### 扫描路径
+
 - 默认包含系统临时目录、应用缓存、浏览器缓存等
 - 可通过 update_config 自定义添加或移除路径
 
 ### 文件规则
+
 - 支持按扩展名、文件名模式、大小、年龄筛选
 - 内置多种临时文件和日志文件模式
 - 智能排除系统关键文件
 
 ### 安全特性
+
 - 支持安全删除（多次覆写）
 - 排除关键系统文件
 - 可选的备份功能
@@ -154,4 +161,4 @@ npm run build
 
 ## 许可证
 
-MIT 
+MIT

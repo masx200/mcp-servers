@@ -1,6 +1,7 @@
 # IP Query MCP
 
-这是一个基于 Model Context Protocol (MCP) 的 IP 地址查询服务，提供 IP 地址查询功能。
+这是一个基于 Model Context Protocol (MCP) 的 IP 地址查询服务，提供 IP
+地址查询功能。
 
 ## 功能特点
 
@@ -9,7 +10,8 @@
 
 ## 环境配置
 
-> 注意：您需要拥有阿里云 IP 地址查询 API 的密钥才能使用此服务。请将密钥配置为环境变量 `ALIYUN_IP_API_KEY`。
+> 注意：您需要拥有阿里云 IP 地址查询 API
+> 的密钥才能使用此服务。请将密钥配置为环境变量 `ALIYUN_IP_API_KEY`。
 
 ## 使用方法
 
@@ -19,7 +21,7 @@
     "mcp-server/ip-query": {
       "command": "node",
       "args": [
-        "index.js" 
+        "index.js"
       ],
       "env": {
         "ALIYUN_IP_API_KEY": "您的阿里云IP API密钥"
@@ -50,6 +52,7 @@
 ### 查询当前IP地址示例
 
 调用工具:
+
 ```json
 {
   "name": "get_my_ip",
@@ -58,6 +61,7 @@
 ```
 
 预期输出 (示例):
+
 ```json
 {
   "ip": "114.114.114.114",
@@ -76,6 +80,7 @@
 ### 查询指定IP地址示例
 
 调用工具:
+
 ```json
 {
   "name": "get_ip_location",
@@ -86,6 +91,7 @@
 ```
 
 预期输出 (示例):
+
 ```json
 {
   "ip": "8.8.8.8",

@@ -1,6 +1,7 @@
 # HotNews MCP Server
 
-A Model Context Protocol (MCP) server that provides real-time hot trending topics from major Chinese social platforms and news sites.
+A Model Context Protocol (MCP) server that provides real-time hot trending
+topics from major Chinese social platforms and news sites.
 
 ## Features
 
@@ -22,15 +23,18 @@ A Model Context Protocol (MCP) server that provides real-time hot trending topic
 8. Douban Hot List (豆瓣热榜)
 9. IT News (IT新闻)
 
-> API Source, This project uses the `api.vvhan.com` service for fetching hot topics data.
+> API Source, This project uses the `api.vvhan.com` service for fetching hot
+> topics data.
 
 ## Available Tools
+
 - `get_hot_news`
   - `sources` - Required arguments: Platform ID list
 - Example usage:
   - `get_hot_news([3])` : Get Baidu Hot Discussion only
   - `get_hot_news([1,3,7])` : Get hot lists from zhihuHot, Baidu, and huPu
-  - `get_hot_news([1,2,3,4])` : Get hot lists from zhihuHot, 36Kr, Baidu, and Bilibili`
+  - `get_hot_news([1,2,3,4])` : Get hot lists from zhihuHot, 36Kr, Baidu, and
+    Bilibili`
 
 ## Installation
 
@@ -68,4 +72,7 @@ npm run test:urls
 
 ## License
 
-This MCP server is licensed under the MIT License. This means you are free to use, modify, and distribute the software, subject to the terms and conditions of the MIT License. For more details, please see the LICENSE file in the project repository.
+This MCP server is licensed under the MIT License. This means you are free to
+use, modify, and distribute the software, subject to the terms and conditions of
+the MIT License. For more details, please see the LICENSE file in the project
+repository.

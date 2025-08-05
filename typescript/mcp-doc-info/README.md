@@ -1,6 +1,7 @@
 # MCP Office Document Creator
 
-基于 MCP 协议的多平台空白文档创建服务，支持 Windows、macOS 和 Linux 系统，为 AI Agent 提供智能化办公文档创建能力。
+基于 MCP 协议的多平台空白文档创建服务，支持 Windows、macOS 和 Linux 系统，为 AI
+Agent 提供智能化办公文档创建能力。
 
 ## 功能特点
 
@@ -38,8 +39,10 @@ npm run build
 ```
 
 注意：
+
 1. 请将配置中的"你的项目路径"替换为实际的项目路径
-2. `autoApprove` 字段表示允许自动执行的命令，这里配置了 `create_office_doc` 和 `get_supported_software`
+2. `autoApprove` 字段表示允许自动执行的命令，这里配置了 `create_office_doc` 和
+   `get_supported_software`
 
 ## 使用示例
 
@@ -87,6 +90,7 @@ npm run build
 ```
 
 响应示例：
+
 ```json
 {
   "office": true,
@@ -98,14 +102,14 @@ npm run build
 
 ### create_office_doc
 
-| 参数 | 类型 | 必选 | 默认值 | 说明 |
-|------|------|------|--------|------|
-| type | string | 是 | - | 文档类型：word、excel、ppt |
-| software | string | 否 | auto | 使用软件：auto、office、wps |
-| path | string | 否 | 桌面 | 保存路径 |
-| filename | string | 否 | 自动生成 | 文件名 |
-| overwrite | boolean | 否 | false | 是否覆盖已存在文件 |
-| openImmediately | boolean | 否 | true | 是否立即打开 |
+| 参数            | 类型    | 必选 | 默认值   | 说明                        |
+| --------------- | ------- | ---- | -------- | --------------------------- |
+| type            | string  | 是   | -        | 文档类型：word、excel、ppt  |
+| software        | string  | 否   | auto     | 使用软件：auto、office、wps |
+| path            | string  | 否   | 桌面     | 保存路径                    |
+| filename        | string  | 否   | 自动生成 | 文件名                      |
+| overwrite       | boolean | 否   | false    | 是否覆盖已存在文件          |
+| openImmediately | boolean | 否   | true     | 是否立即打开                |
 
 ### 自动文件命名规则
 
@@ -151,4 +155,3 @@ npm run build
 MIT
 
 ---
-

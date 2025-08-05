@@ -1,6 +1,7 @@
 # MCP Location Server
 
-A location acquisition server based on MCP (Model Context Protocol) that obtains precise user location information through browser authorization.
+A location acquisition server based on MCP (Model Context Protocol) that obtains
+precise user location information through browser authorization.
 
 ## Features
 
@@ -45,12 +46,11 @@ Get user location information through browser authorization.
 ```json
 {
   "latitude": 39.78463536888209,
-  "longitude": 116.50960396229777,
+  "longitude": 116.50960396229777
 }
 ```
 
-**Usage Example**:
-After calling this tool, the system will:
+**Usage Example**: After calling this tool, the system will:
 
 1. Automatically open the browser
 2. Guide user to authorize location permissions

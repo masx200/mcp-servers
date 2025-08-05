@@ -5,6 +5,7 @@ MCP Server for the AMap Map API.
 ## Setup
 
 ### API Key
+
 Get a AMap Maps API key：
 https://lbs.amap.com/api/webservice/create-project-and-key.
 
@@ -12,18 +13,17 @@ https://lbs.amap.com/api/webservice/create-project-and-key.
 
 ```json
 {
-    "mcpServers": {
-        "amap-maps": {
-            "command": "npx",
-            "args": [
-                "-y",
-                "@amap/amap-maps-mcp-server"
-            ],
-            "env": {
-                "AMAP_MAPS_API_KEY":"<YOUR_API_KEY>"
-            }
-        }
+  "mcpServers": {
+    "amap-maps": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@amap/amap-maps-mcp-server"
+      ],
+      "env": {
+        "AMAP_MAPS_API_KEY": "<YOUR_API_KEY>"
+      }
     }
+  }
 }
 ```
-

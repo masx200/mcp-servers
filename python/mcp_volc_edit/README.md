@@ -1,6 +1,7 @@
 # MCP 火山引擎图像抠图服务器
 
-这是一个基于Model Context Protocol (MCP)的服务器，专门提供火山引擎的图像抠图功能。
+这是一个基于Model Context Protocol
+(MCP)的服务器，专门提供火山引擎的图像抠图功能。
 
 ## 功能特性
 
@@ -47,7 +48,8 @@ uv run cutout.py
 
 在Claude Desktop的配置文件中添加以下配置：
 
-**macOS/Linux**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+**macOS/Linux**:
+`~/Library/Application Support/Claude/claude_desktop_config.json`
 
 ```json
 {
@@ -72,16 +74,20 @@ uv run cutout.py
 ## 可用工具
 
 ### image_cutout
+
 智能图像抠图，使用显著性分割自动识别并抠出图像中的主要对象，自动上传到服务器并返回图片URL。
 
 **参数**:
+
 - `image_urls`: 图像URL列表，支持多张图像同时处理
 
 **返回**:
+
 - 单张图片：直接返回图片URL
 - 多张图片：返回所有图片URL的列表
 
 **示例**:
+
 ```
 请帮我抠出这张图片中的主要对象：https://example.com/image.jpg
 ```
@@ -95,6 +101,7 @@ uv run cutout.py
 ## 抠图原理
 
 使用火山引擎的 `saliency_seg` 显著性分割算法：
+
 - 基于视觉显著性检测图像中最重要的区域
 - 精确分割显著对象的轮廓
 - 生成高质量的抠图结果
@@ -103,19 +110,21 @@ uv run cutout.py
 ## 上传功能
 
 抠图完成后，系统会自动：
+
 1. 将base64编码的图像数据转换为PNG文件
 2. 上传到指定服务器：`https://www.mcpcn.cc/api/fileUploadAndDownload/uploadMcpFile`
 3. 返回可访问的图片URL链接
 4. 支持批量上传多张抠图结果
 
 **上传接口返回格式**：
+
 ```json
 {
-    "code": 0,
-    "data": {
-        "url": "https://juezhi.oss-cn-shanghai.aliyuncs.com/file/uploads/mcp/xxx.webp"
-    },
-    "msg": "成功"
+  "code": 0,
+  "data": {
+    "url": "https://juezhi.oss-cn-shanghai.aliyuncs.com/file/uploads/mcp/xxx.webp"
+  },
+  "msg": "成功"
 }
 ```
 
@@ -156,5 +165,6 @@ tail -f ~/Library/Logs/Claude/mcp-server-火山引擎图像编辑.log
 ## 开发
 
 如需修改或扩展功能，请参考：
+
 - [MCP官方文档](https://modelcontextprotocol.io/)
 - [火山引擎API文档](https://www.volcengine.com/docs/6791/65681)

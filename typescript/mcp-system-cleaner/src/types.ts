@@ -101,4 +101,4 @@ export interface LargeFileSearchResult {
   scannedCount: number;
   elapsedSeconds: number;
   timedOut: boolean;
-} 
+}

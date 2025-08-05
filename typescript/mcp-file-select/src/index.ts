@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   CallToolRequestSchema,
   ErrorCode,
   ListToolsRequestSchema,
   McpError,
-} from '@modelcontextprotocol/sdk/types.js';
-import { platform } from 'os';
-import { promisify } from 'util';
-import { exec } from 'child_process';
+} from "@modelcontextprotocol/sdk/types.js";
+import { platform } from "os";
+import { promisify } from "util";
+import { exec } from "child_process";
 
 const execAsync = promisify(exec);
 
@@ -22,7 +22,7 @@ function escapeString(str: string): string {
   return str
     .replace(/'/g, "'\\''")
     .replace(/"/g, '\\"');
-} 
+}
 
 interface FileSelectParams {
   /** Optional prompt message */
@@ -48,34 +48,34 @@ interface FileSelectResult {
  * Validates file selection parameters
  */
 function validateFileSelectParams(params: FileSelectParams): void {
-  if (params.prompt && typeof params.prompt !== 'string') {
+  if (params.prompt && typeof params.prompt !== "string") {
     throw new Error(
-      'Prompt must be a string'
+      "Prompt must be a string",
     );
   }
 
-  if (params.defaultLocation && typeof params.defaultLocation !== 'string') {
+  if (params.defaultLocation && typeof params.defaultLocation !== "string") {
     throw new Error(
-      'Default location must be a string'
+      "Default location must be a string",
     );
   }
 
-  if (params.multiple !== undefined && typeof params.multiple !== 'boolean') {
+  if (params.multiple !== undefined && typeof params.multiple !== "boolean") {
     throw new Error(
-      'Multiple selection flag must be a boolean'
+      "Multiple selection flag must be a boolean",
     );
   }
 
   if (params.fileTypes && params.fileTypes.length > 0) {
     if (!Array.isArray(params.fileTypes)) {
       throw new Error(
-        'File types must be an array'
+        "File types must be an array",
       );
     }
     for (const fileType of params.fileTypes) {
-      if (typeof fileType !== 'string') {
+      if (typeof fileType !== "string") {
         throw new Error(
-          'File type must be a string'
+          "File type must be a string",
         );
       }
     }
@@ -83,17 +83,19 @@ function validateFileSelectParams(params: FileSelectParams): void {
 }
 
 function buildMacOSCommand(params: FileSelectParams): string {
-  let script = 'choose file';
-  if (params.multiple) script += ' with multiple selections allowed';
+  let script = "choose file";
+  if (params.multiple) script += " with multiple selections allowed";
   if (params.prompt) script += ` with prompt "${escapeString(params.prompt)}"`;
-  if (params.defaultLocation) script += ` default location "${escapeString(params.defaultLocation)}"`;
+  if (params.defaultLocation) {
+    script += ` default location "${escapeString(params.defaultLocation)}"`;
+  }
   if (params.fileTypes) {
     const extensions = Object.values(params.fileTypes).flat();
     if (extensions.length > 0) {
-      script += ` of type {${extensions.map(ext => `"${ext}"`).join(', ')}}`;
+      script += ` of type {${extensions.map((ext) => `"${ext}"`).join(", ")}}`;
     }
   }
-  
+
   // 处理多选和单选的路径转换
   if (params.multiple) {
     script = `set fileList to ${script}
@@ -109,7 +111,7 @@ return pathString`;
   } else {
     script = `POSIX path of (${script})`;
   }
-  
+
   return `osascript -e '${script}'`;
 }
 
@@ -117,32 +119,41 @@ function buildWindowsCommand(params: FileSelectParams): string {
   const psScript = `
     Add-Type -AssemblyName System.Windows.Forms
     $dialog = New-Object System.Windows.Forms.OpenFileDialog
-    ${params.prompt ? `$dialog.Title = "${escapeString(params.prompt)}"` : ''}
-    ${params.multiple ? '$dialog.Multiselect = $true' : ''}
-    ${params.defaultLocation ? `$dialog.InitialDirectory = "${escapeString(params.defaultLocation)}"` : ''}
+    ${params.prompt ? `$dialog.Title = "${escapeString(params.prompt)}"` : ""}
+    ${params.multiple ? "$dialog.Multiselect = $true" : ""}
+    ${
+    params.defaultLocation
+      ? `$dialog.InitialDirectory = "${escapeString(params.defaultLocation)}"`
+      : ""
+  }
     $dialog.ShowDialog() | Out-Null
     $dialog.FileNames -join ","
   `;
-  return `powershell -Command "${psScript.replace(/\n\s+/g, ' ')}"`;
+  return `powershell -Command "${psScript.replace(/\n\s+/g, " ")}"`;
 }
 
 // 新增：检查并安装 zenity
 async function ensureZenityInstalled(): Promise<void> {
   try {
     // 检查 zenity 是否已安装
-    await execAsync('which zenity || zenity --version').catch(() => {});
+    await execAsync("which zenity || zenity --version").catch(() => {});
   } catch {
     try {
       // 根据发行版选择包管理器
-      const { stdout: distro } = await execAsync('grep ^ID= /etc/os-release | cut -d= -f2');
-      const pkgManager = distro.trim() === 'debian' || distro.trim() === 'ubuntu' ? 'apt' : 'dnf';
+      const { stdout: distro } = await execAsync(
+        "grep ^ID= /etc/os-release | cut -d= -f2",
+      );
+      const pkgManager =
+        distro.trim() === "debian" || distro.trim() === "ubuntu"
+          ? "apt"
+          : "dnf";
       await execAsync(`sudo ${pkgManager} install -y zenity`);
-      console.error('zenity 安装成功！');
+      console.error("zenity 安装成功！");
     } catch (installError) {
       throw new Error(
         `自动安装 zenity 失败，请手动运行以下命令安装：\n` +
-        `  Ubuntu/Debian: sudo apt install zenity\n` +
-        `  Fedora/RHEL: sudo dnf install zenity`
+          `  Ubuntu/Debian: sudo apt install zenity\n` +
+          `  Fedora/RHEL: sudo dnf install zenity`,
       );
     }
   }
@@ -151,10 +162,12 @@ async function ensureZenityInstalled(): Promise<void> {
 // 修改 Linux 命令构建逻辑
 async function buildLinuxCommand(params: FileSelectParams): Promise<string> {
   await ensureZenityInstalled(); // 确保 zenity 存在
-  let cmd = 'zenity --file-selection';
+  let cmd = "zenity --file-selection";
   if (params.multiple) cmd += ' --multiple --separator=","';
   if (params.prompt) cmd += ` --title="${escapeString(params.prompt)}"`;
-  if (params.defaultLocation) cmd += ` --filename="${escapeString(params.defaultLocation)}"`;
+  if (params.defaultLocation) {
+    cmd += ` --filename="${escapeString(params.defaultLocation)}"`;
+  }
   return cmd;
 }
 
@@ -168,13 +181,13 @@ async function selectFile(params: FileSelectParams): Promise<FileSelectResult> {
   const os = platform();
 
   switch (os) {
-    case 'darwin':
+    case "darwin":
       command = buildMacOSCommand(params);
       break;
-    case 'win32':
+    case "win32":
       command = buildWindowsCommand(params);
       break;
-    case 'linux':
+    case "linux":
       command = await buildLinuxCommand(params); // 注意改为异步
       break;
     default:
@@ -185,31 +198,33 @@ async function selectFile(params: FileSelectParams): Promise<FileSelectResult> {
     const { stdout } = await execAsync(command);
     const paths = stdout
       .trim()
-      .split(',')
-      .map(path => path.trim())
-      .filter(path => path.length > 0);
+      .split(",")
+      .map((path) => path.trim())
+      .filter((path) => path.length > 0);
 
-    return { 
+    return {
       paths,
-      message: `成功选择了 ${paths.length} 个文件`
+      message: `成功选择了 ${paths.length} 个文件`,
     };
   } catch (error) {
     const err = error as Error;
-    
+
     // 检查是否为用户取消操作
-    if (err.message.includes('用户已取消') || 
-        err.message.includes('User canceled') || 
-        err.message.includes('cancelled') ||
-        err.message.includes('cancel') ||
-        err.message.includes('closed') ||
-        err.message.includes('-128')) {
+    if (
+      err.message.includes("用户已取消") ||
+      err.message.includes("User canceled") ||
+      err.message.includes("cancelled") ||
+      err.message.includes("cancel") ||
+      err.message.includes("closed") ||
+      err.message.includes("-128")
+    ) {
       return {
         paths: [],
         cancelled: true,
-        message: '用户取消了文件选择'
+        message: "用户取消了文件选择",
       };
     }
-    
+
     throw new Error(`Failed to select file: ${err.message}`);
   }
 }
@@ -220,21 +235,21 @@ class FileSelectServer {
   constructor() {
     this.server = new Server(
       {
-        name: 'file-select-mcp',
-        version: '1.0.0',
+        name: "file-select-mcp",
+        version: "1.0.0",
       },
       {
         capabilities: {
           tools: {},
         },
-      }
+      },
     );
 
     this.setupToolHandlers();
-    
+
     // Error handling
-    this.server.onerror = (error) => console.error('[MCP Error]', error);
-    process.on('SIGINT', async () => {
+    this.server.onerror = (error) => console.error("[MCP Error]", error);
+    process.on("SIGINT", async () => {
       await this.server.close();
       process.exit(0);
     });
@@ -245,33 +260,34 @@ class FileSelectServer {
     this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
       tools: [
         {
-          name: 'select_file',
-          description: '打开文件选择对话框，当需要操作一个文件或目录，却不知道具体路径时，可以调用该工具让用户选择',
+          name: "select_file",
+          description:
+            "打开文件选择对话框，当需要操作一个文件或目录，却不知道具体路径时，可以调用该工具让用户选择",
           inputSchema: {
-            type: 'object',
+            type: "object",
             properties: {
               prompt: {
-                type: 'string',
-                description: '可选的提示消息'
+                type: "string",
+                description: "可选的提示消息",
               },
               defaultLocation: {
-                type: 'string',
-                description: '可选的默认目录路径'
+                type: "string",
+                description: "可选的默认目录路径",
               },
               fileTypes: {
-                type: 'array',
+                type: "array",
                 items: {
-                  type: 'string'
+                  type: "string",
                 },
-                description: '可选的文件类型过滤器 (例如: ["png", "jpg"])'
+                description: '可选的文件类型过滤器 (例如: ["png", "jpg"])',
               },
               multiple: {
-                type: 'boolean',
-                description: '是否允许多选'
-              }
+                type: "boolean",
+                description: "是否允许多选",
+              },
             },
-            additionalProperties: false
-          }
+            additionalProperties: false,
+          },
         },
       ],
     }));
@@ -279,26 +295,34 @@ class FileSelectServer {
     // Handle tool execution
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       try {
-        if (!request.params.arguments || typeof request.params.arguments !== 'object') {
-          throw new McpError(ErrorCode.InvalidParams, 'Invalid parameters');
+        if (
+          !request.params.arguments ||
+          typeof request.params.arguments !== "object"
+        ) {
+          throw new McpError(ErrorCode.InvalidParams, "Invalid parameters");
         }
 
         switch (request.params.name) {
-          case 'select_file': {
-            const { prompt, defaultLocation, fileTypes, multiple } = request.params.arguments as Record<string, unknown>;
-            
+          case "select_file": {
+            const { prompt, defaultLocation, fileTypes, multiple } = request
+              .params.arguments as Record<string, unknown>;
+
             const params: FileSelectParams = {
-              prompt: typeof prompt === 'string' ? prompt : undefined,
-              defaultLocation: typeof defaultLocation === 'string' ? defaultLocation : undefined,
-              fileTypes: Array.isArray(fileTypes) ? fileTypes as string[] : undefined,
-              multiple: typeof multiple === 'boolean' ? multiple : undefined
+              prompt: typeof prompt === "string" ? prompt : undefined,
+              defaultLocation: typeof defaultLocation === "string"
+                ? defaultLocation
+                : undefined,
+              fileTypes: Array.isArray(fileTypes)
+                ? fileTypes as string[]
+                : undefined,
+              multiple: typeof multiple === "boolean" ? multiple : undefined,
             };
 
             const result = await selectFile(params);
             return {
               content: [
                 {
-                  type: 'text',
+                  type: "text",
                   text: JSON.stringify(result),
                 },
               ],
@@ -308,7 +332,7 @@ class FileSelectServer {
           default:
             throw new McpError(
               ErrorCode.MethodNotFound,
-              `Unknown tool: ${request.params.name}`
+              `Unknown tool: ${request.params.name}`,
             );
         }
       } catch (error) {
@@ -320,9 +344,9 @@ class FileSelectServer {
   async run() {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    console.error('File Select MCP server running on stdio');
+    console.error("File Select MCP server running on stdio");
   }
 }
 
 const server = new FileSelectServer();
-server.run().catch(console.error); 
+server.run().catch(console.error);

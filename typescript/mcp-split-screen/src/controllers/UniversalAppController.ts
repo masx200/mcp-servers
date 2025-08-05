@@ -1,16 +1,16 @@
 import { exec } from "child_process";
 import { promisify } from "util";
-import * as os from 'os';
+import * as os from "os";
 
 const execAsync = promisify(exec);
 
 // 控制方法枚举
 export enum ControlMethod {
   APP_SPECIFIC = "app_specific",
-  GENERIC_APPLESCRIPT = "generic_applescript", 
+  GENERIC_APPLESCRIPT = "generic_applescript",
   SYSTEM_EVENTS = "system_events",
   KEYBOARD_SHORTCUTS = "keyboard_shortcuts",
-  MANUAL_INSTRUCTION = "manual_instruction"
+  MANUAL_INSTRUCTION = "manual_instruction",
 }
 
 // 窗口边界接口
@@ -58,7 +58,7 @@ export class UniversalAppController {
 
   constructor(appControllers: AppController[] = []) {
     this.appControllers = appControllers;
-    this.isWindows = os.platform() === 'win32';
+    this.isWindows = os.platform() === "win32";
   }
 
   /**
@@ -93,7 +93,8 @@ export class UniversalAppController {
     } else {
       // macOS 实现
       try {
-        const script = `tell application "System Events" to return name of first process whose frontmost is true`;
+        const script =
+          `tell application "System Events" to return name of first process whose frontmost is true`;
         const { stdout } = await execAsync(`osascript -e '${script}'`);
         return stdout.trim();
       } catch (error) {
@@ -117,7 +118,10 @@ export class UniversalAppController {
       return true;
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
-      if (errorMsg.includes('-1719') || errorMsg.includes('不允许辅助访问') || errorMsg.includes('not allowed assistive access')) {
+      if (
+        errorMsg.includes("-1719") || errorMsg.includes("不允许辅助访问") ||
+        errorMsg.includes("not allowed assistive access")
+      ) {
         return false;
       }
       return true; // 其他错误认为有权限
@@ -133,14 +137,16 @@ export class UniversalAppController {
     }
 
     console.error("权限不足，正在尝试打开系统设置...");
-    const script = 'open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"';
+    const script =
+      'open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"';
     try {
       await execAsync(script);
       console.error("成功发送打开系统设置的命令。");
     } catch (e) {
       console.error("打开新版系统设置失败，尝试旧版方法...", e);
       // Fallback for older macOS versions
-      const fallbackScript = 'tell application "System Preferences" to activate & reveal anchor "Privacy_Accessibility" of pane id "com.apple.preference.security"';
+      const fallbackScript =
+        'tell application "System Preferences" to activate & reveal anchor "Privacy_Accessibility" of pane id "com.apple.preference.security"';
       try {
         await execAsync(`osascript -e '${fallbackScript}'`);
         console.error("成功发送打开旧版系统设置的命令。");
@@ -155,8 +161,10 @@ export class UniversalAppController {
    */
   getAppController(appName: string): AppController | null {
     const lowerAppName = appName.toLowerCase();
-    return this.appControllers.find(controller =>
-      controller.aliases.some(alias => lowerAppName.includes(alias.toLowerCase()))
+    return this.appControllers.find((controller) =>
+      controller.aliases.some((alias) =>
+        lowerAppName.includes(alias.toLowerCase())
+      )
     ) || null;
   }
 
@@ -170,7 +178,8 @@ export class UniversalAppController {
 
     try {
       // 测试是否能获取窗口信息
-      const testScript = `tell application "${appName}" to return count of windows`;
+      const testScript =
+        `tell application "${appName}" to return count of windows`;
       await execAsync(`osascript -e '${testScript}'`);
       return true;
     } catch (error) {
@@ -183,11 +192,14 @@ export class UniversalAppController {
    * 获取详细的权限状态和应用程序支持信息
    */
   async getPermissionStatus(): Promise<PermissionStatus> {
-    const currentApp = await this.getCurrentApplication().catch(() => "未知应用");
+    const currentApp = await this.getCurrentApplication().catch(() =>
+      "未知应用"
+    );
     const hasAccessibility = await this.checkAccessibilityPermission();
     const controller = this.getAppController(currentApp);
     const hasAppController = controller !== null;
-    const canControlCurrentApp = hasAppController || (hasAccessibility && await this.checkAppWindowControlSupport(currentApp));
+    const canControlCurrentApp = hasAppController ||
+      (hasAccessibility && await this.checkAppWindowControlSupport(currentApp));
 
     const suggestions: string[] = [];
     let controllerType = "none";
@@ -197,25 +209,38 @@ export class UniversalAppController {
       suggestions.push("✅ Windows 平台支持原生窗口控制");
     } else if (hasAppController) {
       controllerType = "app_specific";
-      suggestions.push(`✅ 检测到 "${currentApp}" 有专用控制器，支持无权限操作`);
+      suggestions.push(
+        `✅ 检测到 "${currentApp}" 有专用控制器，支持无权限操作`,
+      );
     } else if (hasAccessibility) {
       controllerType = "system_events";
       suggestions.push(`✅ 有辅助功能权限，可以使用 System Events 控制窗口`);
     } else {
       controllerType = "alternative";
-      suggestions.push("⚠️ 没有辅助功能权限，将使用替代方案（键盘快捷键或手动指导）");
-      suggestions.push("💡 要获得最佳体验，请在 系统设置 > 隐私与安全性 > 辅助功能 中为您的终端应用授权");
+      suggestions.push(
+        "⚠️ 没有辅助功能权限，将使用替代方案（键盘快捷键或手动指导）",
+      );
+      suggestions.push(
+        "💡 要获得最佳体验，请在 系统设置 > 隐私与安全性 > 辅助功能 中为您的终端应用授权",
+      );
     }
 
-    if (!this.isWindows && !hasAppController && hasAccessibility && !canControlCurrentApp) {
-      suggestions.push(`⚠️ 当前应用 "${currentApp}" 可能不支持标准窗口控制，将尝试多种通用方法`);
+    if (
+      !this.isWindows && !hasAppController && hasAccessibility &&
+      !canControlCurrentApp
+    ) {
+      suggestions.push(
+        `⚠️ 当前应用 "${currentApp}" 可能不支持标准窗口控制，将尝试多种通用方法`,
+      );
     }
 
     // 添加通用建议
     if (!this.isWindows && !hasAppController) {
       suggestions.push("💡 系统将自动尝试多种通用控制方法来支持您的应用程序");
       suggestions.push("💡 如果自动控制失败，将提供键盘快捷键和手动操作指导");
-      suggestions.push("💡 建议安装 Rectangle 或 Magnet 等专业窗口管理工具获得最佳体验");
+      suggestions.push(
+        "💡 建议安装 Rectangle 或 Magnet 等专业窗口管理工具获得最佳体验",
+      );
     }
 
     return {
@@ -224,14 +249,17 @@ export class UniversalAppController {
       currentApp,
       hasAppController,
       controllerType,
-      suggestions
+      suggestions,
     };
   }
 
   /**
    * 通用窗口控制方法 - 按优先级尝试多种方法
    */
-  async controlWindow(action: string, bounds: WindowBounds): Promise<ControlResult> {
+  async controlWindow(
+    action: string,
+    bounds: WindowBounds,
+  ): Promise<ControlResult> {
     console.error(`开始窗口控制: ${action}`, bounds);
 
     // 1. 首先检查权限状态
@@ -261,7 +289,10 @@ export class UniversalAppController {
 
         // 检查是否是权限问题
         const errorMsg = error instanceof Error ? error.message : String(error);
-        if (errorMsg.includes('-1719') || errorMsg.includes('不允许辅助访问') || errorMsg.includes('not allowed assistive access')) {
+        if (
+          errorMsg.includes("-1719") || errorMsg.includes("不允许辅助访问") ||
+          errorMsg.includes("not allowed assistive access")
+        ) {
           console.error("检测到权限问题，尝试申请权限");
           await this.requestAccessibilityPermission();
         }
@@ -275,8 +306,14 @@ export class UniversalAppController {
   /**
    * 获取控制方法列表（按优先级排序）
    */
-  private getControlMethods(permissionStatus: PermissionStatus, action: string, bounds: WindowBounds) {
-    const methods: Array<{name: string, execute: () => Promise<ControlResult>}> = [];
+  private getControlMethods(
+    permissionStatus: PermissionStatus,
+    action: string,
+    bounds: WindowBounds,
+  ) {
+    const methods: Array<
+      { name: string; execute: () => Promise<ControlResult> }
+    > = [];
 
     // 1. 应用程序特定控制器（最高优先级）
     if (permissionStatus.hasAppController) {
@@ -284,14 +321,14 @@ export class UniversalAppController {
       if (controller) {
         methods.push({
           name: `${controller.name} 专用控制器`,
-          execute: () => this.tryAppSpecificControl(controller, action, bounds)
+          execute: () => this.tryAppSpecificControl(controller, action, bounds),
         });
 
         // 应用程序特定的键盘快捷键
         if (controller.getKeyboardShortcut) {
           methods.push({
             name: `${controller.name} 专用快捷键`,
-            execute: () => this.tryAppSpecificKeyboard(controller, action)
+            execute: () => this.tryAppSpecificKeyboard(controller, action),
           });
         }
       }
@@ -300,21 +337,31 @@ export class UniversalAppController {
     // 2. 增强的通用 AppleScript 控制（多种方法）
     methods.push({
       name: `${permissionStatus.currentApp} 增强通用控制`,
-      execute: () => this.tryEnhancedGenericControl(permissionStatus.currentApp, action, bounds)
+      execute: () =>
+        this.tryEnhancedGenericControl(
+          permissionStatus.currentApp,
+          action,
+          bounds,
+        ),
     });
 
     // 3. System Events 控制（需要权限）- 增强版本
     if (permissionStatus.hasAccessibility) {
       methods.push({
         name: "增强 System Events 控制",
-        execute: () => this.tryEnhancedSystemEventsControl(permissionStatus.currentApp, action, bounds)
+        execute: () =>
+          this.tryEnhancedSystemEventsControl(
+            permissionStatus.currentApp,
+            action,
+            bounds,
+          ),
       });
     }
 
     // 4. 键盘快捷键备用方案
     methods.push({
       name: "键盘快捷键",
-      execute: () => this.tryKeyboardShortcuts(action)
+      execute: () => this.tryKeyboardShortcuts(action),
     });
 
     return methods;
@@ -323,13 +370,16 @@ export class UniversalAppController {
   /**
    * Windows 窗口控制
    */
-  private async tryWindowsControl(action: string, bounds: WindowBounds): Promise<ControlResult> {
+  private async tryWindowsControl(
+    action: string,
+    bounds: WindowBounds,
+  ): Promise<ControlResult> {
     try {
-      let powershellScript = '';
+      let powershellScript = "";
       const { x, y, width, height } = bounds;
 
       switch (action) {
-        case 'set_window_left_half':
+        case "set_window_left_half":
           powershellScript = `
             Add-Type -AssemblyName System.Windows.Forms
             Add-Type -TypeDefinition @"
@@ -347,7 +397,7 @@ export class UniversalAppController {
             Write-Output "success"`;
           break;
 
-        case 'maximize_window':
+        case "maximize_window":
           powershellScript = `
             Add-Type -AssemblyName System.Windows.Forms
             Add-Type -TypeDefinition @"
@@ -365,7 +415,7 @@ export class UniversalAppController {
             Write-Output "success"`;
           break;
 
-        case 'minimize_window':
+        case "minimize_window":
           powershellScript = `
             Add-Type -AssemblyName System.Windows.Forms
             Add-Type -TypeDefinition @"
@@ -402,25 +452,28 @@ export class UniversalAppController {
             Write-Output "success"`;
       }
 
-      const { stdout } = await execAsync(`powershell -Command "${powershellScript}"`);
+      const { stdout } = await execAsync(
+        `powershell -Command "${powershellScript}"`,
+      );
 
       if (stdout.includes("success")) {
         return {
           success: true,
           method: ControlMethod.APP_SPECIFIC,
-          message: `Windows 窗口操作成功: ${action}`
+          message: `Windows 窗口操作成功: ${action}`,
         };
       } else {
         throw new Error("PowerShell 脚本执行失败");
       }
-
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error
+        ? error.message
+        : String(error);
       return {
         success: false,
         method: ControlMethod.APP_SPECIFIC,
         message: `Windows 窗口操作失败: ${errorMessage}`,
-        error: errorMessage
+        error: errorMessage,
       };
     }
   }
@@ -428,7 +481,11 @@ export class UniversalAppController {
   /**
    * 应用程序特定控制器
    */
-  private async tryAppSpecificControl(controller: AppController, action: string, bounds: WindowBounds): Promise<ControlResult> {
+  private async tryAppSpecificControl(
+    controller: AppController,
+    action: string,
+    bounds: WindowBounds,
+  ): Promise<ControlResult> {
     try {
       const script = controller.getWindowScript(action, bounds);
       const { stdout } = await execAsync(`osascript -e '${script}'`);
@@ -437,18 +494,20 @@ export class UniversalAppController {
         return {
           success: true,
           method: ControlMethod.APP_SPECIFIC,
-          message: `窗口位置调整成功（专用控制器: ${controller.name}）`
+          message: `窗口位置调整成功（专用控制器: ${controller.name}）`,
         };
       } else {
         throw new Error(`专用控制器失败: ${stdout}`);
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error
+        ? error.message
+        : String(error);
       return {
         success: false,
         method: ControlMethod.APP_SPECIFIC,
         message: `专用控制器失败: ${errorMessage}`,
-        error: errorMessage
+        error: errorMessage,
       };
     }
   }
@@ -456,7 +515,10 @@ export class UniversalAppController {
   /**
    * 应用程序特定键盘快捷键
    */
-  private async tryAppSpecificKeyboard(controller: AppController, action: string): Promise<ControlResult> {
+  private async tryAppSpecificKeyboard(
+    controller: AppController,
+    action: string,
+  ): Promise<ControlResult> {
     try {
       const shortcutScript = controller.getKeyboardShortcut!(action);
       if (!shortcutScript) {
@@ -467,15 +529,17 @@ export class UniversalAppController {
       return {
         success: true,
         method: ControlMethod.KEYBOARD_SHORTCUTS,
-        message: `使用键盘快捷键成功（${controller.name}）`
+        message: `使用键盘快捷键成功（${controller.name}）`,
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error
+        ? error.message
+        : String(error);
       return {
         success: false,
         method: ControlMethod.KEYBOARD_SHORTCUTS,
         message: `应用程序特定键盘快捷键失败: ${errorMessage}`,
-        error: errorMessage
+        error: errorMessage,
       };
     }
   }
@@ -483,7 +547,11 @@ export class UniversalAppController {
   /**
    * 增强的通用 AppleScript 控制 - 支持更多应用程序
    */
-  private async tryEnhancedGenericControl(appName: string, action: string, bounds: WindowBounds): Promise<ControlResult> {
+  private async tryEnhancedGenericControl(
+    appName: string,
+    action: string,
+    bounds: WindowBounds,
+  ): Promise<ControlResult> {
     const { x, y, width, height } = bounds;
 
     // 更全面的通用控制方法，按成功率排序
@@ -492,12 +560,14 @@ export class UniversalAppController {
         name: `${appName} 直接 bounds 设置`,
         script: `tell application "${appName}"
                    try
-                     set bounds of front window to {${x}, ${y}, ${x + width}, ${y + height}}
+                     set bounds of front window to {${x}, ${y}, ${x + width}, ${
+          y + height
+        }}
                      return "success"
                    on error errorMsg
                      return "error: " & errorMsg
                    end try
-                 end tell`
+                 end tell`,
       },
       {
         name: `${appName} 分步设置（位置+大小）`,
@@ -510,7 +580,7 @@ export class UniversalAppController {
                    on error errorMsg
                      return "error: " & errorMsg
                    end try
-                 end tell`
+                 end tell`,
       },
       {
         name: `${appName} 窗口属性设置`,
@@ -524,30 +594,34 @@ export class UniversalAppController {
                    on error errorMsg
                      return "error: " & errorMsg
                    end try
-                 end tell`
+                 end tell`,
       },
       {
         name: `${appName} 窗口1设置`,
         script: `tell application "${appName}"
                    try
-                     set bounds of window 1 to {${x}, ${y}, ${x + width}, ${y + height}}
+                     set bounds of window 1 to {${x}, ${y}, ${x + width}, ${
+          y + height
+        }}
                      return "success"
                    on error errorMsg
                      return "error: " & errorMsg
                    end try
-                 end tell`
+                 end tell`,
       },
       {
         name: `${appName} 文档窗口设置`,
         script: `tell application "${appName}"
                    try
-                     set bounds of document window 1 to {${x}, ${y}, ${x + width}, ${y + height}}
+                     set bounds of document window 1 to {${x}, ${y}, ${
+          x + width
+        }, ${y + height}}
                      return "success"
                    on error errorMsg
                      return "error: " & errorMsg
                    end try
-                 end tell`
-      }
+                 end tell`,
+      },
     ];
 
     for (const method of enhancedMethods) {
@@ -558,7 +632,7 @@ export class UniversalAppController {
           return {
             success: true,
             method: ControlMethod.GENERIC_APPLESCRIPT,
-            message: `窗口位置调整成功（${method.name}）`
+            message: `窗口位置调整成功（${method.name}）`,
           };
         } else if (stdout.includes("error:")) {
           console.error(`${method.name} 返回错误: ${stdout}`);
@@ -573,14 +647,18 @@ export class UniversalAppController {
       success: false,
       method: ControlMethod.GENERIC_APPLESCRIPT,
       message: `增强通用 AppleScript 控制失败`,
-      error: "所有增强通用方法都失败"
+      error: "所有增强通用方法都失败",
     };
   }
 
   /**
    * 通用 AppleScript 控制 (保留原方法作为备用)
    */
-  private async tryGenericAppleScript(appName: string, action: string, bounds: WindowBounds): Promise<ControlResult> {
+  private async tryGenericAppleScript(
+    appName: string,
+    action: string,
+    bounds: WindowBounds,
+  ): Promise<ControlResult> {
     const { x, y, width, height } = bounds;
 
     const genericMethods = [
@@ -588,12 +666,14 @@ export class UniversalAppController {
         name: `${appName} 通用 bounds 设置`,
         script: `tell application "${appName}"
                    try
-                     set bounds of front window to {${x}, ${y}, ${x + width}, ${y + height}}
+                     set bounds of front window to {${x}, ${y}, ${x + width}, ${
+          y + height
+        }}
                      return "success"
                    on error errorMsg
                      return "error: " & errorMsg
                    end try
-                 end tell`
+                 end tell`,
       },
       {
         name: `${appName} 通用分步设置`,
@@ -606,8 +686,8 @@ export class UniversalAppController {
                    on error errorMsg
                      return "error: " & errorMsg
                    end try
-                 end tell`
-      }
+                 end tell`,
+      },
     ];
 
     for (const method of genericMethods) {
@@ -617,7 +697,7 @@ export class UniversalAppController {
           return {
             success: true,
             method: ControlMethod.GENERIC_APPLESCRIPT,
-            message: `窗口位置调整成功（${method.name}）`
+            message: `窗口位置调整成功（${method.name}）`,
           };
         }
       } catch (error) {
@@ -629,14 +709,18 @@ export class UniversalAppController {
       success: false,
       method: ControlMethod.GENERIC_APPLESCRIPT,
       message: `通用 AppleScript 控制失败`,
-      error: "所有通用方法都失败"
+      error: "所有通用方法都失败",
     };
   }
 
   /**
    * 增强的 System Events 控制 - 支持更多应用程序类型
    */
-  private async tryEnhancedSystemEventsControl(appName: string, action: string, bounds: WindowBounds): Promise<ControlResult> {
+  private async tryEnhancedSystemEventsControl(
+    appName: string,
+    action: string,
+    bounds: WindowBounds,
+  ): Promise<ControlResult> {
     const { x, y, width, height } = bounds;
 
     // 更全面的 System Events 控制方法
@@ -654,7 +738,7 @@ export class UniversalAppController {
                        return "error: " & errorMsg
                      end try
                    end tell
-                 end tell`
+                 end tell`,
       },
       {
         name: "System Events 指定进程控制",
@@ -669,20 +753,22 @@ export class UniversalAppController {
                        return "error: " & errorMsg
                      end try
                    end tell
-                 end tell`
+                 end tell`,
       },
       {
         name: "System Events bounds 直接设置",
         script: `tell application "System Events"
                    tell (first process whose frontmost is true)
                      try
-                       set bounds of front window to {${x}, ${y}, ${x + width}, ${y + height}}
+                       set bounds of front window to {${x}, ${y}, ${
+          x + width
+        }, ${y + height}}
                        return "success"
                      on error errorMsg
                        return "error: " & errorMsg
                      end try
                    end tell
-                 end tell`
+                 end tell`,
       },
       {
         name: "System Events 窗口1控制",
@@ -697,7 +783,7 @@ export class UniversalAppController {
                        return "error: " & errorMsg
                      end try
                    end tell
-                 end tell`
+                 end tell`,
       },
       {
         name: "System Events 所有窗口检查",
@@ -716,8 +802,8 @@ export class UniversalAppController {
                        return "error: " & errorMsg
                      end try
                    end tell
-                 end tell`
-      }
+                 end tell`,
+      },
     ];
 
     for (const method of enhancedSystemEventsMethods) {
@@ -728,7 +814,7 @@ export class UniversalAppController {
           return {
             success: true,
             method: ControlMethod.SYSTEM_EVENTS,
-            message: `窗口位置调整成功（${method.name}）`
+            message: `窗口位置调整成功（${method.name}）`,
           };
         } else if (stdout.includes("error:")) {
           console.error(`${method.name} 返回错误: ${stdout}`);
@@ -743,14 +829,17 @@ export class UniversalAppController {
       success: false,
       method: ControlMethod.SYSTEM_EVENTS,
       message: `增强 System Events 控制失败`,
-      error: "所有增强 System Events 方法都失败"
+      error: "所有增强 System Events 方法都失败",
     };
   }
 
   /**
    * System Events 控制 (保留原方法作为备用)
    */
-  private async trySystemEventsControl(action: string, bounds: WindowBounds): Promise<ControlResult> {
+  private async trySystemEventsControl(
+    action: string,
+    bounds: WindowBounds,
+  ): Promise<ControlResult> {
     const { x, y, width, height } = bounds;
 
     const systemEventsMethods = [
@@ -766,21 +855,23 @@ export class UniversalAppController {
                        return "error: " & errorMsg
                      end try
                    end tell
-                 end tell`
+                 end tell`,
       },
       {
         name: "System Events bounds 操作",
         script: `tell application "System Events"
                    tell (first process whose frontmost is true)
                      try
-                       set bounds of front window to {${x}, ${y}, ${x + width}, ${y + height}}
+                       set bounds of front window to {${x}, ${y}, ${
+          x + width
+        }, ${y + height}}
                        return "success"
                      on error errorMsg
                        return "error: " & errorMsg
                      end try
                    end tell
-                 end tell`
-      }
+                 end tell`,
+      },
     ];
 
     for (const method of systemEventsMethods) {
@@ -790,7 +881,7 @@ export class UniversalAppController {
           return {
             success: true,
             method: ControlMethod.SYSTEM_EVENTS,
-            message: `窗口位置调整成功（${method.name}）`
+            message: `窗口位置调整成功（${method.name}）`,
           };
         }
       } catch (error) {
@@ -802,7 +893,7 @@ export class UniversalAppController {
       success: false,
       method: ControlMethod.SYSTEM_EVENTS,
       message: `System Events 控制失败`,
-      error: "所有 System Events 方法都失败"
+      error: "所有 System Events 方法都失败",
     };
   }
 
@@ -811,10 +902,14 @@ export class UniversalAppController {
    */
   private async tryKeyboardShortcuts(action: string): Promise<ControlResult> {
     const shortcuts: Record<string, string> = {
-      'set_window_left_half': 'tell application "System Events" to keystroke "left" using {control down, option down}',
-      'set_window_right_half': 'tell application "System Events" to keystroke "right" using {control down, option down}',
-      'maximize_window': 'tell application "System Events" to keystroke "f" using {control down, command down}',
-      'minimize_window': 'tell application "System Events" to keystroke "m" using {command down}',
+      "set_window_left_half":
+        'tell application "System Events" to keystroke "left" using {control down, option down}',
+      "set_window_right_half":
+        'tell application "System Events" to keystroke "right" using {control down, option down}',
+      "maximize_window":
+        'tell application "System Events" to keystroke "f" using {control down, command down}',
+      "minimize_window":
+        'tell application "System Events" to keystroke "m" using {command down}',
     };
 
     const shortcut = shortcuts[action];
@@ -823,7 +918,7 @@ export class UniversalAppController {
         success: false,
         method: ControlMethod.KEYBOARD_SHORTCUTS,
         message: `不支持的键盘快捷键操作: ${action}`,
-        error: "没有对应的快捷键"
+        error: "没有对应的快捷键",
       };
     }
 
@@ -832,15 +927,18 @@ export class UniversalAppController {
       return {
         success: true,
         method: ControlMethod.KEYBOARD_SHORTCUTS,
-        message: `已尝试使用键盘快捷键执行 ${action}。如果没有效果，请安装 Rectangle 或 Magnet 等窗口管理工具。`
+        message:
+          `已尝试使用键盘快捷键执行 ${action}。如果没有效果，请安装 Rectangle 或 Magnet 等窗口管理工具。`,
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error
+        ? error.message
+        : String(error);
       return {
         success: false,
         method: ControlMethod.KEYBOARD_SHORTCUTS,
         message: `键盘快捷键失败: ${errorMessage}`,
-        error: errorMessage
+        error: errorMessage,
       };
     }
   }
@@ -848,24 +946,33 @@ export class UniversalAppController {
   /**
    * 获取手动操作指导
    */
-  private getManualInstructions(action: string, permissionStatus: PermissionStatus): ControlResult {
+  private getManualInstructions(
+    action: string,
+    permissionStatus: PermissionStatus,
+  ): ControlResult {
     const instructions: Record<string, string> = {
-      'set_window_left_half': '请手动操作：按住 Control + Option + 左箭头键，或拖拽窗口到屏幕左边缘',
-      'set_window_right_half': '请手动操作：按住 Control + Option + 右箭头键，或拖拽窗口到屏幕右边缘',
-      'set_window_top_half': '请手动操作：拖拽窗口到屏幕上边缘',
-      'set_window_bottom_half': '请手动操作：拖拽窗口到屏幕下边缘',
-      'maximize_window': '请手动操作：按住 Control + Command + F，或点击窗口左上角的绿色按钮',
-      'minimize_window': '请手动操作：按 Command + M，或点击窗口左上角的黄色按钮',
-      'fullscreen_window': '请手动操作：按 Control + Command + F，或点击窗口左上角的绿色按钮'
+      "set_window_left_half":
+        "请手动操作：按住 Control + Option + 左箭头键，或拖拽窗口到屏幕左边缘",
+      "set_window_right_half":
+        "请手动操作：按住 Control + Option + 右箭头键，或拖拽窗口到屏幕右边缘",
+      "set_window_top_half": "请手动操作：拖拽窗口到屏幕上边缘",
+      "set_window_bottom_half": "请手动操作：拖拽窗口到屏幕下边缘",
+      "maximize_window":
+        "请手动操作：按住 Control + Command + F，或点击窗口左上角的绿色按钮",
+      "minimize_window":
+        "请手动操作：按 Command + M，或点击窗口左上角的黄色按钮",
+      "fullscreen_window":
+        "请手动操作：按 Control + Command + F，或点击窗口左上角的绿色按钮",
     };
 
     const instruction = instructions[action] || `请手动执行窗口操作: ${action}`;
-    const suggestions = permissionStatus.suggestions.join('\n');
+    const suggestions = permissionStatus.suggestions.join("\n");
 
     return {
       success: false,
       method: ControlMethod.MANUAL_INSTRUCTION,
-      message: `所有自动方法都失败了。\n\n${instruction}\n\n建议：\n${suggestions}\n\n或者安装 Rectangle、Magnet 等窗口管理工具并使用其快捷键。`
+      message:
+        `所有自动方法都失败了。\n\n${instruction}\n\n建议：\n${suggestions}\n\n或者安装 Rectangle、Magnet 等窗口管理工具并使用其快捷键。`,
     };
   }
 }

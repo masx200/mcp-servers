@@ -17,17 +17,17 @@ const { MD5 } = pkg;
 function getBaiduApiCredentials() {
   const appId = process.env.BAIDU_TRANSLATE_APP_ID;
   const appKey = process.env.BAIDU_TRANSLATE_APP_KEY;
-  
+
   if (!appId) {
     console.error("错误: 未设置环境变量 BAIDU_TRANSLATE_APP_ID");
     process.exit(1);
   }
-  
+
   if (!appKey) {
     console.error("错误: 未设置环境变量 BAIDU_TRANSLATE_APP_KEY");
     process.exit(1);
   }
-  
+
   return { appId, appKey };
 }
 
@@ -103,7 +103,8 @@ const TRANSLATE_TEXT_TOOL: Tool = {
       },
       from_lang: {
         type: "string",
-        description: "源语言代码，例如：'en'表示英语，'zh'表示中文，留空则自动检测",
+        description:
+          "源语言代码，例如：'en'表示英语，'zh'表示中文，留空则自动检测",
       },
       to_lang: {
         type: "string",
@@ -127,14 +128,14 @@ const TRANSLATE_TEXT_TOOL: Tool = {
           },
         },
       },
-      detected_language: { 
-        type: "string", 
-        description: "检测到的源语言（如果源语言未指定）" 
+      detected_language: {
+        type: "string",
+        description: "检测到的源语言（如果源语言未指定）",
       },
       isError: { type: "boolean", description: "是否发生错误" },
-      errorMessage: { 
-        type: "string", 
-        description: "错误信息，如果isError为true则提供" 
+      errorMessage: {
+        type: "string",
+        description: "错误信息，如果isError为true则提供",
       },
     },
     required: ["content", "isError", "errorMessage"],
@@ -166,23 +167,26 @@ const GET_SUPPORTED_LANGUAGES_TOOL: Tool = {
         },
       },
       isError: { type: "boolean", description: "是否发生错误" },
-      errorMessage: { 
-        type: "string", 
-        description: "错误信息，如果isError为true则提供" 
+      errorMessage: {
+        type: "string",
+        description: "错误信息，如果isError为true则提供",
       },
     },
     required: ["content", "isError", "errorMessage"],
   },
 };
 
-const TOOLS: readonly Tool[] = [TRANSLATE_TEXT_TOOL, GET_SUPPORTED_LANGUAGES_TOOL];
+const TOOLS: readonly Tool[] = [
+  TRANSLATE_TEXT_TOOL,
+  GET_SUPPORTED_LANGUAGES_TOOL,
+];
 
 // 处理文本翻译请求
 async function handleTranslateText(input: any) {
-  if (!input || typeof input !== 'object') {
+  if (!input || typeof input !== "object") {
     throw new McpError(
       ErrorCode.InvalidParams,
-      "输入参数格式错误，预期为包含text和to_lang字段的对象。"
+      "输入参数格式错误，预期为包含text和to_lang字段的对象。",
     );
   }
 
@@ -217,17 +221,17 @@ async function handleTranslateText(input: any) {
     if (!response.ok) {
       throw new McpError(
         ErrorCode.InternalError,
-        `API请求失败，HTTP状态码: ${response.status}`
+        `API请求失败，HTTP状态码: ${response.status}`,
       );
     }
 
     const data = await response.json() as BaiduTranslateResponse;
 
     // 检查是否是错误响应
-    if ('error_code' in data) {
+    if ("error_code" in data) {
       throw new McpError(
         ErrorCode.InternalError,
-        `翻译API错误：${data.error_code} - ${data.error_msg}`
+        `翻译API错误：${data.error_code} - ${data.error_msg}`,
       );
     }
 
@@ -235,7 +239,7 @@ async function handleTranslateText(input: any) {
     return {
       content: [{
         type: "text",
-        text: data.trans_result.map(item => item.dst).join('\n')
+        text: data.trans_result.map((item) => item.dst).join("\n"),
       }],
       detected_language: data.from,
       isError: false,
@@ -248,7 +252,7 @@ async function handleTranslateText(input: any) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new McpError(
       ErrorCode.InternalError,
-      `系统错误: ${errorMessage}`
+      `系统错误: ${errorMessage}`,
     );
   }
 }
@@ -257,12 +261,12 @@ async function handleTranslateText(input: any) {
 function handleGetSupportedLanguages() {
   try {
     const languageList = Object.entries(SUPPORTED_LANGUAGES)
-      .map(([code, name]) => `${code}: ${name}`)
+      .map(([code, name]) => `${code}: ${name}`);
 
     return {
       content: [{
         type: "text",
-        text: JSON.stringify(languageList, null, 2)
+        text: JSON.stringify(languageList, null, 2),
       }],
       isError: false,
       errorMessage: "",
@@ -271,7 +275,7 @@ function handleGetSupportedLanguages() {
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new McpError(
       ErrorCode.InternalError,
-      `获取支持语言列表时发生错误: ${errorMessage}`
+      `获取支持语言列表时发生错误: ${errorMessage}`,
     );
   }
 }
@@ -286,7 +290,7 @@ const server = new Server(
     capabilities: {
       tools: {},
     },
-  }
+  },
 );
 
 // 设置错误处理
@@ -313,7 +317,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       default:
         throw new McpError(
           ErrorCode.MethodNotFound,
-          `未知工具: ${name}`
+          `未知工具: ${name}`,
         );
     }
   } catch (error) {
@@ -323,7 +327,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new McpError(
       ErrorCode.InternalError,
-      `执行工具 ${name} 时发生错误: ${errorMessage}`
+      `执行工具 ${name} 时发生错误: ${errorMessage}`,
     );
   }
 });
@@ -340,4 +344,4 @@ async function runServer() {
   }
 }
 
-runServer().catch(console.error); 
+runServer().catch(console.error);

@@ -1,7 +1,7 @@
-import { isLinux, isMac, isWin } from '../platform.js';
-import darwin from './darwin.js';
-import win from './win.js';
-import linux from './linux.js';
+import { isLinux, isMac, isWin } from "../platform.js";
+import darwin from "./darwin.js";
+import win from "./win.js";
+import linux from "./linux.js";
 
 export interface AppInfo {
   _name?: string;
@@ -26,4 +26,3 @@ if (isMac) {
 }
 
 export default appSearch;
-  

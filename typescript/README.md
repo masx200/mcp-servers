@@ -1,4 +1,3 @@
-
 ```
 自动发布到npm仓库 
 npm run publish -- <package-name> 
@@ -9,5 +8,4 @@ npm run publish -- <package-name>
   'npm run build',//打包
   'npm version patch',//修改小版本号
   'npm publish --access public'//发布到npm仓库
-
 ```

@@ -1,6 +1,7 @@
 # MCP QRCode Server
 
-一个基于MCP协议的二维码生成和解码服务器，为 AI Agent 提供简单易用的二维码处理功能。
+一个基于MCP协议的二维码生成和解码服务器，为 AI Agent
+提供简单易用的二维码处理功能。
 
 ## 功能特点
 
@@ -37,8 +38,10 @@ npm run build
 ```
 
 注意：
+
 1. 请将配置中的"你的项目路径"替换为实际的项目路径
-2. `autoApprove` 字段表示允许自动执行的命令，这里配置了 `generate_qrcode` 和 `decode_qrcode`
+2. `autoApprove` 字段表示允许自动执行的命令，这里配置了 `generate_qrcode` 和
+   `decode_qrcode`
 
 ## 使用示例
 
@@ -55,6 +58,7 @@ npm run build
 ```
 
 成功响应：
+
 ```json
 {
   "success": true,
@@ -76,6 +80,7 @@ npm run build
 ```
 
 成功响应：
+
 ```json
 {
   "success": true,
@@ -87,16 +92,19 @@ npm run build
 ## 配置说明
 
 ### 二维码生成
+
 - 支持自定义输出路径
 - 使用高纠错级别(H)，具有较强的容错能力
 - 支持多种图片格式（PNG、JPEG等）
 
 ### 二维码解码
+
 - 支持本地文件路径
 - 支持HTTP URL（超时设置为10秒）
 - 支持多种图片格式
 
 ### 安全特性
+
 - 自动验证输入参数
 - 安全的文件路径处理
 - 错误处理和日志记录

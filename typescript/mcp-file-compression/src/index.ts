@@ -11,8 +11,8 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import path from "path";
 import fs from "fs";
-import { chmod } from 'fs/promises';
-import archiver from 'archiver';
+import { chmod } from "fs/promises";
+import archiver from "archiver";
 import SevenZip from "7z-wasm";
 
 const execAsync = promisify(exec);
@@ -26,20 +26,20 @@ const COMPRESS_TOOL: Tool = {
     properties: {
       source: {
         type: "string",
-        description: "要压缩的文件或文件夹路径"
+        description: "要压缩的文件或文件夹路径",
       },
       destination: {
         type: "string",
-        description: "压缩文件的输出路径（包括文件名）"
+        description: "压缩文件的输出路径（包括文件名）",
       },
       format: {
         type: "string",
         description: "压缩格式，支持：zip、7z、tar、tar.gz",
-        enum: ["zip", "7z", "tar", "tar.gz"]
-      }
+        enum: ["zip", "7z", "tar", "tar.gz"],
+      },
     },
-    required: ["source", "format"]
-  }
+    required: ["source", "format"],
+  },
 };
 
 const EXTRACT_TOOL: Tool = {
@@ -50,49 +50,57 @@ const EXTRACT_TOOL: Tool = {
     properties: {
       source: {
         type: "string",
-        description: "要解压的压缩文件路径"
+        description: "要解压的压缩文件路径",
       },
       destination: {
         type: "string",
-        description: "解压目标位置，可选值：'specified'（指定目录），'desktop'（桌面），'current'（当前文件夹）。默认为'current'。",
-        enum: ["specified", "desktop", "current"]
+        description:
+          "解压目标位置，可选值：'specified'（指定目录），'desktop'（桌面），'current'（当前文件夹）。默认为'current'。",
+        enum: ["specified", "desktop", "current"],
       },
       target_dir: {
         type: "string",
-        description: "当destination为'specified'时，指定解压的目标目录路径"
-      }
+        description: "当destination为'specified'时，指定解压的目标目录路径",
+      },
     },
-    required: ["source"]
-  }
+    required: ["source"],
+  },
 };
 
 const COMPRESSION_TOOLS = [
   COMPRESS_TOOL,
-  EXTRACT_TOOL
+  EXTRACT_TOOL,
 ] as const;
 
 // Helper functions
 function getDesktopPath() {
-  return path.join(process.env.HOME || process.env.USERPROFILE || '', 'Desktop');
+  return path.join(
+    process.env.HOME || process.env.USERPROFILE || "",
+    "Desktop",
+  );
 }
 
 function getCurrentDirectory() {
   return process.cwd();
 }
 
-function ensureExtension(filePath:any, extension:any) {
+function ensureExtension(filePath: any, extension: any) {
   if (!filePath.endsWith(`.${extension}`)) {
     return `${filePath}.${extension}`;
   }
   return filePath;
 }
 
-function getDefaultDestination(source:any, extension:any) {
+function getDefaultDestination(source: any, extension: any) {
   const basename = path.basename(source);
   return path.join(path.dirname(source), `${basename}.${extension}`);
 }
 
-async function handleCompress(source: string, format: string, destination?: string): Promise<any> {
+async function handleCompress(
+  source: string,
+  format: string,
+  destination?: string,
+): Promise<any> {
   try {
     const sourcePath = path.resolve(source);
 
@@ -101,58 +109,67 @@ async function handleCompress(source: string, format: string, destination?: stri
       return {
         content: [{
           type: "text",
-          text: `错误：源文件或目录 '${sourcePath}' 不存在。`
+          text: `错误：源文件或目录 '${sourcePath}' 不存在。`,
         }],
-        isError: true
+        isError: true,
       };
     }
 
     // 根据格式选择不同的压缩方法
     switch (format.toLowerCase()) {
-      case 'zip':
+      case "zip":
         return handleCompressZip(sourcePath, destination);
-      case '7z':
+      case "7z":
         return handleCompress7z(sourcePath, destination);
-      case 'tar':
+      case "tar":
         return handleCompressTar(sourcePath, destination);
-      case 'tar.gz':
+      case "tar.gz":
         return handleCompressTarGz(sourcePath, destination);
       default:
         return {
           content: [{
             type: "text",
-            text: `不支持的压缩格式: ${format}`
+            text: `不支持的压缩格式: ${format}`,
           }],
-          isError: true
+          isError: true,
         };
     }
   } catch (error) {
     return {
       content: [{
         type: "text",
-        text: `压缩错误: ${error instanceof Error ? error.message : String(error)}`
+        text: `压缩错误: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
       }],
-      isError: true
+      isError: true,
     };
   }
 }
 
-async function handleCompressZip(source: string, destination?: string): Promise<any> {
+async function handleCompressZip(
+  source: string,
+  destination?: string,
+): Promise<any> {
   try {
     const sourcePath = path.resolve(source);
-    const destPath = destination ? path.resolve(destination) : getDefaultDestination(sourcePath, 'zip');
+    const destPath = destination
+      ? path.resolve(destination)
+      : getDefaultDestination(sourcePath, "zip");
 
     const output = fs.createWriteStream(destPath);
-    const archive = archiver('zip', {
-      zlib: { level: 9 } // 设置压缩级别
+    const archive = archiver("zip", {
+      zlib: { level: 9 }, // 设置压缩级别
     });
 
-    output.on('close', () => {
+    output.on("close", () => {
       console.error(`${archive.pointer()} total bytes`);
-      console.error('archiver has been finalized and the output file descriptor has closed.');
+      console.error(
+        "archiver has been finalized and the output file descriptor has closed.",
+      );
     });
 
-    archive.on('error', (err) => {
+    archive.on("error", (err) => {
       throw err;
     });
 
@@ -172,16 +189,18 @@ async function handleCompressZip(source: string, destination?: string): Promise<
     return {
       content: [{
         type: "text",
-        text: `成功压缩为ZIP格式: ${destPath}`
-      }]
+        text: `成功压缩为ZIP格式: ${destPath}`,
+      }],
     };
   } catch (error) {
     return {
       content: [{
         type: "text",
-        text: `ZIP压缩错误: ${error instanceof Error ? error.message : String(error)}`
+        text: `ZIP压缩错误: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
       }],
-      isError: true
+      isError: true,
     };
   }
 }
@@ -192,15 +211,18 @@ interface SevenZipOptions {
   wasmBinary?: ArrayBuffer;
 }
 
-async function handleCompress7z(source: string, destination?: string): Promise<any> {
+async function handleCompress7z(
+  source: string,
+  destination?: string,
+): Promise<any> {
   // Ensure finalDestPathAbs is initialized as a string before try block
   let finalDestPathAbs: string;
   if (destination) {
-    finalDestPathAbs = ensureExtension(path.resolve(destination), '7z');
+    finalDestPathAbs = ensureExtension(path.resolve(destination), "7z");
   } else {
-    finalDestPathAbs = getDefaultDestination(path.resolve(source), '7z');
+    finalDestPathAbs = getDefaultDestination(path.resolve(source), "7z");
     // getDefaultDestination already adds .7z if it generates a name, but ensureExtension handles if source itself had .7z
-    finalDestPathAbs = ensureExtension(finalDestPathAbs, '7z');
+    finalDestPathAbs = ensureExtension(finalDestPathAbs, "7z");
   }
 
   try {
@@ -214,7 +236,13 @@ async function handleCompress7z(source: string, destination?: string): Promise<a
       // If system command is attempted, it should use the already determined finalDestPathAbs
 
       if (!fs.existsSync(sourcePath)) {
-        return { content: [{ type: "text", text: `错误: 源文件或目录 '${sourcePath}' 不存在。` }], isError: true };
+        return {
+          content: [{
+            type: "text",
+            text: `错误: 源文件或目录 '${sourcePath}' 不存在。`,
+          }],
+          isError: true,
+        };
       }
 
       const command = `7z a '${finalDestPathAbs}' '${sourcePath}'`;
@@ -222,8 +250,11 @@ async function handleCompress7z(source: string, destination?: string): Promise<a
 
       console.error(`使用系统7z命令行工具成功压缩: ${finalDestPathAbs}`);
       return {
-        content: [{ type: "text", text: `成功压缩为7Z格式: ${finalDestPathAbs}` }],
-        isError: false
+        content: [{
+          type: "text",
+          text: `成功压缩为7Z格式: ${finalDestPathAbs}`,
+        }],
+        isError: false,
       };
     } catch (cmdError: any) {
       console.error("系统7z命令行工具不可用或执行失败:", cmdError.message);
@@ -235,7 +266,13 @@ async function handleCompress7z(source: string, destination?: string): Promise<a
     // finalDestPathAbs is already determined and correctly extensioned from the top
 
     if (!fs.existsSync(sourcePathAbs)) {
-      return { content: [{ type: "text", text: `错误: 源文件或目录 '${sourcePathAbs}' 不存在。` }], isError: true };
+      return {
+        content: [{
+          type: "text",
+          text: `错误: 源文件或目录 '${sourcePathAbs}' 不存在。`,
+        }],
+        isError: true,
+      };
     }
 
     const sourceParentAbs = path.dirname(sourcePathAbs);
@@ -248,14 +285,21 @@ async function handleCompress7z(source: string, destination?: string): Promise<a
     const tempArchiveHostPath = path.join(sourceParentAbs, archiveOutputName);
 
     // Attempt to locate 7zz.wasm more robustly
-    let resolvedWasmPath = '';
-    const wasmFileName = '7zz.wasm';
+    let resolvedWasmPath = "";
+    const wasmFileName = "7zz.wasm";
     // Common paths to check for 7zz.wasm relative to __dirname or 7z-wasm package
     const potentialWasmPaths = [
-      path.resolve(__dirname, 'node_modules', '7z-wasm', wasmFileName), // Original attempt if structure is flat
-      path.resolve(__dirname, '..', 'node_modules', '7z-wasm', wasmFileName), // If __dirname is in dist/, node_modules is ../
-      path.resolve(__dirname, 'node_modules', '7z-wasm', 'dist', wasmFileName), // Common dist folder in package
-      path.resolve(__dirname, '..', 'node_modules', '7z-wasm', 'dist', wasmFileName)
+      path.resolve(__dirname, "node_modules", "7z-wasm", wasmFileName), // Original attempt if structure is flat
+      path.resolve(__dirname, "..", "node_modules", "7z-wasm", wasmFileName), // If __dirname is in dist/, node_modules is ../
+      path.resolve(__dirname, "node_modules", "7z-wasm", "dist", wasmFileName), // Common dist folder in package
+      path.resolve(
+        __dirname,
+        "..",
+        "node_modules",
+        "7z-wasm",
+        "dist",
+        wasmFileName,
+      ),
     ];
 
     for (const p of potentialWasmPaths) {
@@ -268,10 +312,12 @@ async function handleCompress7z(source: string, destination?: string): Promise<a
     if (!resolvedWasmPath) {
       try {
         // Try resolving via require.resolve for the package and then look for common subpaths
-        const sevenWasmPackageDir = path.dirname(require.resolve('7z-wasm/package.json')); // Get package root
+        const sevenWasmPackageDir = path.dirname(
+          require.resolve("7z-wasm/package.json"),
+        ); // Get package root
         const packageWasmPaths = [
-          path.join(sevenWasmPackageDir, 'dist', wasmFileName),
-          path.join(sevenWasmPackageDir, wasmFileName)
+          path.join(sevenWasmPackageDir, "dist", wasmFileName),
+          path.join(sevenWasmPackageDir, wasmFileName),
         ];
         for (const p of packageWasmPaths) {
           if (fs.existsSync(p)) {
@@ -280,29 +326,39 @@ async function handleCompress7z(source: string, destination?: string): Promise<a
           }
         }
       } catch (e) {
-        console.error("尝试通过 require.resolve('7z-wasm') 定位 WASM 文件失败。", e);
+        console.error(
+          "尝试通过 require.resolve('7z-wasm') 定位 WASM 文件失败。",
+          e,
+        );
       }
     }
 
     console.error("最终尝试的WASM文件路径:", resolvedWasmPath);
-    console.error("WASM文件是否存在:", resolvedWasmPath ? fs.existsSync(resolvedWasmPath) : false);
+    console.error(
+      "WASM文件是否存在:",
+      resolvedWasmPath ? fs.existsSync(resolvedWasmPath) : false,
+    );
 
     if (!resolvedWasmPath || !fs.existsSync(resolvedWasmPath)) {
-        return {
-            content: [{ type: "text", text: `错误: 7zz.wasm 未找到。请检查7z-wasm包的安装和结构，并确认wasm文件位置，或者安装系统7z命令行工具。` }],
-            isError: true
-        };
+      return {
+        content: [{
+          type: "text",
+          text:
+            `错误: 7zz.wasm 未找到。请检查7z-wasm包的安装和结构，并确认wasm文件位置，或者安装系统7z命令行工具。`,
+        }],
+        isError: true,
+      };
     }
 
     // Read the Wasm binary content
     const wasmFileBuffer = fs.readFileSync(resolvedWasmPath);
     const wasmBinary = wasmFileBuffer.buffer.slice(
       wasmFileBuffer.byteOffset,
-      wasmFileBuffer.byteOffset + wasmFileBuffer.byteLength
+      wasmFileBuffer.byteOffset + wasmFileBuffer.byteLength,
     );
 
     const options: SevenZipOptions = {
-      wasmBinary: wasmBinary
+      wasmBinary: wasmBinary,
     };
 
     const sevenZip = await SevenZip(options);
@@ -334,18 +390,30 @@ async function handleCompress7z(source: string, destination?: string): Promise<a
     console.error(`VFS: 创建挂载点目录 ${mountPointVFS}`);
     sevenZip.FS.mkdir(mountPointVFS);
 
-    console.error(`VFS: 挂载主机目录 '${sourceParentAbs}' 到VFS路径 '${mountPointVFS}'`);
-    sevenZip.FS.mount(sevenZip.NODEFS, { root: sourceParentAbs }, mountPointVFS);
+    console.error(
+      `VFS: 挂载主机目录 '${sourceParentAbs}' 到VFS路径 '${mountPointVFS}'`,
+    );
+    sevenZip.FS.mount(
+      sevenZip.NODEFS,
+      { root: sourceParentAbs },
+      mountPointVFS,
+    );
 
     console.error(`VFS: 切换当前工作目录到 '${mountPointVFS}'`);
     sevenZip.FS.chdir(mountPointVFS);
 
-    console.error(`执行7z命令: VFS当前工作目录: ${sevenZip.FS.cwd()}, (预期映射到主机: ${sourceParentAbs})`);
-    console.error(`压缩源 (VFS相对路径): '${sourceBasename}' 到目标 (VFS相对路径): '${archiveOutputName}'`);
+    console.error(
+      `执行7z命令: VFS当前工作目录: ${sevenZip.FS.cwd()}, (预期映射到主机: ${sourceParentAbs})`,
+    );
+    console.error(
+      `压缩源 (VFS相对路径): '${sourceBasename}' 到目标 (VFS相对路径): '${archiveOutputName}'`,
+    );
 
     sevenZip.callMain(["a", archiveOutputName, sourceBasename]);
 
-    console.error(`7z命令执行完毕。预期压缩包在VFS路径: '${mountPointVFS}/${archiveOutputName}'`);
+    console.error(
+      `7z命令执行完毕。预期压缩包在VFS路径: '${mountPointVFS}/${archiveOutputName}'`,
+    );
     console.error(`对应的主机临时路径: '${tempArchiveHostPath}'`);
 
     console.error(`VFS: 卸载 '${mountPointVFS}'`);
@@ -354,16 +422,24 @@ async function handleCompress7z(source: string, destination?: string): Promise<a
     sevenZip.FS.rmdir(mountPointVFS);
 
     if (!fs.existsSync(tempArchiveHostPath)) {
-      console.error(`错误: 压缩后临时文件未在主机上找到: ${tempArchiveHostPath}`);
+      console.error(
+        `错误: 压缩后临时文件未在主机上找到: ${tempArchiveHostPath}`,
+      );
       return {
-        content: [{ type: "text", text: `7Z压缩后错误: 临时输出文件 ${tempArchiveHostPath} 未创建。请检查7z-wasm的输出和文件系统权限。` }],
-        isError: true
+        content: [{
+          type: "text",
+          text:
+            `7Z压缩后错误: 临时输出文件 ${tempArchiveHostPath} 未创建。请检查7z-wasm的输出和文件系统权限。`,
+        }],
+        isError: true,
       };
     }
 
     // If the temporary path is different from the final desired path, move/rename the file.
     if (path.resolve(tempArchiveHostPath) !== path.resolve(finalDestPathAbs)) {
-      console.error(`移动临时压缩包 '${tempArchiveHostPath}' 到最终目标 '${finalDestPathAbs}'`);
+      console.error(
+        `移动临时压缩包 '${tempArchiveHostPath}' 到最终目标 '${finalDestPathAbs}'`,
+      );
       const finalDestDir = path.dirname(finalDestPathAbs);
       if (!fs.existsSync(finalDestDir)) {
         console.error(`创建目标目录: ${finalDestDir}`);
@@ -375,26 +451,37 @@ async function handleCompress7z(source: string, destination?: string): Promise<a
     }
 
     return {
-      content: [{ type: "text", text: `成功压缩为7Z格式: ${finalDestPathAbs}` }],
-      isError: false
+      content: [{
+        type: "text",
+        text: `成功压缩为7Z格式: ${finalDestPathAbs}`,
+      }],
+      isError: false,
     };
-
   } catch (error: any) {
     // Check if the archive was created despite a late FS error from wasm
-    if (error && error.errno === 10 && error.message === 'FS error' && finalDestPathAbs && fs.existsSync(finalDestPathAbs)) {
+    if (
+      error && error.errno === 10 && error.message === "FS error" &&
+      finalDestPathAbs && fs.existsSync(finalDestPathAbs)
+    ) {
       const successMessage = `成功压缩为7Z格式: ${finalDestPathAbs}`;
-      const warningMessage = `注意: 压缩成功，但在7z-wasm内部文件系统清理时发生了一个小错误 (FS error, errno: 10)。这通常与源文件/目录中的问题（如损坏的符号链接，请检查7-Zip输出的警告）有关，但压缩文件本身应可用。错误详情: ${error?.message}`;
+      const warningMessage =
+        `注意: 压缩成功，但在7z-wasm内部文件系统清理时发生了一个小错误 (FS error, errno: 10)。这通常与源文件/目录中的问题（如损坏的符号链接，请检查7-Zip输出的警告）有关，但压缩文件本身应可用。错误详情: ${error?.message}`;
       console.warn(warningMessage);
       return {
         content: [{ type: "text", text: successMessage }],
         isError: false, // Indicate overall success as archive exists
-        hasWarning: true // Add a flag for warnings
+        hasWarning: true, // Add a flag for warnings
       };
     }
 
     return {
-      content: [{ type: "text", text: `7Z压缩错误: ${error?.message || '未知错误'}. 堆栈跟踪: ${error?.stack || '无堆栈信息'}. 详情请查看服务端日志。` }],
-      isError: true
+      content: [{
+        type: "text",
+        text: `7Z压缩错误: ${error?.message || "未知错误"}. 堆栈跟踪: ${
+          error?.stack || "无堆栈信息"
+        }. 详情请查看服务端日志。`,
+      }],
+      isError: true,
     };
   }
 }
@@ -402,17 +489,19 @@ async function handleCompress7z(source: string, destination?: string): Promise<a
 async function handleCompressTar(source: string, destination?: string) {
   try {
     const sourcePath = path.resolve(source);
-    let destPath = destination ? path.resolve(destination) : getDefaultDestination(sourcePath, 'tar');
-    destPath = ensureExtension(destPath, 'tar');
+    let destPath = destination
+      ? path.resolve(destination)
+      : getDefaultDestination(sourcePath, "tar");
+    destPath = ensureExtension(destPath, "tar");
 
     // 检查源路径是否存在
     if (!fs.existsSync(sourcePath)) {
       return {
         content: [{
           type: "text",
-          text: `错误: 源文件或目录 '${sourcePath}' 不存在。`
+          text: `错误: 源文件或目录 '${sourcePath}' 不存在。`,
         }],
-        isError: true
+        isError: true,
       };
     }
 
@@ -422,24 +511,25 @@ async function handleCompressTar(source: string, destination?: string) {
 
     // 使用 tar 命令时，先切换到父目录，然后只压缩基本名称
     // 这样可以确保只压缩指定的文件或文件夹，而不是整个路径
-    const command = `cd '${sourceParent}' && tar -cf '${destPath}' '${sourceBasename}'`;
+    const command =
+      `cd '${sourceParent}' && tar -cf '${destPath}' '${sourceBasename}'`;
 
     await execAsync(command);
 
     return {
       content: [{
         type: "text",
-        text: `成功压缩为TAR格式: ${destPath}`
+        text: `成功压缩为TAR格式: ${destPath}`,
       }],
-      isError: false
+      isError: false,
     };
-  } catch (error:any) {
+  } catch (error: any) {
     return {
       content: [{
         type: "text",
-        text: `TAR压缩错误: ${error.message}`
+        text: `TAR压缩错误: ${error.message}`,
       }],
-      isError: true
+      isError: true,
     };
   }
 }
@@ -447,9 +537,11 @@ async function handleCompressTar(source: string, destination?: string) {
 async function handleCompressTarGz(source: string, destination?: string) {
   try {
     const sourcePath = path.resolve(source);
-    let destPath = destination ? path.resolve(destination) : getDefaultDestination(sourcePath, 'tar.gz');
+    let destPath = destination
+      ? path.resolve(destination)
+      : getDefaultDestination(sourcePath, "tar.gz");
 
-    if (!destPath.endsWith('.tar.gz')) {
+    if (!destPath.endsWith(".tar.gz")) {
       destPath = `${destPath}.tar.gz`;
     }
 
@@ -458,9 +550,9 @@ async function handleCompressTarGz(source: string, destination?: string) {
       return {
         content: [{
           type: "text",
-          text: `错误: 源文件或目录 '${sourcePath}' 不存在。`
+          text: `错误: 源文件或目录 '${sourcePath}' 不存在。`,
         }],
-        isError: true
+        isError: true,
       };
     }
 
@@ -470,24 +562,25 @@ async function handleCompressTarGz(source: string, destination?: string) {
 
     // 使用 tar 命令时，先切换到父目录，然后只压缩基本名称
     // 这样可以确保只压缩指定的文件或文件夹，而不是整个路径
-    const command = `cd '${sourceParent}' && tar -czf '${destPath}' '${sourceBasename}'`;
+    const command =
+      `cd '${sourceParent}' && tar -czf '${destPath}' '${sourceBasename}'`;
 
     await execAsync(command);
 
     return {
       content: [{
         type: "text",
-        text: `成功压缩为TAR.GZ格式: ${destPath}`
+        text: `成功压缩为TAR.GZ格式: ${destPath}`,
       }],
-      isError: false
+      isError: false,
     };
-  } catch (error:any) {
+  } catch (error: any) {
     return {
       content: [{
         type: "text",
-        text: `TAR.GZ压缩错误: ${error.message}`
+        text: `TAR.GZ压缩错误: ${error.message}`,
       }],
-      isError: true
+      isError: true,
     };
   }
 }
@@ -495,11 +588,13 @@ async function handleCompressTarGz(source: string, destination?: string) {
 async function setDirectoryPermissions(dir: string) {
   try {
     // Windows 系统使用不同的权限处理方式
-    if (process.platform === 'win32') {
+    if (process.platform === "win32") {
       try {
         const command = `icacls "${dir}" /grant Everyone:F /T /Q`; // Added /Q for quiet to suppress success messages
         await execAsync(command);
-        console.error(`Windows: Successfully applied permissions to "${dir}" using icacls.`);
+        console.error(
+          `Windows: Successfully applied permissions to "${dir}" using icacls.`,
+        );
       } catch (error) {
         console.error(`Windows 设置权限时出错 for "${dir}": ${error}`);
         // Don't re-throw, allow other operations to continue if possible
@@ -515,7 +610,9 @@ async function setDirectoryPermissions(dir: string) {
         try {
           stat = fs.lstatSync(fullPath); // Use lstat to avoid following symlinks for stat
         } catch (statError) {
-          console.error(`无法获取文件状态 ${fullPath}: ${statError}. 跳过权限设置。`);
+          console.error(
+            `无法获取文件状态 ${fullPath}: ${statError}. 跳过权限设置。`,
+          );
           continue;
         }
 
@@ -530,14 +627,17 @@ async function setDirectoryPermissions(dir: string) {
         // For simplicity, we'll attempt to chmod. If it's a symlink and chmod fails,
         // it will be caught. If it succeeds, it's likely changing the target's permissions.
         if (!stat.isSymbolicLink()) { // Only chmod if not a symlink
-            const mode = stat.isDirectory() ? 0o755 : 0o644;
-            try {
-                await chmod(fullPath, mode);
-            } catch (chmodError) {
-                console.error(`设置权限时出错 ${fullPath} to ${mode.toString(8)}: ${chmodError}`);
-            }
+          const mode = stat.isDirectory() ? 0o755 : 0o644;
+          try {
+            await chmod(fullPath, mode);
+          } catch (chmodError) {
+            console.error(
+              `设置权限时出错 ${fullPath} to ${
+                mode.toString(8)
+              }: ${chmodError}`,
+            );
+          }
         }
-
 
         // 如果是目录，递归处理
         if (stat.isDirectory()) {
@@ -551,30 +651,41 @@ async function setDirectoryPermissions(dir: string) {
   }
 }
 
-async function handleExtract(source: string, destination: string = 'current', targetDir?: string): Promise<any> {
+async function handleExtract(
+  source: string,
+  destination: string = "current",
+  targetDir?: string,
+): Promise<any> {
   try {
     const sourcePath = path.resolve(source);
 
     if (!fs.existsSync(sourcePath)) {
       return {
-        content: [{ type: "text", text: `错误: 源文件 '${sourcePath}' 不存在。` }],
-        isError: true
+        content: [{
+          type: "text",
+          text: `错误: 源文件 '${sourcePath}' 不存在。`,
+        }],
+        isError: true,
       };
     }
 
     let extractDir: string;
     switch (destination) {
-      case 'desktop':
+      case "desktop":
         extractDir = getDesktopPath();
         break;
-      case 'current':
+      case "current":
         extractDir = getCurrentDirectory();
         break;
-      case 'specified':
+      case "specified":
         if (!targetDir) {
           return {
-            content: [{ type: "text", text: `错误: 当destination为'specified'时，必须提供target_dir参数。` }],
-            isError: true
+            content: [{
+              type: "text",
+              text:
+                `错误: 当destination为'specified'时，必须提供target_dir参数。`,
+            }],
+            isError: true,
           };
         }
         extractDir = targetDir;
@@ -592,29 +703,33 @@ async function handleExtract(source: string, destination: string = 'current', ta
 
     // Logic for .7z extraction has been removed.
     // Existing logic for other formats (zip, tar, tar.gz)
-    if (process.platform === 'win32') {
-      if (ext === '.zip') {
-        command = `powershell -command "Expand-Archive -Path '${sourcePath}' -DestinationPath '${extractDir}' -Force"`;
-      } else if (ext === '.tar') {
+    if (process.platform === "win32") {
+      if (ext === ".zip") {
+        command =
+          `powershell -command "Expand-Archive -Path '${sourcePath}' -DestinationPath '${extractDir}' -Force"`;
+      } else if (ext === ".tar") {
         command = `tar -xf '${sourcePath}' -C '${extractDir}'`;
-      } else if (ext === '.gz' && sourcePath.endsWith('.tar.gz')) {
+      } else if (ext === ".gz" && sourcePath.endsWith(".tar.gz")) {
         command = `tar -xzf '${sourcePath}' -C '${extractDir}'`;
       } // No 7z handling here anymore
     } else {
       // Unix/Linux commands
-      if (ext === '.zip') {
+      if (ext === ".zip") {
         command = `unzip -o '${sourcePath}' -d '${extractDir}'`; // 添加 -o 覆盖
-      } else if (ext === '.tar') {
+      } else if (ext === ".tar") {
         command = `tar -xf '${sourcePath}' -C '${extractDir}'`;
-      } else if (ext === '.gz' && sourcePath.endsWith('.tar.gz')) {
+      } else if (ext === ".gz" && sourcePath.endsWith(".tar.gz")) {
         command = `tar -xzf '${sourcePath}' -C '${extractDir}'`;
       } // No 7z handling here anymore
     }
 
     if (!command) {
       return {
-        content: [{ type: "text", text: `不支持的文件扩展名: ${ext} (无法确定解压命令). 7z解压已移除.` }],
-        isError: true
+        content: [{
+          type: "text",
+          text: `不支持的文件扩展名: ${ext} (无法确定解压命令). 7z解压已移除.`,
+        }],
+        isError: true,
       };
     }
 
@@ -623,27 +738,42 @@ async function handleExtract(source: string, destination: string = 'current', ta
 
     // DEBUG: Check files in extractDir after generic system command execution
     try {
-        const filesInExtractDir = fs.readdirSync(extractDir);
-        console.error(`DEBUG: 通用系统命令解压后，主机目录 '${extractDir}' 中的文件: ${filesInExtractDir.join(', ') || '[空目录]'} (数量: ${filesInExtractDir.length})`);
-        if (filesInExtractDir.length === 0) {
-            console.warn(`DEBUG 警告: 通用系统命令解压后，主机目录 '${extractDir}' 为空。`);
-        }
+      const filesInExtractDir = fs.readdirSync(extractDir);
+      console.error(
+        `DEBUG: 通用系统命令解压后，主机目录 '${extractDir}' 中的文件: ${
+          filesInExtractDir.join(", ") || "[空目录]"
+        } (数量: ${filesInExtractDir.length})`,
+      );
+      if (filesInExtractDir.length === 0) {
+        console.warn(
+          `DEBUG 警告: 通用系统命令解压后，主机目录 '${extractDir}' 为空。`,
+        );
+      }
     } catch (e: any) {
-        console.error(`DEBUG 错误: 通用系统命令解压后，读取主机目录 '${extractDir}' 失败:`, e.message);
+      console.error(
+        `DEBUG 错误: 通用系统命令解压后，读取主机目录 '${extractDir}' 失败:`,
+        e.message,
+      );
     }
     await setDirectoryPermissions(extractDir);
     return {
-      content: [{ type: "text", text: `成功解压 '${sourcePath}' 到 '${extractDir}' 并设置了适当的权限` }],
-      isError: false
+      content: [{
+        type: "text",
+        text: `成功解压 '${sourcePath}' 到 '${extractDir}' 并设置了适当的权限`,
+      }],
+      isError: false,
     };
-
   } catch (error: any) {
     // Use source (function parameter) directly in catch block for robustness in logging,
     // even though sourcePath should be in scope.
-    console.error(`解压时发生意外错误 for ${source /* instead of sourcePath */}:`, error.message, error.stack);
+    console.error(
+      `解压时发生意外错误 for ${source /* instead of sourcePath */}:`,
+      error.message,
+      error.stack,
+    );
     return {
       content: [{ type: "text", text: `解压时发生意外错误: ${error.message}` }],
-      isError: true
+      isError: true,
     };
   }
 }
@@ -667,7 +797,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 }));
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  console.error("MCP Server: Received CallToolRequest:", JSON.stringify(request, null, 2));
+  console.error(
+    "MCP Server: Received CallToolRequest:",
+    JSON.stringify(request, null, 2),
+  );
   try {
     switch (request.params.name) {
       case "compress": {
@@ -680,11 +813,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "extract": {
-        const { source, destination, target_dir } = request.params.arguments as {
-          source: string;
-          destination?: string;
-          target_dir?: string;
-        };
+        const { source, destination, target_dir } = request.params
+          .arguments as {
+            source: string;
+            destination?: string;
+            target_dir?: string;
+          };
         return await handleExtract(source, destination, target_dir);
       }
 
@@ -692,18 +826,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return {
           content: [{
             type: "text",
-            text: `未知工具: ${request.params.name}`
+            text: `未知工具: ${request.params.name}`,
           }],
-          isError: true
+          isError: true,
         };
     }
   } catch (error) {
     return {
       content: [{
         type: "text",
-        text: `错误: ${error instanceof Error ? error.message : String(error)}`
+        text: `错误: ${error instanceof Error ? error.message : String(error)}`,
       }],
-      isError: true
+      isError: true,
     };
   }
 });

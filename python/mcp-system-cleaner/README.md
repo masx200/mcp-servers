@@ -15,6 +15,7 @@
 ## 清理目标
 
 ### Windows
+
 - 临时文件夹 (%TEMP%, Windows\Temp)
 - 浏览器缓存 (Chrome, Edge, Firefox)
 - 系统缓存 (Prefetch, WER, SoftwareDistribution)
@@ -23,6 +24,7 @@
 - 回收站
 
 ### macOS
+
 - 系统缓存 (~/Library/Caches)
 - 应用程序缓存和日志
 - 浏览器缓存 (Safari, Chrome, Firefox)
@@ -31,6 +33,7 @@
 - 废纸篓
 
 ### Linux
+
 - 临时文件夹 (/tmp, /var/tmp)
 - 用户缓存 (~/.cache)
 - 系统缓存 (/var/cache)
@@ -51,29 +54,31 @@
 ```bash
 uv pip install psutil
 ```
+
 ### 运行
 
 ```bash
- mcp dev server.py
+mcp dev server.py
 ```
 
 ### json配置
 
 ```bash
-  "system_cleaner": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "path/mcp-servers/mcp/python/mcp-system-cleaner",
-        "run",
-        "server.py"
-      ],
-      "disabled": false,
-      "autoApprove": []
-    }
+"system_cleaner": {
+    "command": "uv",
+    "args": [
+      "--directory",
+      "path/mcp-servers/mcp/python/mcp-system-cleaner",
+      "run",
+      "server.py"
+    ],
+    "disabled": false,
+    "autoApprove": []
+  }
 ```
 
 ### API 说明
+
 - 服务基于 MCP 协议提供以下核心工具：
 
 - clean_system() - 执行全系统垃圾清理

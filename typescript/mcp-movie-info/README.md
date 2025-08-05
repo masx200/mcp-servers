@@ -1,6 +1,7 @@
 # 电影影讯 MCP 服务器
 
-这是一个基于 Model Context Protocol (MCP) 的电影影讯查询工具，允许 AI 模型获取最新的电影信息、影院信息以及相关查询。
+这是一个基于 Model Context Protocol (MCP) 的电影影讯查询工具，允许 AI
+模型获取最新的电影信息、影院信息以及相关查询。
 
 ## 功能特点
 
@@ -16,6 +17,7 @@
 > 注意：需要在[极速数据](https://www.jisuapi.com/api/movie/)申请"电影影讯"API的APPKEY作为API密钥。
 
 ## 使用方法
+
 ```json
 {
   "mcpServers": {
@@ -73,6 +75,7 @@
 ### 当前上映电影查询示例
 
 输入:
+
 ```json
 {
   "city": "北京",
@@ -81,6 +84,7 @@
 ```
 
 输出:
+
 ```json
 {
   "status": 0,
@@ -94,7 +98,7 @@
         "movieid": "123456",
         "moviename": "示例电影",
         "pic": "http://example.com/movie.jpg"
-      },
+      }
       // 更多电影...
     ]
   }
@@ -104,6 +108,7 @@
 ### 电影详情查询示例
 
 输入:
+
 ```json
 {
   "movieid": "123456"
@@ -111,6 +116,7 @@
 ```
 
 输出:
+
 ```json
 {
   "status": 0,
