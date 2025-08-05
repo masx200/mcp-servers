@@ -51,9 +51,7 @@ function numericalIntegrate(
 }
 
 // 解析积分表达式
-function parseIntegrate(
-  input: string
-): {
+function parseIntegrate(input: string): {
   expression: string;
   variable: string;
   lower: number;
@@ -110,13 +108,17 @@ function calculateDerivative(expression: string, variable: string): string {
 
 function factory() {
   // Create MCP server
-  const server = new McpServer({
-    name: "mcp-math-eval",
-    version: "1.0.0",
-    capabilities: {
-      tools: {},
+  const server = new McpServer(
+    {
+      name: "mcp-math-eval",
+      version: "1.0.0",
     },
-  });
+    {
+      capabilities: {
+        tools: {},
+      },
+    }
+  );
 
   // 定义工具
   const tools: Tool[] = [
