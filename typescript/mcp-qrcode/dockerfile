@@ -26,7 +26,7 @@ run apt clean
 WORKDIR /usr/local/lib/node_modules/@masx200/mcp-qrcode
 run rm -rfv /usr/local/lib/node_modules/@masx200/mcp-qrcode/*
 copy ./* /usr/local/lib/node_modules/@masx200/mcp-qrcode
-copy ./src /usr/local/lib/node_modules/@masx200/mcp-qrcode/src
+
 copy . .
 EXPOSE 8000 
 
