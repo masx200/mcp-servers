@@ -1,5 +1,5 @@
 {
-  "name": "@mcpcn/mcp-qrcode",
+  "name": "@masx200/mcp-qrcode",
   "version": "1.0.1",
   "description": "QR Code generation and decoding MCP server",
   "main": "dist/index.js",
@@ -16,8 +16,10 @@
     "README.md"
   ],
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.9.0",
+    "@modelcontextprotocol/sdk": "^1.17.1",
+    "@types/express": "^5.0.3",
     "axios": "^1.8.4",
+    "express": "^5.1.0",
     "jimp": "^0.22.12",
     "qrcode": "^1.5.3",
     "qrcode-reader": "^1.0.4",

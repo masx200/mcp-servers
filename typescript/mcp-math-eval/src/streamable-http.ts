@@ -22,7 +22,7 @@ function numericalIntegrate(
   variable: string,
   a: number,
   b: number,
-  n: number = 1000
+  n: number = 1000,
 ): number {
   if (n % 2 !== 0) n++; // 确保n是偶数
 
@@ -59,7 +59,7 @@ function parseIntegrate(input: string): {
 } | null {
   // 匹配 integrate("表达式", "变量", 下限, 上限) 格式
   const match = input.match(
-    /integrate\s*\(\s*["']([^"']+)["']\s*,\s*["']([^"']+)["']\s*,\s*([^,]+)\s*,\s*([^)]+)\s*\)/i
+    /integrate\s*\(\s*["']([^"']+)["']\s*,\s*["']([^"']+)["']\s*,\s*([^,]+)\s*,\s*([^)]+)\s*\)/i,
   );
 
   if (match) {
@@ -76,11 +76,11 @@ function parseIntegrate(input: string): {
 
 // 解析导数表达式
 function parseDerivative(
-  input: string
+  input: string,
 ): { expression: string; variable: string } | null {
   // 匹配 derivative("表达式", "变量") 格式
   const match = input.match(
-    /derivative\s*\(\s*["']([^"']+)["']\s*,\s*["']([^"']+)["']\s*\)/i
+    /derivative\s*\(\s*["']([^"']+)["']\s*,\s*["']([^"']+)["']\s*\)/i,
   );
 
   if (match) {
@@ -101,7 +101,7 @@ function calculateDerivative(expression: string, variable: string): string {
     return derivative.toString();
   } catch (error) {
     throw new Error(
-      `导数计算失败: ${error instanceof Error ? error.message : "未知错误"}`
+      `导数计算失败: ${error instanceof Error ? error.message : "未知错误"}`,
     );
   }
 }
@@ -117,7 +117,7 @@ function factory() {
       capabilities: {
         tools: {},
       },
-    }
+    },
   );
 
   // 定义工具
@@ -180,7 +180,7 @@ function factory() {
             // 计算导数
             const result = calculateDerivative(
               derivativeParams.expression,
-              derivativeParams.variable
+              derivativeParams.variable,
             );
 
             return {
@@ -214,7 +214,7 @@ derivative("表达式", "变量")
               integralParams.expression,
               integralParams.variable,
               integralParams.lower,
-              integralParams.upper
+              integralParams.upper,
             );
 
             const formattedResult = Number.isInteger(result)
@@ -281,8 +281,9 @@ integrate("表达式", "变量", 下限, 上限)
             };
           }
         } catch (error) {
-          const errorMessage =
-            error instanceof Error ? error.message : "未知错误";
+          const errorMessage = error instanceof Error
+            ? error.message
+            : "未知错误";
 
           return {
             content: [
@@ -308,7 +309,7 @@ integrate("表达式", "变量", 下限, 上限)
       }
 
       throw new Error(`未知工具：${name}`);
-    }
+    },
   );
 
   return server;
@@ -321,7 +322,7 @@ app.use(authenticateToken);
 async function authenticateToken(
   req: express.Request,
   res: express.Response,
-  next: express.NextFunction
+  next: express.NextFunction,
 ) {
   const token = process.env.HTTP_API_TOKEN;
   if (!token) {
@@ -410,7 +411,7 @@ app.post("/mcp", authenticateToken, async (req, res) => {
 // Reusable handler for GET and DELETE requests
 async function handleSessionRequest(
   req: express.Request,
-  res: express.Response
+  res: express.Response,
 ) {
   const sessionId = req.headers["mcp-session-id"];
   if (!sessionId || !transports.has(sessionId)) {
@@ -437,7 +438,7 @@ app.listen(PORT, (err) => {
   console.log(`MCP calculator streamable HTTP server configuration:`);
   console.log(JSON.stringify({ HTTP_API_TOKEN, HTTP_API_PORT }, null, 4));
   console.log(
-    `MCP calculator streamable HTTP server listening on http://localhost:${PORT}`
+    `MCP calculator streamable HTTP server listening on http://localhost:${PORT}`,
   );
   console.log(`MCP endpoint: http://localhost:${PORT}/mcp`);
 
@@ -446,7 +447,7 @@ app.listen(PORT, (err) => {
     console.log("HTTP API token authentication enabled,token:", token);
   } else {
     console.log(
-      "HTTP API token authentication disabled (anonymous access allowed)"
+      "HTTP API token authentication disabled (anonymous access allowed)",
     );
   }
 });
